@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroOps Studio | Linear & Railway Command Studio (Variant 1)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles-linear.css">
+</head>
+<body class="linear-theme">
+  <!-- Top Variant Switcher Navigation Bar -->
+  <nav class="variant-switcher-bar">
+    <span class="switcher-label">DESIGN VARIANTS:</span>
+    <a href="variant1-linear.html" class="v-tab active">
+      <span class="v-icon">⚡</span> Variant 1: Linear / Railway (Command Deck)
+    </a>
+    <a href="variant2-vercel.html" class="v-tab">
+      <span class="v-icon">▲</span> Variant 2: Vercel / Next (Monochrome)
+    </a>
+    <a href="variant3-supabase.html" class="v-tab">
+      <span class="v-icon">⚡</span> Variant 3: Supabase (Emerald Cloud Mesh)
+    </a>
+  </nav>
+
+  <div class="studio-shell">
+    <!-- Linear Header -->
+    <header class="linear-header">
+      <div class="header-left">
+        <div class="app-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+        </div>
+        <div class="brand-group">
+          <h2>ZeroOps Engine</h2>
+          <span class="project-tag">zerops-zcp / production</span>
+        </div>
+      </div>
+
+      <div class="header-center">
+        <div class="cmd-pill">
+          <span class="cmd-kbd">⌘K</span>
+          <span>Quick Actions</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="status-badge">
+          <span class="dot pulse"></span>
+          <span>ZCP MCP Agent Active</span>
+        </div>
+        <div class="subnet-badge">10.160.0.0/16</div>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="linear-workspace">
+      <!-- Left Panel: Prompt & Topology -->
+      <section class="linear-card">
+        <div class="card-head">
+          <div class="head-title">
+            <span class="num">01</span>
+            <h3>Prompt-to-Cloud Spec</h3>
+          </div>
+          <span class="badge-indigo">AI Polyglot Synthesizer</span>
+        </div>
+
+        <form id="prompt-form-v1" class="linear-form">
+          <div class="prompt-box-wrap">
+            <textarea id="prompt-input-v1" class="linear-textarea" placeholder="e.g. Build an AI PDF summarizer SaaS with user auth, background queue processing, PostgreSQL storage, and Valkey caching" required></textarea>
+            <div class="box-footer">
+              <span class="foot-txt">ZCP 2.0 Engine · LXD Container Target</span>
+              <span class="foot-kbd">Press ↵ to Deploy</span>
+            </div>
+          </div>
+
+          <!-- Raycast style preset action chips -->
+          <div class="chip-row">
+            <button type="button" class="ray-chip" data-prompt="AI Video Clipper SaaS with Next.js, Go API, Python Whisper worker, PostgreSQL, and Valkey">
+              <span class="chip-shortcut">⌘1</span>
+              <span>🎬 AI Video Clipper Stack</span>
+            </button>
+            <button type="button" class="ray-chip" data-prompt="E-Commerce API with Bun frontend, Go backend, PostgreSQL HA, Valkey cache, and Meilisearch">
+              <span class="chip-shortcut">⌘2</span>
+              <span>🛒 Multi-Service E-Com Engine</span>
+            </button>
+            <button type="button" class="ray-chip" data-prompt="Enterprise RAG Search Engine with React, FastAPI, Typesense, PostgreSQL pgvector, and Valkey">
+              <span class="chip-shortcut">⌘3</span>
+              <span>🧠 Private Vector RAG Stack</span>
+            </button>
+          </div>
+
+          <button type="submit" id="deploy-btn-v1" class="linear-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Synthesize &amp; Deploy on Zerops via ZCP</span>
+          </button>
+        </form>
+
+        <!-- SVG Bezier Curve Infrastructure Topology Canvas -->
+        <div class="mesh-card">
+          <div class="mesh-head">
+            <h4>Zerops Micro-Container Topology</h4>
+            <span class="count-tag">5 Services Active</span>
+          </div>
+
+          <!-- SVG Canvas connecting Nodes -->
+          <div class="svg-topology-wrap">
+            <svg class="topo-svg" id="topo-svg" viewBox="0 0 500 240">
+              <path d="M 120 60 Q 250 30 380 60" class="svg-edge" id="edge-fe-api" />
+              <path d="M 120 60 Q 250 120 380 180" class="svg-edge" id="edge-fe-worker" />
+              <path d="M 380 60 Q 250 140 120 180" class="svg-edge" id="edge-api-db" />
+              <path d="M 380 180 Q 250 180 380 180" class="svg-edge" id="edge-worker-cache" />
+            </svg>
+
+            <div class="nodes-grid">
+              <div class="node-item" id="v1-node-web-frontend" data-service="web-frontend">
+                <div class="node-header">
+                  <span class="n-icon">🌐</span>
+                  <span class="n-name">web-frontend</span>
+                  <span class="n-status status-idle">IDLE</span>
+                </div>
+                <div class="n-details">
+                  <span class="n-sub">Bun@1 · SSR</span>
+                  <span class="n-ip">10.160.0.12:3000</span>
+                </div>
+              </div>
+
+              <div class="node-item" id="v1-node-api-gateway" data-service="api-gateway">
+                <div class="node-header">
+                  <span class="n-icon">⚙️</span>
+                  <span class="n-name">api-gateway</span>
+                  <span class="n-status status-idle">IDLE</span>
+                </div>
+                <div class="n-details">
+                  <span class="n-sub">Go@1.22 · REST</span>
+                  <span class="n-ip">10.160.0.15:8080</span>
+                </div>
+              </div>
+
+              <div class="node-item" id="v1-node-ai-worker" data-service="ai-worker">
+                <div class="node-header">
+                  <span class="n-icon">🐍</span>
+                  <span class="n-name">ai-worker</span>
+                  <span class="n-status status-idle">IDLE</span>
+                </div>
+                <div class="n-details">
+                  <span class="n-sub">Python@3.12 · Queue</span>
+                  <span class="n-ip">10.160.0.18:5000</span>
+                </div>
+              </div>
+
+              <div class="node-item" id="v1-node-db-postgres" data-service="db-postgres">
+                <div class="node-header">
+                  <span class="n-icon">🐘</span>
+                  <span class="n-name">db-postgres</span>
+                  <span class="n-status status-idle">IDLE</span>
+                </div>
+                <div class="n-details">
+                  <span class="n-sub">Postgres@16 · HA</span>
+                  <span class="n-ip">10.160.0.21:5432</span>
+                </div>
+              </div>
+
+              <div class="node-item" id="v1-node-cache-valkey" data-service="cache-valkey">
+                <div class="node-header">
+                  <span class="n-icon">⚡</span>
+                  <span class="n-name">cache-valkey</span>
+                  <span class="n-status status-idle">IDLE</span>
+                </div>
+                <div class="n-details">
+                  <span class="n-sub">Valkey@7.2 · Cache</span>
+                  <span class="n-ip">10.160.0.25:6379</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Warp Terminal & Code Inspector -->
+      <section class="linear-card">
+        <div class="card-tabs">
+          <button class="c-tab active" data-tab="term-tab">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+            <span>ZCP Build Stream</span>
+          </button>
+          <button class="c-tab" data-tab="yaml-tab">
+            <span>zerops.yml</span>
+          </button>
+          <button class="c-tab" data-tab="code-tab">
+            <span>Code Inspector</span>
+          </button>
+        </div>
+
+        <!-- Terminal Tab -->
+        <div class="c-pane active" id="term-tab">
+          <div class="warp-terminal">
+            <div class="term-bar">
+              <span class="term-title">zcp-control-plane://log-stream.stdout</span>
+              <button type="button" id="clear-term-v1" class="term-btn">Clear</button>
+            </div>
+            <pre class="term-body" id="term-body-v1">ZeroOps Command Studio Ready. Enter a prompt and submit to stream real-time ZCP container build logs...</pre>
+          </div>
+        </div>
+
+        <!-- zerops.yml Tab -->
+        <div class="c-pane" id="yaml-tab">
+          <div class="code-box">
+            <pre class="code-body" id="yaml-body-v1"># zerops.yml blueprint preview will appear here...</pre>
+          </div>
+        </div>
+
+        <!-- Code Inspector Tab -->
+        <div class="c-pane" id="code-tab">
+          <div class="code-box" id="code-body-v1">
+            <p class="empty-txt">Synthesized polyglot files will appear here...</p>
+          </div>
+        </div>
+
+        <!-- Success Banner -->
+        <div class="success-banner hidden" id="success-banner-v1">
+          <div class="s-left">
+            <span class="s-badge">✔ 100% HEALTH AUDITS PASSED</span>
+            <h4>Full-Stack SaaS Deployed on Zerops!</h4>
+            <p>5 LXD Containers provisioned, wired, and verified over Zerops Private Subnet.</p>
+          </div>
+          <div class="s-right">
+            <a href="#" id="live-link-v1" target="_blank" class="s-btn">Open Live App ↗</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app-v1.js"></script>
+</body>
+</html>

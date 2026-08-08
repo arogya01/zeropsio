@@ -1,0 +1,35 @@
+# zerops.yml - Production Deployment for ZeroOps Engine
+zerops:
+  # Main Studio Server (Node.js API + WebSockets)
+  - setup: zeroops-studio
+    build:
+      base: nodejs@20
+      buildCommands:
+        - npm ci
+      deployFiles:
+        - src
+        - public
+        - package.json
+        - package-lock.json
+    run:
+      base: nodejs@20
+      start: node src/server/index.js
+      ports:
+        - port: 3000
+          http: true
+      envVariables:
+        PORT: 3000
+        NODE_ENV: production
+        ZEROPS_API_TOKEN: ${ZEROPS_API_TOKEN}
+        VALKEY_HOST: zeroops-cache
+        VALKEY_PORT: 6379
+
+  # Internal Cache Service (Valkey)
+  - setup: zeroops-cache
+    build:
+      base: valkey@7.2
+    run:
+      base: valkey@7.2
+      ports:
+        - port: 6379
+          http: false

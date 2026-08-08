@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZeroOps Web Studio — Autonomous Cloud Factory</title>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- xterm.js stylesheet -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" />
+
+  <!-- Custom Dark Theme Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark-theme">
+  <div id="app">
+    <!-- Top Header Navigation Bar -->
+    <header class="studio-header">
+      <div class="brand">
+        <div class="logo-icon">⚡</div>
+        <div class="brand-text">
+          <h1>ZeroOps Studio</h1>
+          <span class="badge-tag">AUTONOMOUS CLOUD FACTORY</span>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <div class="status-indicator">
+          <span class="status-dot" id="ws-status-dot"></span>
+          <span id="ws-status-text">Connecting...</span>
+        </div>
+        <div class="system-tag">ZCP Engine v1.0</div>
+      </div>
+    </header>
+
+    <!-- Main Container Layout -->
+    <main class="studio-container">
+
+      <!-- Left / Top Control Panel (Prompt Input & Stack Blueprint Selection) -->
+      <section class="card prompt-card">
+        <div class="card-header">
+          <h2>Synthesize Cloud Application Stack</h2>
+          <p class="subtitle">Describe your app architecture in natural language or pick a sample preset blueprint.</p>
+        </div>
+
+        <div class="preset-pills">
+          <button type="button" class="preset-btn" data-prompt="AI Video Clipper SaaS with Next.js frontend, Go API Gateway, Python worker, Managed PostgreSQL, and Valkey cache">
+            🎬 AI Video Clipper
+          </button>
+          <button type="button" class="preset-btn" data-prompt="E-Commerce Microservices Stack with Bun web store, Go payment API, Rust order worker, Postgres HA, and Valkey cache">
+            🛒 E-Commerce Stack
+          </button>
+          <button type="button" class="preset-btn" data-prompt="Realtime IoT Analytics Engine with React dashboard, Node API, Python ingestion worker, PostgreSQL DB, and Valkey Cache">
+            ⚡ IoT Analytics Engine
+          </button>
+        </div>
+
+        <form id="synthesis-form">
+          <div class="input-wrapper">
+            <textarea id="prompt-input" rows="3" placeholder="e.g. Build an AI-powered image generator SaaS with Next.js frontend, Go API Gateway, Python worker queue, PostgreSQL database, and Valkey cache..."></textarea>
+          </div>
+
+          <div class="action-bar">
+            <div class="project-name-group">
+              <label for="project-name-input">Project Name:</label>
+              <input type="text" id="project-name-input" placeholder="my-cloud-app" value="zeroops-cloud-stack" />
+            </div>
+
+            <div class="button-group">
+              <button type="button" id="btn-synthesize" class="btn btn-secondary">
+                <span>🔍 Synthesize Stack</span>
+              </button>
+              <button type="submit" id="btn-deploy" class="btn btn-primary">
+                <span>🚀 Deploy to Zerops</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- Live Container Topology Map Card -->
+      <section class="card topology-card">
+        <div class="card-header flex-between">
+          <div>
+            <h2>2D VXLAN Container Topology Map</h2>
+            <p class="subtitle">Interactive visualization of multi-container runtime state & inter-service network routing.</p>
+          </div>
+          <div class="topology-legend">
+            <span class="legend-item"><span class="dot healthy"></span> Healthy</span>
+            <span class="legend-item"><span class="dot building"></span> Building</span>
+            <span class="legend-item"><span class="dot failed"></span> Failed</span>
+            <span class="legend-item"><span class="dot idle"></span> Idle</span>
+          </div>
+        </div>
+
+        <div class="canvas-wrapper">
+          <canvas id="topology-canvas" width="940" height="300"></canvas>
+          <div id="node-detail-panel" class="node-detail-popover hidden">
+            <div class="popover-header">
+              <h4 id="detail-node-name">Container Name</h4>
+              <button type="button" id="close-popover">&times;</button>
+            </div>
+            <div class="popover-body">
+              <div class="detail-row"><span>Type:</span> <strong id="detail-node-type">Runtime</strong></div>
+              <div class="detail-row"><span>Status:</span> <strong id="detail-node-status">HEALTHY</strong></div>
+              <div class="detail-row"><span>Private IP:</span> <code id="detail-node-ip">10.160.0.12</code></div>
+              <div class="detail-row"><span>Subnet:</span> <code>10.160.0.0/20</code></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Multi-Tab Console Panel (Log Terminal / zerops.yml / Synthesized Code) -->
+      <section class="card console-card">
+        <div class="tab-header">
+          <button type="button" class="tab-btn active" data-tab="tab-terminal">
+            <span>⚡ Build & Runtime Log Streamer (xterm.js)</span>
+          </button>
+          <button type="button" class="tab-btn" data-tab="tab-yaml">
+            <span>📄 zerops.yml Blueprint</span>
+          </button>
+          <button type="button" class="tab-btn" data-tab="tab-code">
+            <span>💻 Synthesized Code Inspector</span>
+          </button>
+        </div>
+
+        <div class="tab-content">
+          <!-- Tab 1: Terminal Log Streamer -->
+          <div id="tab-terminal" class="tab-pane active">
+            <div id="terminal-container" class="terminal-box"></div>
+          </div>
+
+          <!-- Tab 2: zerops.yml Blueprint -->
+          <div id="tab-yaml" class="tab-pane">
+            <div class="code-view-container">
+              <pre id="yaml-viewer" class="code-block"><code># Click "Synthesize Stack" or "Deploy" to generate zerops.yml blueprint...</code></pre>
+            </div>
+          </div>
+
+          <!-- Tab 3: Synthesized Code Inspector -->
+          <div id="tab-code" class="tab-pane">
+            <div class="code-inspector-layout">
+              <div id="file-tree" class="file-tree-sidebar">
+                <div class="tree-title">Synthesized Files</div>
+                <ul id="file-tree-list">
+                  <li class="empty-state">No files synthesized yet</li>
+                </ul>
+              </div>
+              <div class="code-preview-main">
+                <div class="file-path-header" id="selected-file-path">Select a file to inspect</div>
+                <pre id="code-viewer" class="code-block"><code>// Synthesized application code (UI components, REST/gRPC API, queue worker, SQL schema) will appear here...</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Success Deployment Banner -->
+      <section id="success-banner" class="card success-card hidden">
+        <div class="success-content">
+          <div class="success-icon">🎉</div>
+          <div class="success-details">
+            <h3>Stack Successfully Synthesized & Live on Zerops!</h3>
+            <p>All 5 multi-container runtimes & managed DB services are healthy and wired via private VXLAN.</p>
+            <div class="live-url-box">
+              <span class="url-label">Verified Live URL:</span>
+              <a id="live-url-link" href="#" target="_blank" rel="noopener noreferrer">https://zeroops-cloud-stack.zerops.app</a>
+              <button type="button" id="copy-url-btn" class="btn btn-sm">Copy URL</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="studio-footer">
+      <p>ZeroOps Engine — Autonomous Cloud Factory & Zerops Control Plane Integration</p>
+    </footer>
+  </div>
+
+  <!-- xterm.js scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+
+  <!-- Application Modules -->
+  <script src="topology-canvas.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

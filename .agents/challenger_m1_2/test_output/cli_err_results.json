@@ -1,0 +1,253 @@
+[
+  {
+    "id": "CLI-1.1",
+    "category": "CLI Flags",
+    "description": "synthesize with standard prompt",
+    "passed": true,
+    "details": "✔ Stack topology synthesized for project: zeroops-app\n\n--- zerops-project-import.yml ---\nproject:\n  name: zeroops-app\n  services:\n    - name: postgres\n      type: postgresql@16\n      mode: HA\n    - name: valkey\n      type: valkey@7\n      mode: HA\n    - name: frontend\n      type: nodejs@20\n      mode: NON_HA\n    - name: api\n      type: go@1.22\n      mode: NON_HA\n    - name: worker\n      type: python@3.11\n      mode: NON_HA\n\n\n--- zerops.yml ---\nzerops:\n  - setup: frontend\n    build:\n      base: nodejs@20\n      os: ubuntu\n      buildCommands:\n        - npm ci\n        - npm run build\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /\n          port: 3000\n    run:\n      base: nodejs@20\n      os: ubuntu\n      ports:\n        - port: 3000\n          protocol: TCP\n          httpSupport: true\n      start: npm start\n      envVariables:\n        PORT: '3000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: api\n    build:\n      base: go@1.22\n      os: ubuntu\n      buildCommands:\n        - go build -o bin/api ./cmd/api\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8080\n    run:\n      base: go@1.22\n      os: ubuntu\n      ports:\n        - port: 8080\n          protocol: TCP\n          httpSupport: true\n      start: ./bin/api\n      envVariables:\n        PORT: '8080'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: worker\n    build:\n      base: python@3.11\n      os: ubuntu\n      buildCommands:\n        - pip install -r requirements.txt\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8000\n    run:\n      base: python@3.11\n      os: ubuntu\n      ports:\n        - port: 8000\n          protocol: TCP\n          httpSupport: true\n      start: python main.py\n      envVariables:\n        PORT: '8000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n\n"
+  },
+  {
+    "id": "CLI-1.2",
+    "category": "CLI Flags",
+    "description": "synthesize --json outputs valid JSON structure",
+    "passed": "zerops:\n  - setup: frontend\n    build:\n      base: nodejs@20\n      os: ubuntu\n      buildCommands:\n        - npm ci\n        - npm run build\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /\n          port: 3000\n    run:\n      base: nodejs@20\n      os: ubuntu\n      ports:\n        - port: 3000\n          protocol: TCP\n          httpSupport: true\n      start: npm start\n      envVariables:\n        PORT: '3000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: api\n    build:\n      base: go@1.22\n      os: ubuntu\n      buildCommands:\n        - go build -o bin/api ./cmd/api\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8080\n    run:\n      base: go@1.22\n      os: ubuntu\n      ports:\n        - port: 8080\n          protocol: TCP\n          httpSupport: true\n      start: ./bin/api\n      envVariables:\n        PORT: '8080'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: worker\n    build:\n      base: python@3.11\n      os: ubuntu\n      buildCommands:\n        - pip install -r requirements.txt\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8000\n    run:\n      base: python@3.11\n      os: ubuntu\n      ports:\n        - port: 8000\n          protocol: TCP\n          httpSupport: true\n      start: python main.py\n      envVariables:\n        PORT: '8000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n",
+    "details": "{\n  \"topology\": {\n    \"projectName\": \"zeroops-app\",\n    \"runtimes\": [\n      {\n        \"name\": \"frontend\",\n        \"runtime\": \"nodejs\",\n        \"ports\": [\n          3000\n        ],\n        \"envVariables\": {\n          \"PORT\": \"3000\",\n          \"NODE_ENV\": \"production\",\n          \"DB_HOST\": \"postgres\",\n          \"DB_PORT\": \"5432\",\n          \"DB_USER\": \"zerops\",\n          \"DB_PASSWORD\": \"zerops_secure_pass_2026\",\n          \"DB_NAME\": \"zeroops_db\",\n          \"DATABASE_URL\": \"postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\",\n          \"VALKEY_HOST\": \"valkey\",\n          \"VALKEY_PORT\": \"6379\",\n          \"REDIS_URL\": \"redis://valkey:6379\",\n          \"API_HOST\": \"api\",\n          \"API_PORT\": \"8080\",\n          \"API_URL\": \"http://api:8080\"\n        },\n        \"buildCommands\": [\n          \"npm ci\",\n          \"npm run build\"\n        ],\n        \"runCommand\": \"npm start\",\n        \"readinessPath\": \"/\"\n      },\n      {\n        \"name\": \"api\",\n        \"runtime\": \"go\",\n        \"ports\": [\n          8080\n        ],\n        \"envVariables\": {\n          \"PORT\": \"8080\",\n          \"NODE_ENV\": \"production\",\n          \"DB_HOST\": \"postgres\",\n          \"DB_PORT\": \"5432\",\n          \"DB_USER\": \"zerops\",\n          \"DB_PASSWORD\": \"zerops_secure_pass_2026\",\n          \"DB_NAME\": \"zeroops_db\",\n          \"DATABASE_URL\": \"postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\",\n          \"VALKEY_HOST\": \"valkey\",\n          \"VALKEY_PORT\": \"6379\",\n          \"REDIS_URL\": \"redis://valkey:6379\",\n          \"API_HOST\": \"api\",\n          \"API_PORT\": \"8080\",\n          \"API_URL\": \"http://api:8080\"\n        },\n        \"buildCommands\": [\n          \"go build -o bin/api ./cmd/api\"\n        ],\n        \"runCommand\": \"./bin/api\",\n        \"readinessPath\": \"/health\"\n      },\n      {\n        \"name\": \"worker\",\n        \"runtime\": \"python\",\n        \"ports\": [\n          8000\n        ],\n        \"envVariables\": {\n          \"PORT\": \"8000\",\n          \"NODE_ENV\": \"production\",\n          \"DB_HOST\": \"postgres\",\n          \"DB_PORT\": \"5432\",\n          \"DB_USER\": \"zerops\",\n          \"DB_PASSWORD\": \"zerops_secure_pass_2026\",\n          \"DB_NAME\": \"zeroops_db\",\n          \"DATABASE_URL\": \"postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\",\n          \"VALKEY_HOST\": \"valkey\",\n          \"VALKEY_PORT\": \"6379\",\n          \"REDIS_URL\": \"redis://valkey:6379\",\n          \"API_HOST\": \"api\",\n          \"API_PORT\": \"8080\",\n          \"API_URL\": \"http://api:8080\"\n        },\n        \"buildCommands\": [\n          \"pip install -r requirements.txt\"\n        ],\n        \"runCommand\": \"python main.py\",\n        \"readinessPath\": \"/health\"\n      }\n    ],\n    \"managedServices\": [\n      {\n        \"name\": \"postgres\",\n        \"type\": \"postgresql\",\n        \"mode\": \"HA\",\n        \"user\": \"zerops\",\n        \"password\": \"zerops_secure_pass_2026\",\n        \"dbName\": \"zeroops_db\",\n        \"port\": 5432\n      },\n      {\n        \"name\": \"valkey\",\n        \"type\": \"valkey\",\n        \"mode\": \"HA\",\n        \"port\": 6379\n      }\n    ]\n  },\n  \"configs\": {\n    \"zeropsProjectImportYaml\": \"project:\\n  name: zeroops-app\\n  services:\\n    - name: postgres\\n      type: postgresql@16\\n      mode: HA\\n    - name: valkey\\n      type: valkey@7\\n      mode: HA\\n    - name: frontend\\n      type: nodejs@20\\n      mode: NON_HA\\n    - name: api\\n      type: go@1.22\\n      mode: NON_HA\\n    - name: worker\\n      type: python@3.11\\n      mode: NON_HA\\n\",\n    \"zeropsYaml\": \"zerops:\\n  - setup: frontend\\n    build:\\n      base: nodejs@20\\n      os: ubuntu\\n      buildCommands:\\n        - npm ci\\n        - npm run build\\n      deployFiles:\\n        - .\\n    deploy:\\n      readinessCheck:\\n        httpGet:\\n          path: /\\n          port: 3000\\n    run:\\n      base: nodejs@20\\n      os: ubuntu\\n      ports:\\n        - port: 3000\\n          protocol: TCP\\n          httpSupport: true\\n      start: npm start\\n      envVariables:\\n        PORT: '3000'\\n        NODE_ENV: production\\n        DB_HOST: postgres\\n        DB_PORT: '5432'\\n        DB_USER: zerops\\n        DB_PASSWORD: zerops_secure_pass_2026\\n        DB_NAME: zeroops_db\\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\\n        VALKEY_HOST: valkey\\n        VALKEY_PORT: '6379'\\n        REDIS_URL: redis://valkey:6379\\n        API_HOST: api\\n        API_PORT: '8080'\\n        API_URL: http://api:8080\\n  - setup: api\\n    build:\\n      base: go@1.22\\n      os: ubuntu\\n      buildCommands:\\n        - go build -o bin/api ./cmd/api\\n      deployFiles:\\n        - .\\n    deploy:\\n      readinessCheck:\\n        httpGet:\\n          path: /health\\n          port: 8080\\n    run:\\n      base: go@1.22\\n      os: ubuntu\\n      ports:\\n        - port: 8080\\n          protocol: TCP\\n          httpSupport: true\\n      start: ./bin/api\\n      envVariables:\\n        PORT: '8080'\\n        NODE_ENV: production\\n        DB_HOST: postgres\\n        DB_PORT: '5432'\\n        DB_USER: zerops\\n        DB_PASSWORD: zerops_secure_pass_2026\\n        DB_NAME: zeroops_db\\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\\n        VALKEY_HOST: valkey\\n        VALKEY_PORT: '6379'\\n        REDIS_URL: redis://valkey:6379\\n        API_HOST: api\\n        API_PORT: '8080'\\n        API_URL: http://api:8080\\n  - setup: worker\\n    build:\\n      base: python@3.11\\n      os: ubuntu\\n      buildCommands:\\n        - pip install -r requirements.txt\\n      deployFiles:\\n        - .\\n    deploy:\\n      readinessCheck:\\n        httpGet:\\n          path: /health\\n          port: 8000\\n    run:\\n      base: python@3.11\\n      os: ubuntu\\n      ports:\\n        - port: 8000\\n          protocol: TCP\\n          httpSupport: true\\n      start: python main.py\\n      envVariables:\\n        PORT: '8000'\\n        NODE_ENV: production\\n        DB_HOST: postgres\\n        DB_PORT: '5432'\\n        DB_USER: zerops\\n        DB_PASSWORD: zerops_secure_pass_2026\\n        DB_NAME: zeroops_db\\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\\n        VALKEY_HOST: valkey\\n        VALKEY_PORT: '6379'\\n        REDIS_URL: redis://valkey:6379\\n        API_HOST: api\\n        API_PORT: '8080'\\n        API_URL: http://api:8080\\n\"\n  }\n}\n"
+  },
+  {
+    "id": "CLI-1.3",
+    "category": "CLI Flags",
+    "description": "synthesize --verbose prints progress log",
+    "passed": true,
+    "details": "[ZeroOps Engine] Processing prompt: \"Build app\"\n✔ Stack topology synthesized for project: zeroops-app\n\n--- zerops-project-import.yml ---\nproject:\n  name: zeroops-app\n  services:\n    - name: postgres\n      type: postgresql@16\n      mode: HA\n    - name: valkey\n      type: valkey@7\n      mode: HA\n    - name: frontend\n      type: nodejs@20\n      mode: NON_HA\n    - name: api\n      type: go@1.22\n      mode: NON_HA\n    - name: worker\n      type: python@3.11\n      mode: NON_HA\n\n\n--- zerops.yml ---\nzerops:\n  - setup: frontend\n    build:\n      base: nodejs@20\n      os: ubuntu\n      buildCommands:\n        - npm ci\n        - npm run build\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /\n          port: 3000\n    run:\n      base: nodejs@20\n      os: ubuntu\n      ports:\n        - port: 3000\n          protocol: TCP\n          httpSupport: true\n      start: npm start\n      envVariables:\n        PORT: '3000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: api\n    build:\n      base: go@1.22\n      os: ubuntu\n      buildCommands:\n        - go build -o bin/api ./cmd/api\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8080\n    run:\n      base: go@1.22\n      os: ubuntu\n      ports:\n        - port: 8080\n          protocol: TCP\n          httpSupport: true\n      start: ./bin/api\n      envVariables:\n        PORT: '8080'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: worker\n    build:\n      base: python@3.11\n      os: ubuntu\n      buildCommands:\n        - pip install -r requirements.txt\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8000\n    run:\n      base: python@3.11\n      os: ubuntu\n      ports:\n        - port: 8000\n          protocol: TCP\n          httpSupport: true\n      start: python main.py\n      envVariables:\n        PORT: '8000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n\n"
+  },
+  {
+    "id": "CLI-1.4",
+    "category": "CLI Flags",
+    "description": "synthesize -o writes YAML files to target directory",
+    "passed": true,
+    "details": {
+      "importExists": true,
+      "zeropsExists": true
+    }
+  },
+  {
+    "id": "CLI-1.5",
+    "category": "CLI Flags",
+    "description": "synthesize with explicit --mock flag",
+    "passed": true,
+    "details": "✔ Stack topology synthesized for project: zeroops-app\n\n--- zerops-project-import.yml ---\nproject:\n  name: zeroops-app\n  services:\n    - name: postgres\n      type: postgresql@16\n      mode: HA\n    - name: valkey\n      type: valkey@7\n      mode: HA\n    - name: frontend\n      type: nodejs@20\n      mode: NON_HA\n    - name: api\n      type: go@1.22\n      mode: NON_HA\n    - name: worker\n      type: python@3.11\n      mode: NON_HA\n\n\n--- zerops.yml ---\nzerops:\n  - setup: frontend\n    build:\n      base: nodejs@20\n      os: ubuntu\n      buildCommands:\n        - npm ci\n        - npm run build\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /\n          port: 3000\n    run:\n      base: nodejs@20\n      os: ubuntu\n      ports:\n        - port: 3000\n          protocol: TCP\n          httpSupport: true\n      start: npm start\n      envVariables:\n        PORT: '3000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: api\n    build:\n      base: go@1.22\n      os: ubuntu\n      buildCommands:\n        - go build -o bin/api ./cmd/api\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8080\n    run:\n      base: go@1.22\n      os: ubuntu\n      ports:\n        - port: 8080\n          protocol: TCP\n          httpSupport: true\n      start: ./bin/api\n      envVariables:\n        PORT: '8080'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: worker\n    build:\n      base: python@3.11\n      os: ubuntu\n      buildCommands:\n        - pip install -r requirements.txt\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8000\n    run:\n      base: python@3.11\n      os: ubuntu\n      ports:\n        - port: 8000\n          protocol: TCP\n          httpSupport: true\n      start: python main.py\n      envVariables:\n        PORT: '8000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n\n"
+  },
+  {
+    "id": "CLI-1.6",
+    "category": "CLI Flags",
+    "description": "deploy subcommand with default mock mode",
+    "passed": true,
+    "details": "✔ Project my-test-project deployed successfully.\nPublic URL: https://frontend-a1b2.zerops.app\n\nPrivate IP Topology Map:\n{\n  \"postgres\": {\n    \"privateIp\": \"10.0.0.10\",\n    \"port\": 5432,\n    \"connectionString\": \"postgres://zerops:zerops_secure_pass_2026@10.0.0.10:5432/zeroops_db\"\n  },\n  \"valkey\": {\n    \"privateIp\": \"10.0.0.11\",\n    \"port\": 6379,\n    \"connectionString\": \"redis://10.0.0.11:6379\"\n  },\n  \"frontend\": {\n    \"privateIp\": \"10.0.0.12\",\n    \"port\": 3000\n  },\n  \"api\": {\n    \"privateIp\": \"10.0.0.13\",\n    \"port\": 8080\n  },\n  \"worker\": {\n    \"privateIp\": \"10.0.0.14\",\n    \"port\": 8000\n  }\n}\n"
+  },
+  {
+    "id": "CLI-1.7",
+    "category": "CLI Flags",
+    "description": "deploy --json outputs valid JSON result",
+    "passed": {
+      "postgres": {
+        "privateIp": "10.0.0.10",
+        "port": 5432,
+        "connectionString": "postgres://zerops:zerops_secure_pass_2026@10.0.0.10:5432/zeroops_db"
+      },
+      "valkey": {
+        "privateIp": "10.0.0.11",
+        "port": 6379,
+        "connectionString": "redis://10.0.0.11:6379"
+      },
+      "frontend": {
+        "privateIp": "10.0.0.12",
+        "port": 3000
+      },
+      "api": {
+        "privateIp": "10.0.0.13",
+        "port": 8080
+      },
+      "worker": {
+        "privateIp": "10.0.0.14",
+        "port": 8000
+      }
+    },
+    "details": "{\n  \"project\": {\n    \"id\": \"proj_my-test-project_1rxx\",\n    \"name\": \"my-test-project\",\n    \"orgId\": \"org_zerops_demo\",\n    \"status\": \"READY\",\n    \"createdAt\": \"2026-08-08T17:39:05.243Z\",\n    \"services\": [\n      {\n        \"id\": \"srv_postgres_3svp\",\n        \"name\": \"postgres\",\n        \"type\": \"postgresql@16\",\n        \"mode\": \"HA\",\n        \"privateIp\": \"10.0.0.10\",\n        \"ports\": [\n          5432\n        ],\n        \"status\": \"READY\"\n      },\n      {\n        \"id\": \"srv_valkey_u5l1\",\n        \"name\": \"valkey\",\n        \"type\": \"valkey@7\",\n        \"mode\": \"HA\",\n        \"privateIp\": \"10.0.0.11\",\n        \"ports\": [\n          6379\n        ],\n        \"status\": \"READY\"\n      },\n      {\n        \"id\": \"srv_frontend_zk2u\",\n        \"name\": \"frontend\",\n        \"type\": \"nodejs@20\",\n        \"mode\": \"NON_HA\",\n        \"privateIp\": \"10.0.0.12\",\n        \"ports\": [\n          3000\n        ],\n        \"status\": \"READY\"\n      },\n      {\n        \"id\": \"srv_api_lft7\",\n        \"name\": \"api\",\n        \"type\": \"go@1.22\",\n        \"mode\": \"NON_HA\",\n        \"privateIp\": \"10.0.0.13\",\n        \"ports\": [\n          8080\n        ],\n        \"status\": \"READY\"\n      },\n      {\n        \"id\": \"srv_worker_92k4\",\n        \"name\": \"worker\",\n        \"type\": \"python@3.11\",\n        \"mode\": \"NON_HA\",\n        \"privateIp\": \"10.0.0.14\",\n        \"ports\": [\n          8000\n        ],\n        \"status\": \"READY\"\n      }\n    ]\n  },\n  \"deployment\": {\n    \"deploymentId\": \"dep_frontend_v9fas2\",\n    \"serviceName\": \"frontend\",\n    \"status\": \"SUCCESS\",\n    \"publicUrl\": \"https://frontend-a1b2.zerops.app\",\n    \"privateIp\": \"10.0.0.13\",\n    \"logs\": [\n      \"[system] Initializing build pipeline for service: frontend\",\n      \"[system] Parsing zerops.yml configuration...\",\n      \"[build] Running build step for base image...\",\n      \"[build] Build completed successfully in 1.2s.\",\n      \"[deploy] Container image uploaded to Zerops private registry.\",\n      \"[deploy] Allocating container slot on private VXLAN IP 10.0.0.13...\",\n      \"[system] Service frontend health check PASSED. Service is live and READY.\"\n    ],\n    \"durationMs\": 1200\n  },\n  \"privateTopology\": {\n    \"postgres\": {\n      \"privateIp\": \"10.0.0.10\",\n      \"port\": 5432,\n      \"connectionString\": \"postgres://zerops:zerops_secure_pass_2026@10.0.0.10:5432/zeroops_db\"\n    },\n    \"valkey\": {\n      \"privateIp\": \"10.0.0.11\",\n      \"port\": 6379,\n      \"connectionString\": \"redis://10.0.0.11:6379\"\n    },\n    \"frontend\": {\n      \"privateIp\": \"10.0.0.12\",\n      \"port\": 3000\n    },\n    \"api\": {\n      \"privateIp\": \"10.0.0.13\",\n      \"port\": 8080\n    },\n    \"worker\": {\n      \"privateIp\": \"10.0.0.14\",\n      \"port\": 8000\n    }\n  }\n}\n"
+  },
+  {
+    "id": "CLI-1.8",
+    "category": "CLI Flags",
+    "description": "deploy --verbose prints progress header",
+    "passed": true,
+    "details": "[ZeroOps Engine] Initiating deployment for project: my-test-project\n✔ Project my-test-project deployed successfully.\nPublic URL: https://frontend-a1b2.zerops.app\n\nPrivate IP Topology Map:\n{\n  \"postgres\": {\n    \"privateIp\": \"10.0.0.10\",\n    \"port\": 5432,\n    \"connectionString\": \"postgres://zerops:zerops_secure_pass_2026@10.0.0.10:5432/zeroops_db\"\n  },\n  \"valkey\": {\n    \"privateIp\": \"10.0.0.11\",\n    \"port\": 6379,\n    \"connectionString\": \"redis://10.0.0.11:6379\"\n  },\n  \"frontend\": {\n    \"privateIp\": \"10.0.0.12\",\n    \"port\": 3000\n  },\n  \"api\": {\n    \"privateIp\": \"10.0.0.13\",\n    \"port\": 8080\n  },\n  \"worker\": {\n    \"privateIp\": \"10.0.0.14\",\n    \"port\": 8000\n  }\n}\n"
+  },
+  {
+    "id": "CLI-1.9",
+    "category": "CLI Flags",
+    "description": "deploy -o reads existing synthesized YAML files",
+    "passed": true,
+    "details": "✔ Project my-test-project deployed successfully.\nPublic URL: https://frontend-a1b2.zerops.app\n\nPrivate IP Topology Map:\n{\n  \"postgres\": {\n    \"privateIp\": \"10.0.0.10\",\n    \"port\": 5432,\n    \"connectionString\": \"postgres://zerops:zerops_secure_pass_2026@10.0.0.10:5432/zeroops_db\"\n  },\n  \"valkey\": {\n    \"privateIp\": \"10.0.0.11\",\n    \"port\": 6379,\n    \"connectionString\": \"redis://10.0.0.11:6379\"\n  },\n  \"frontend\": {\n    \"privateIp\": \"10.0.0.12\",\n    \"port\": 3000\n  },\n  \"api\": {\n    \"privateIp\": \"10.0.0.13\",\n    \"port\": 8080\n  },\n  \"worker\": {\n    \"privateIp\": \"10.0.0.14\",\n    \"port\": 8000\n  }\n}\n"
+  },
+  {
+    "id": "CLI-1.10",
+    "category": "CLI Flags",
+    "description": "import subcommand with valid zerops-project-import.yml",
+    "passed": true,
+    "details": "✔ Project imported successfully: zeroops-app (ID: proj_zeroops-app_5826)\nServices:\n  - postgres (postgresql@16) -> Private IP: 10.0.0.10\n  - valkey (valkey@7) -> Private IP: 10.0.0.11\n  - frontend (nodejs@20) -> Private IP: 10.0.0.12\n  - api (go@1.22) -> Private IP: 10.0.0.13\n  - worker (python@3.11) -> Private IP: 10.0.0.14\n"
+  },
+  {
+    "id": "CLI-1.11",
+    "category": "CLI Flags",
+    "description": "import --json outputs valid JSON project info",
+    "passed": [
+      {
+        "id": "srv_postgres_542c",
+        "name": "postgres",
+        "type": "postgresql@16",
+        "mode": "HA",
+        "privateIp": "10.0.0.10",
+        "ports": [
+          5432
+        ],
+        "status": "READY"
+      },
+      {
+        "id": "srv_valkey_4tk0",
+        "name": "valkey",
+        "type": "valkey@7",
+        "mode": "HA",
+        "privateIp": "10.0.0.11",
+        "ports": [
+          6379
+        ],
+        "status": "READY"
+      },
+      {
+        "id": "srv_frontend_g3td",
+        "name": "frontend",
+        "type": "nodejs@20",
+        "mode": "NON_HA",
+        "privateIp": "10.0.0.12",
+        "ports": [
+          3000
+        ],
+        "status": "READY"
+      },
+      {
+        "id": "srv_api_v6z1",
+        "name": "api",
+        "type": "go@1.22",
+        "mode": "NON_HA",
+        "privateIp": "10.0.0.13",
+        "ports": [
+          8080
+        ],
+        "status": "READY"
+      },
+      {
+        "id": "srv_worker_ajw0",
+        "name": "worker",
+        "type": "python@3.11",
+        "mode": "NON_HA",
+        "privateIp": "10.0.0.14",
+        "ports": [
+          8000
+        ],
+        "status": "READY"
+      }
+    ],
+    "details": "{\n  \"id\": \"proj_zeroops-app_xcbg\",\n  \"name\": \"zeroops-app\",\n  \"orgId\": \"org_zerops_demo\",\n  \"status\": \"READY\",\n  \"createdAt\": \"2026-08-08T17:39:05.521Z\",\n  \"services\": [\n    {\n      \"id\": \"srv_postgres_542c\",\n      \"name\": \"postgres\",\n      \"type\": \"postgresql@16\",\n      \"mode\": \"HA\",\n      \"privateIp\": \"10.0.0.10\",\n      \"ports\": [\n        5432\n      ],\n      \"status\": \"READY\"\n    },\n    {\n      \"id\": \"srv_valkey_4tk0\",\n      \"name\": \"valkey\",\n      \"type\": \"valkey@7\",\n      \"mode\": \"HA\",\n      \"privateIp\": \"10.0.0.11\",\n      \"ports\": [\n        6379\n      ],\n      \"status\": \"READY\"\n    },\n    {\n      \"id\": \"srv_frontend_g3td\",\n      \"name\": \"frontend\",\n      \"type\": \"nodejs@20\",\n      \"mode\": \"NON_HA\",\n      \"privateIp\": \"10.0.0.12\",\n      \"ports\": [\n        3000\n      ],\n      \"status\": \"READY\"\n    },\n    {\n      \"id\": \"srv_api_v6z1\",\n      \"name\": \"api\",\n      \"type\": \"go@1.22\",\n      \"mode\": \"NON_HA\",\n      \"privateIp\": \"10.0.0.13\",\n      \"ports\": [\n        8080\n      ],\n      \"status\": \"READY\"\n    },\n    {\n      \"id\": \"srv_worker_ajw0\",\n      \"name\": \"worker\",\n      \"type\": \"python@3.11\",\n      \"mode\": \"NON_HA\",\n      \"privateIp\": \"10.0.0.14\",\n      \"ports\": [\n        8000\n      ],\n      \"status\": \"READY\"\n    }\n  ]\n}\n"
+  },
+  {
+    "id": "ERR-2.1",
+    "category": "Error Boundaries",
+    "description": "Invalid command handles exit code and stderr error message",
+    "passed": true,
+    "details": {
+      "code": 1,
+      "stderr": "error: unknown command 'nonexistent-command'\n"
+    }
+  },
+  {
+    "id": "ERR-2.2",
+    "category": "Error Boundaries",
+    "description": "synthesize without prompt fails with missing argument error",
+    "passed": true,
+    "details": {
+      "code": 1,
+      "stderr": "error: missing required argument 'prompt'\n"
+    }
+  },
+  {
+    "id": "ERR-2.3",
+    "category": "Error Boundaries",
+    "description": "deploy without project-name fails with missing argument error",
+    "passed": true,
+    "details": {
+      "code": 1,
+      "stderr": "error: missing required argument 'project-name'\n"
+    }
+  },
+  {
+    "id": "ERR-2.4",
+    "category": "Error Boundaries",
+    "description": "import without yaml-path fails with missing argument error",
+    "passed": true,
+    "details": {
+      "code": 1,
+      "stderr": "error: missing required argument 'yaml-path'\n"
+    }
+  },
+  {
+    "id": "ERR-2.5",
+    "category": "Error Boundaries",
+    "description": "import with non-existent file path returns exit code 1 with clean error message",
+    "passed": true,
+    "details": {
+      "code": 1,
+      "stderr": "❌ Import failed: Import YAML file not found at path: /path/to/nonexistent/file.yml\n",
+      "stdout": ""
+    }
+  },
+  {
+    "id": "ERR-2.6",
+    "category": "Error Boundaries",
+    "description": "import with malformed YAML file content handles parse error",
+    "passed": true,
+    "details": {
+      "code": 0,
+      "stdout": "✔ Project imported successfully: zeroops-app (ID: proj_zeroops-app_fk7p)\nServices:\n",
+      "stderr": ""
+    }
+  },
+  {
+    "id": "ERR-2.7",
+    "category": "Error Boundaries",
+    "description": "synthesize with empty string prompt falls back safely to default stack",
+    "passed": true,
+    "details": {
+      "code": 0,
+      "stdout": "✔ Stack topology synthesized for project: zeroops-app\n\n--- zerops-project-import.yml ---\nproject:\n  name: zeroops-app\n  services:\n    - name: postgres\n      type: postgresql@16\n      mode: HA\n    - name: valkey\n      type: valkey@7\n      mode: HA\n    - name: frontend\n      type: nodejs@20\n      mode: NON_HA\n    - name: api\n      type: go@1.22\n      mode: NON_HA\n    - name: worker\n      type: python@3.11\n      mode: NON_HA\n\n\n--- zerops.yml ---\nzerops:\n  - setup: frontend\n    build:\n      base: nodejs@20\n      os: ubuntu\n      buildCommands:\n        - npm ci\n        - npm run build\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /\n          port: 3000\n    run:\n      base: nodejs@20\n      os: ubuntu\n      ports:\n        - port: 3000\n          protocol: TCP\n          httpSupport: true\n      start: npm start\n      envVariables:\n        PORT: '3000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: api\n    build:\n      base: go@1.22\n      os: ubuntu\n      buildCommands:\n        - go build -o bin/api ./cmd/api\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8080\n    run:\n      base: go@1.22\n      os: ubuntu\n      ports:\n        - port: 8080\n          protocol: TCP\n          httpSupport: true\n      start: ./bin/api\n      envVariables:\n        PORT: '8080'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: worker\n    build:\n      base: python@3.11\n      os: ubuntu\n      buildCommands:\n        - pip install -r requirements.txt\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8000\n    run:\n      base: python@3.11\n      os: ubuntu\n      ports:\n        - port: 8000\n          protocol: TCP\n          httpSupport: true\n      start: python main.py\n      envVariables:\n        PORT: '8000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n\n"
+    }
+  },
+  {
+    "id": "ERR-2.8",
+    "category": "Error Boundaries",
+    "description": "synthesize with special characters handles input safely",
+    "passed": true,
+    "details": {
+      "code": 0,
+      "stdout": "✔ Stack topology synthesized for project: zeroops-app\n\n--- zerops-project-import.yml ---\nproject:\n  name: zeroops-app\n  services:\n    - name: postgres\n      type: postgresql@16\n      mode: HA\n    - name: valkey\n      type: valkey@7\n      mode: HA\n    - name: frontend\n      type: nodejs@20\n      mode: NON_HA\n    - name: api\n      type: go@1.22\n      mode: NON_HA\n    - name: worker\n      type: python@3.11\n      mode: NON_HA\n\n\n--- zerops.yml ---\nzerops:\n  - setup: frontend\n    build:\n      base: nodejs@20\n      os: ubuntu\n      buildCommands:\n        - npm ci\n        - npm run build\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /\n          port: 3000\n    run:\n      base: nodejs@20\n      os: ubuntu\n      ports:\n        - port: 3000\n          protocol: TCP\n          httpSupport: true\n      start: npm start\n      envVariables:\n        PORT: '3000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: api\n    build:\n      base: go@1.22\n      os: ubuntu\n      buildCommands:\n        - go build -o bin/api ./cmd/api\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8080\n    run:\n      base: go@1.22\n      os: ubuntu\n      ports:\n        - port: 8080\n          protocol: TCP\n          httpSupport: true\n      start: ./bin/api\n      envVariables:\n        PORT: '8080'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n  - setup: worker\n    build:\n      base: python@3.11\n      os: ubuntu\n      buildCommands:\n        - pip install -r requirements.txt\n      deployFiles:\n        - .\n    deploy:\n      readinessCheck:\n        httpGet:\n          path: /health\n          port: 8000\n    run:\n      base: python@3.11\n      os: ubuntu\n      ports:\n        - port: 8000\n          protocol: TCP\n          httpSupport: true\n      start: python main.py\n      envVariables:\n        PORT: '8000'\n        NODE_ENV: production\n        DB_HOST: postgres\n        DB_PORT: '5432'\n        DB_USER: zerops\n        DB_PASSWORD: zerops_secure_pass_2026\n        DB_NAME: zeroops_db\n        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db\n        VALKEY_HOST: valkey\n        VALKEY_PORT: '6379'\n        REDIS_URL: redis://valkey:6379\n        API_HOST: api\n        API_PORT: '8080'\n        API_URL: http://api:8080\n\n"
+    }
+  },
+  {
+    "id": "ERR-2.9",
+    "category": "Error Boundaries",
+    "description": "deploy with non-existent outputDir falls back to runSynthesis",
+    "passed": false,
+    "details": {
+      "code": 1,
+      "stdout": ""
+    }
+  }
+]

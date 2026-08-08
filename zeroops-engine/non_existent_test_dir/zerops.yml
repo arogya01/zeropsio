@@ -1,0 +1,110 @@
+zerops:
+  - setup: frontend
+    build:
+      base: nodejs@20
+      os: ubuntu
+      buildCommands:
+        - npm ci
+        - npm run build
+      deployFiles:
+        - .
+    deploy:
+      readinessCheck:
+        httpGet:
+          path: /
+          port: 3000
+    run:
+      base: nodejs@20
+      os: ubuntu
+      ports:
+        - port: 3000
+          protocol: TCP
+          httpSupport: true
+      start: npm start
+      envVariables:
+        PORT: '3000'
+        NODE_ENV: production
+        DB_HOST: postgres
+        DB_PORT: '5432'
+        DB_USER: zerops
+        DB_PASSWORD: zerops_secure_pass_2026
+        DB_NAME: zeroops_db
+        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db
+        VALKEY_HOST: valkey
+        VALKEY_PORT: '6379'
+        REDIS_URL: redis://valkey:6379
+        API_HOST: api
+        API_PORT: '8080'
+        API_URL: http://api:8080
+  - setup: api
+    build:
+      base: go@1.22
+      os: ubuntu
+      buildCommands:
+        - go build -o bin/api ./cmd/api
+      deployFiles:
+        - .
+    deploy:
+      readinessCheck:
+        httpGet:
+          path: /health
+          port: 8080
+    run:
+      base: go@1.22
+      os: ubuntu
+      ports:
+        - port: 8080
+          protocol: TCP
+          httpSupport: true
+      start: ./bin/api
+      envVariables:
+        PORT: '8080'
+        NODE_ENV: production
+        DB_HOST: postgres
+        DB_PORT: '5432'
+        DB_USER: zerops
+        DB_PASSWORD: zerops_secure_pass_2026
+        DB_NAME: zeroops_db
+        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db
+        VALKEY_HOST: valkey
+        VALKEY_PORT: '6379'
+        REDIS_URL: redis://valkey:6379
+        API_HOST: api
+        API_PORT: '8080'
+        API_URL: http://api:8080
+  - setup: worker
+    build:
+      base: python@3.11
+      os: ubuntu
+      buildCommands:
+        - pip install -r requirements.txt
+      deployFiles:
+        - .
+    deploy:
+      readinessCheck:
+        httpGet:
+          path: /health
+          port: 8000
+    run:
+      base: python@3.11
+      os: ubuntu
+      ports:
+        - port: 8000
+          protocol: TCP
+          httpSupport: true
+      start: python main.py
+      envVariables:
+        PORT: '8000'
+        NODE_ENV: production
+        DB_HOST: postgres
+        DB_PORT: '5432'
+        DB_USER: zerops
+        DB_PASSWORD: zerops_secure_pass_2026
+        DB_NAME: zeroops_db
+        DATABASE_URL: postgres://zerops:zerops_secure_pass_2026@postgres:5432/zeroops_db
+        VALKEY_HOST: valkey
+        VALKEY_PORT: '6379'
+        REDIS_URL: redis://valkey:6379
+        API_HOST: api
+        API_PORT: '8080'
+        API_URL: http://api:8080

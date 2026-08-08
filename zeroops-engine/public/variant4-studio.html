@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroOps Studio — Full-Width Cloud Factory</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Geist+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles-studio.css">
+</head>
+<body class="studio-body">
+  <canvas id="bg-canvas" class="bg-canvas"></canvas>
+
+  <div class="layout-wrapper">
+    <!-- Top Minimal Navigation -->
+    <header class="top-nav">
+      <div class="nav-left">
+        <div class="logo-mark">⚡</div>
+        <div class="brand">
+          <h1>ZeroOps<span class="highlight">Studio</span></h1>
+          <span class="ver">ZCP 2.0 Engine</span>
+        </div>
+      </div>
+
+      <div class="nav-center">
+        <div class="live-pill">
+          <span class="p-dot"></span>
+          <span>ZCP MCP Agent: <strong class="green-txt">Online</strong></span>
+        </div>
+        <div class="subnet-pill">Subnet: 10.160.0.0/16</div>
+      </div>
+
+      <div class="nav-right">
+        <span class="region-txt">eu-central-1</span>
+        <button type="button" id="toggle-console-btn" class="nav-btn">Terminal Console</button>
+      </div>
+    </header>
+
+    <!-- Hero Section: Prompt Engineering Studio -->
+    <section class="hero-prompt-section">
+      <div class="hero-badge">PROMPT-TO-CLOUD FACTORY</div>
+      <h2 class="hero-title">Synthesize &amp; Provision Multi-Container Cloud Stacks</h2>
+      <p class="hero-sub">Describe your application requirements. ZeroOps generates full-stack code &amp; provisions real LXD containers live on Zerops via ZCP.</p>
+
+      <form id="prompt-form-v4" class="hero-prompt-card">
+        <div class="prompt-input-area">
+          <textarea id="prompt-input-v4" placeholder="e.g. Build an AI PDF summarizer SaaS with user auth, background queue processing, PostgreSQL storage, and Valkey caching" required></textarea>
+          <div class="input-actions">
+            <span class="hint-txt">Press Ctrl + Enter to launch pipeline</span>
+            <button type="submit" id="deploy-btn-v4" class="hero-deploy-btn">
+              <span class="btn-icon">⚡</span>
+              <span>SYNTHESIZE &amp; PROVISION ON ZEROPS VIA ZCP</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="preset-strip">
+          <span class="preset-lbl">Architecture Blueprints:</span>
+          <button type="button" class="preset-tag" data-prompt="AI Video Clipper SaaS with Next.js, Go API, Python Whisper worker, PostgreSQL, and Valkey">🎬 AI Video Clipper</button>
+          <button type="button" class="preset-tag" data-prompt="E-Commerce API with Bun frontend, Go backend, PostgreSQL HA, Valkey cache, and Meilisearch">🛒 Multi-Service E-Com</button>
+          <button type="button" class="preset-tag" data-prompt="Enterprise RAG Search Engine with React, FastAPI, Typesense, PostgreSQL pgvector, and Valkey">🧠 Private Vector RAG</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Infrastructure Canvas: Horizontal Topology Stream -->
+    <section class="infra-canvas-section">
+      <div class="section-bar">
+        <div class="sec-left">
+          <h3>Zerops LXD Infrastructure Mesh</h3>
+          <span class="sec-count">5 Microservices Configured</span>
+        </div>
+        <span class="sec-net">Private Subnet Inter-Communication (10.160.0.x)</span>
+      </div>
+
+      <!-- Horizontal Topology Flow -->
+      <div class="topology-horizontal-stream">
+        <svg class="topo-stream-svg" id="stream-svg" viewBox="0 0 1200 120">
+          <path d="M 180 60 C 260 60, 280 60, 360 60" class="stream-line" id="line-1" />
+          <path d="M 460 60 C 540 60, 560 60, 640 60" class="stream-line" id="line-2" />
+          <path d="M 740 60 C 820 40, 860 30, 940 30" class="stream-line" id="line-3" />
+          <path d="M 740 60 C 820 80, 860 90, 940 90" class="stream-line" id="line-4" />
+        </svg>
+
+        <div class="horizontal-nodes-grid">
+          <!-- Node 1 -->
+          <div class="h-node-card" id="v4-node-web-frontend">
+            <div class="h-node-head">
+              <span class="h-icon">🌐</span>
+              <span class="h-badge status-idle">IDLE</span>
+            </div>
+            <h4 class="h-name">web-frontend</h4>
+            <p class="h-tech">Bun@1 · SSR / React</p>
+            <span class="h-ip">10.160.0.12:3000</span>
+          </div>
+
+          <!-- Node 2 -->
+          <div class="h-node-card" id="v4-node-api-gateway">
+            <div class="h-node-head">
+              <span class="h-icon">⚙️</span>
+              <span class="h-badge status-idle">IDLE</span>
+            </div>
+            <h4 class="h-name">api-gateway</h4>
+            <p class="h-tech">Go@1.22 · REST Gateway</p>
+            <span class="h-ip">10.160.0.15:8080</span>
+          </div>
+
+          <!-- Node 3 -->
+          <div class="h-node-card" id="v4-node-ai-worker">
+            <div class="h-node-head">
+              <span class="h-icon">🐍</span>
+              <span class="h-badge status-idle">IDLE</span>
+            </div>
+            <h4 class="h-name">ai-worker</h4>
+            <p class="h-tech">Python@3.12 · Queue Worker</p>
+            <span class="h-ip">10.160.0.18:5000</span>
+          </div>
+
+          <!-- Node 4 & 5 Stacked Database Group -->
+          <div class="h-node-stack">
+            <div class="h-node-card mini" id="v4-node-db-postgres">
+              <div class="h-node-head">
+                <span class="h-icon">🐘</span>
+                <span class="h-badge status-idle">IDLE</span>
+              </div>
+              <h4 class="h-name">db-postgres</h4>
+              <span class="h-ip">10.160.0.21:5432</span>
+            </div>
+
+            <div class="h-node-card mini" id="v4-node-cache-valkey">
+              <div class="h-node-head">
+                <span class="h-icon">⚡</span>
+                <span class="h-badge status-idle">IDLE</span>
+              </div>
+              <h4 class="h-name">cache-valkey</h4>
+              <span class="h-ip">10.160.0.25:6379</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Full-Width Workspace Console (Terminal, zerops.yml, Code) -->
+    <section class="console-section">
+      <div class="console-tabs">
+        <button class="c-tab active" data-tab="pane-term">
+          <span class="c-dot"></span>
+          <span>ZCP Build Console</span>
+        </button>
+        <button class="c-tab" data-tab="pane-yaml">
+          <span>zerops.yml Blueprint</span>
+        </button>
+        <button class="c-tab" data-tab="pane-code">
+          <span>Synthesized Code Inspector</span>
+        </button>
+      </div>
+
+      <div class="console-body">
+        <div class="c-pane active" id="pane-term">
+          <div class="term-window">
+            <div class="term-bar">
+              <span class="t-file">zcp-control-plane://log-stream.stdout</span>
+              <button type="button" id="clear-term-v4" class="t-clear">Clear Output</button>
+            </div>
+            <pre class="t-log" id="term-body-v4">ZeroOps Cloud Factory Terminal initialized. Submit a prompt above to stream real-time ZCP container build logs...</pre>
+          </div>
+        </div>
+
+        <div class="c-pane" id="pane-yaml">
+          <pre class="code-editor" id="yaml-body-v4"># Synthesized zerops.yml infrastructure configuration will appear here...</pre>
+        </div>
+
+        <div class="c-pane" id="pane-code">
+          <div class="code-tree" id="code-tree-v4">
+            <p class="empty-msg">Synthesized application code templates will appear here...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Deployment Success Overlay Banner -->
+    <div class="success-popout hidden" id="success-banner-v4">
+      <div class="pop-left">
+        <span class="pop-badge">✔ 100% HEALTH AUDITS PASSED</span>
+        <h3>Full-Stack SaaS Live Deployed on Zerops!</h3>
+        <p>5 LXD Containers provisioned, connected over internal private network, and verified healthy.</p>
+      </div>
+      <div class="pop-right">
+        <span class="pop-url-lbl">LIVE DEPLOYED URL:</span>
+        <a href="#" id="live-url-v4" target="_blank" class="pop-url">https://zeroops-demo.zerops.app</a>
+        <a href="#" id="live-btn-v4" target="_blank" class="pop-btn">LAUNCH LIVE APP ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="app-v4.js"></script>
+</body>
+</html>

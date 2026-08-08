@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroOps Engine | Vercel & Next.js Monochromatic Studio (Variant 2)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles-vercel.css">
+</head>
+<body class="vercel-theme">
+  <!-- Top Variant Switcher Navigation Bar -->
+  <nav class="variant-switcher-bar">
+    <span class="switcher-label">DESIGN VARIANTS:</span>
+    <a href="variant1-linear.html" class="v-tab">
+      <span class="v-icon">⚡</span> Variant 1: Linear / Railway (Command Deck)
+    </a>
+    <a href="variant2-vercel.html" class="v-tab active">
+      <span class="v-icon">▲</span> Variant 2: Vercel / Next (Monochrome)
+    </a>
+    <a href="variant3-supabase.html" class="v-tab">
+      <span class="v-icon">⚡</span> Variant 3: Supabase (Emerald Cloud Mesh)
+    </a>
+  </nav>
+
+  <div class="vercel-shell">
+    <!-- Vercel Header -->
+    <header class="vercel-header">
+      <div class="header-left">
+        <div class="vercel-triangle">▲</div>
+        <div class="breadcrumb">
+          <span class="team">zeroops-org</span>
+          <span class="sep">/</span>
+          <span class="proj">cloud-factory</span>
+          <span class="env-badge">Production</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="v-pill">
+          <span class="v-dot"></span>
+          <span>ZCP Pipeline: Ready</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="vercel-grid">
+      <!-- Left Column: Deployment Pipeline & Prompt Input -->
+      <section class="v-card">
+        <div class="v-card-head">
+          <h3>Deploy New Multi-Service SaaS</h3>
+          <span class="sub-txt">ZCP Automation</span>
+        </div>
+
+        <form id="prompt-form-v2" class="v-form">
+          <div class="v-input-box">
+            <label class="v-label">PRODUCT SPECIFICATION PROMPT</label>
+            <textarea id="prompt-input-v2" class="v-textarea" placeholder="e.g. Build an AI PDF summarizer SaaS with user auth, background queue processing, PostgreSQL storage, and Valkey caching" required></textarea>
+          </div>
+
+          <div class="v-presets">
+            <span class="v-preset-label">Templates:</span>
+            <button type="button" class="v-chip" data-prompt="AI Video Clipper SaaS with Next.js, Go API, Python Whisper worker, PostgreSQL, and Valkey">AI Video Clipper</button>
+            <button type="button" class="v-chip" data-prompt="E-Commerce API with Bun frontend, Go backend, PostgreSQL HA, Valkey cache, and Meilisearch">Multi-Service E-Com</button>
+            <button type="button" class="v-chip" data-prompt="Enterprise RAG Search Engine with React, FastAPI, Typesense, PostgreSQL pgvector, and Valkey">Vector RAG Stack</button>
+          </div>
+
+          <button type="submit" id="deploy-btn-v2" class="v-btn-deploy">
+            <span>Deploy to Zerops ▲</span>
+          </button>
+        </form>
+
+        <!-- Vercel Style Deployment Progress Steps -->
+        <div class="v-pipeline-card">
+          <h4>Deployment Pipeline Progress</h4>
+          <ol class="v-steps">
+            <li class="v-step" id="step-1"><span class="step-num">1</span> Spec Synthesis &amp; zerops.yml</li>
+            <li class="v-step" id="step-2"><span class="step-num">2</span> Subnet Allocation (10.160.0.0/16)</li>
+            <li class="v-step" id="step-3"><span class="step-num">3</span> LXD Container Provisioning</li>
+            <li class="v-step" id="step-4"><span class="step-num">4</span> Automated Health Probe Audits</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Right Column: Container Cards & Deployment Terminal -->
+      <section class="v-card">
+        <div class="v-tabs">
+          <button class="v-tab-btn active" data-tab="v-term-tab">Build Logs</button>
+          <button class="v-tab-btn" data-tab="v-yaml-tab">zerops.yml</button>
+          <button class="v-tab-btn" data-tab="v-nodes-tab">LXD Service Cards</button>
+        </div>
+
+        <div class="v-pane active" id="v-term-tab">
+          <div class="v-term">
+            <pre id="term-body-v2">ZCP Deployment Stream Ready. Click 'Deploy to Zerops' to start...</pre>
+          </div>
+        </div>
+
+        <div class="v-pane" id="v-yaml-tab">
+          <div class="v-term">
+            <pre id="yaml-body-v2"># zerops.yml configuration preview will appear here...</pre>
+          </div>
+        </div>
+
+        <div class="v-pane" id="v-nodes-tab">
+          <div class="v-service-list">
+            <div class="v-s-card" id="v2-node-web-frontend">
+              <div class="v-s-left">
+                <span class="v-s-name">web-frontend</span>
+                <span class="v-s-type">Bun@1 · SSR</span>
+              </div>
+              <div class="v-s-right">
+                <span class="v-s-ip">10.160.0.12:3000</span>
+                <span class="v-s-status status-idle">IDLE</span>
+              </div>
+            </div>
+
+            <div class="v-s-card" id="v2-node-api-gateway">
+              <div class="v-s-left">
+                <span class="v-s-name">api-gateway</span>
+                <span class="v-s-type">Go@1.22 · REST</span>
+              </div>
+              <div class="v-s-right">
+                <span class="v-s-ip">10.160.0.15:8080</span>
+                <span class="v-s-status status-idle">IDLE</span>
+              </div>
+            </div>
+
+            <div class="v-s-card" id="v2-node-ai-worker">
+              <div class="v-s-left">
+                <span class="v-s-name">ai-worker</span>
+                <span class="v-s-type">Python@3.12 · Queue</span>
+              </div>
+              <div class="v-s-right">
+                <span class="v-s-ip">10.160.0.18:5000</span>
+                <span class="v-s-status status-idle">IDLE</span>
+              </div>
+            </div>
+
+            <div class="v-s-card" id="v2-node-db-postgres">
+              <div class="v-s-left">
+                <span class="v-s-name">db-postgres</span>
+                <span class="v-s-type">Postgres@16 · HA</span>
+              </div>
+              <div class="v-s-right">
+                <span class="v-s-ip">10.160.0.21:5432</span>
+                <span class="v-s-status status-idle">IDLE</span>
+              </div>
+            </div>
+
+            <div class="v-s-card" id="v2-node-cache-valkey">
+              <div class="v-s-left">
+                <span class="v-s-name">cache-valkey</span>
+                <span class="v-s-type">Valkey@7.2 · Cache</span>
+              </div>
+              <div class="v-s-right">
+                <span class="v-s-ip">10.160.0.25:6379</span>
+                <span class="v-s-status status-idle">IDLE</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Success Link -->
+        <div class="v-success-card hidden" id="success-banner-v2">
+          <div>
+            <span class="v-teal-txt">✓ DEPLOYMENT READY</span>
+            <h4>Live Deployed URL</h4>
+            <a href="#" id="live-link-v2" target="_blank" class="v-link">https://zeroops-demo.zerops.app</a>
+          </div>
+          <a href="#" id="live-btn-v2" target="_blank" class="v-visit-btn">Visit ↗</a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app-v2.js"></script>
+</body>
+</html>

@@ -1,0 +1,865 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Zerops Challenge — Field Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..500&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────────────────────
+   THE ZEROPS CHALLENGE — FIELD BRIEF
+   Aesthetic: technical dossier / field manual.
+   Newsprint ground, editorial serif, monospace spec-sheets,
+   single vermilion signal, letterpress hairlines, SVG grain.
+   ───────────────────────────────────────────────────────────── */
+
+:root{
+  --paper:#f2efe7;
+  --paper-2:#eae6db;
+  --paper-3:#e2ddcf;
+  --ink:#191814;
+  --ink-2:#4d483c;
+  --ink-3:#837d6c;
+  --rule:#cec8b7;
+  --rule-hard:#b3ab96;
+  --signal:#bf3d13;
+  --signal-deep:#8a2b0c;
+  --go:#3d6b3d;
+  --warn:#9a6a12;
+  --stop:#a3301f;
+  --shadow:rgba(25,24,20,.10);
+
+  --f-display:"Instrument Serif",Georgia,serif;
+  --f-body:"Newsreader",Georgia,serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+
+  --maxw:960px;
+  --rail:82px;
+}
+
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#131310;
+    --paper-2:#1b1a16;
+    --paper-3:#24221c;
+    --ink:#ece6d8;
+    --ink-2:#b8b1a0;
+    --ink-3:#867f6f;
+    --rule:#332f27;
+    --rule-hard:#4a453a;
+    --signal:#f0653a;
+    --signal-deep:#ff8a5c;
+    --go:#7fae72;
+    --warn:#d3a44a;
+    --stop:#e2705a;
+    --shadow:rgba(0,0,0,.5);
+  }
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--f-body);
+  font-size:17px;
+  line-height:1.62;
+  font-optical-sizing:auto;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* grain + vignette atmosphere */
+body::before{
+  content:"";position:fixed;inset:0;z-index:9999;pointer-events:none;
+  opacity:.28;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme:dark){ body::before{mix-blend-mode:screen;opacity:.16} }
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px 140px}
+
+/* ── reveal on load ───────────────────────────── */
+.rv{opacity:0;transform:translateY(14px);animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rv{animation:none;opacity:1;transform:none}}
+
+/* ── masthead ─────────────────────────────────── */
+header.mast{
+  padding:60px 0 30px;border-bottom:3px double var(--rule-hard);margin-bottom:0;
+}
+.kicker{
+  font-family:var(--f-mono);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--signal);display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:20px;
+}
+.kicker .dot{width:6px;height:6px;background:var(--signal);border-radius:50%;
+  animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.kicker .sep{color:var(--rule-hard)}
+
+h1.title{
+  font-family:var(--f-display);font-weight:400;
+  font-size:clamp(46px,8.2vw,92px);line-height:.92;letter-spacing:-.02em;
+  margin:0 0 6px;
+}
+h1.title em{font-style:italic;color:var(--signal)}
+.dek{
+  font-family:var(--f-body);font-size:clamp(18px,2.4vw,22px);font-weight:300;
+  color:var(--ink-2);max-width:60ch;margin:18px 0 0;line-height:1.45;
+}
+.dek b{font-weight:600;color:var(--ink)}
+
+/* metadata spec strip */
+.specstrip{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:0;border-top:1px solid var(--rule);margin-top:36px;
+}
+.specstrip div{
+  padding:14px 16px 14px 0;border-right:1px solid var(--rule);
+}
+.specstrip div:last-child{border-right:0}
+.specstrip dt{
+  font-family:var(--f-mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-3);margin:0 0 5px;
+}
+.specstrip dd{margin:0;font-family:var(--f-mono);font-size:13.5px;font-weight:500;color:var(--ink)}
+.specstrip dd span{color:var(--signal)}
+
+/* ── countdown ────────────────────────────────── */
+.clock{
+  margin:30px 0 0;padding:18px 20px;background:var(--paper-2);
+  border:1px solid var(--rule);border-left:4px solid var(--signal);
+  display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap;
+}
+.clock .lbl{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.clock .val{font-family:var(--f-mono);font-size:clamp(22px,4vw,34px);font-weight:700;letter-spacing:-.01em;color:var(--signal);font-variant-numeric:tabular-nums}
+.clock .note{font-size:14px;color:var(--ink-3);font-style:italic;max-width:34ch}
+
+/* ── sticky nav ───────────────────────────────── */
+nav.toc{
+  position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 92%,transparent);
+  backdrop-filter:blur(10px) saturate(1.2);
+  border-bottom:1px solid var(--rule);margin:0 0 0;
+  overflow-x:auto;scrollbar-width:none;
+}
+nav.toc::-webkit-scrollbar{display:none}
+nav.toc ol{list-style:none;display:flex;gap:0;margin:0;padding:0;min-width:max-content}
+nav.toc a{
+  display:block;padding:12px 15px;font-family:var(--f-mono);font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);text-decoration:none;
+  border-right:1px solid var(--rule);white-space:nowrap;transition:.18s;
+}
+nav.toc a:hover{color:var(--signal);background:var(--paper-2)}
+nav.toc a b{color:var(--rule-hard);margin-right:7px;font-weight:700}
+nav.toc a:hover b{color:var(--signal)}
+
+/* ── sections ─────────────────────────────────── */
+section{padding:64px 0 8px;scroll-margin-top:52px}
+.shead{display:flex;gap:20px;align-items:flex-start;margin-bottom:26px}
+.snum{
+  font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.1em;
+  color:var(--signal);padding-top:12px;min-width:34px;
+}
+h2{
+  font-family:var(--f-display);font-weight:400;font-size:clamp(30px,4.6vw,44px);
+  line-height:1.06;letter-spacing:-.015em;margin:0;flex:1;
+}
+h2 .sub{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3);margin-top:10px}
+h3{
+  font-family:var(--f-body);font-weight:600;font-size:20px;letter-spacing:-.005em;
+  margin:38px 0 12px;padding-bottom:7px;border-bottom:1px solid var(--rule);
+}
+h4{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);margin:26px 0 10px}
+p{margin:0 0 15px;max-width:74ch}
+a{color:var(--signal);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--signal) 35%,transparent)}
+a:hover{border-bottom-color:var(--signal)}
+strong{font-weight:600}
+code{font-family:var(--f-mono);font-size:.85em;background:var(--paper-3);
+  padding:1.5px 5px;border-radius:2px;color:var(--signal-deep)}
+@media (prefers-color-scheme:dark){code{color:var(--signal-deep)}}
+
+ul,ol{max-width:74ch;padding-left:20px;margin:0 0 16px}
+li{margin-bottom:7px}
+ul.tight li{margin-bottom:4px}
+
+/* pull quote */
+blockquote{
+  margin:24px 0;padding:4px 0 4px 24px;border-left:3px solid var(--signal);
+  font-family:var(--f-display);font-size:clamp(20px,2.8vw,26px);line-height:1.3;
+  color:var(--ink);max-width:56ch;
+}
+blockquote cite{display:block;font-family:var(--f-mono);font-size:10.5px;font-style:normal;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-top:14px}
+
+/* ── tables as spec sheets ────────────────────── */
+.tbl{overflow-x:auto;margin:20px 0 26px;border:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-family:var(--f-mono);font-size:12.5px}
+thead th{
+  background:var(--paper-3);text-align:left;padding:10px 13px;
+  font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;font-weight:700;
+  color:var(--ink-2);border-bottom:1px solid var(--rule-hard);white-space:nowrap;
+}
+tbody td{padding:11px 13px;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:nth-child(even){background:color-mix(in srgb,var(--paper-2) 55%,transparent)}
+tbody tr:hover{background:var(--paper-2)}
+td strong,th strong{font-weight:700}
+td.n{color:var(--signal);font-weight:700;white-space:nowrap}
+
+/* verdict tags */
+.tag{font-family:var(--f-mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;padding:2.5px 7px;border:1px solid;white-space:nowrap;display:inline-block}
+.tag.go{color:var(--go);border-color:var(--go)}
+.tag.warn{color:var(--warn);border-color:var(--warn)}
+.tag.stop{color:var(--stop);border-color:var(--stop)}
+.tag.sig{color:var(--signal);border-color:var(--signal)}
+
+/* ── the recommendation block ─────────────────── */
+.reco{
+  position:relative;margin:34px 0 10px;padding:34px 34px 30px;
+  background:var(--paper-2);border:1px solid var(--rule-hard);
+  box-shadow:14px 14px 0 -1px var(--shadow);
+}
+.reco::before{
+  content:"RECOMMENDED";position:absolute;top:-1px;left:-1px;
+  background:var(--signal);color:#fff;font-family:var(--f-mono);font-size:9.5px;
+  font-weight:700;letter-spacing:.2em;padding:6px 13px;
+}
+.reco h3{margin:22px 0 14px;border:0;padding:0;font-family:var(--f-display);
+  font-weight:400;font-size:clamp(26px,4vw,38px);line-height:1.1;letter-spacing:-.015em}
+.reco .oneline{
+  font-family:var(--f-body);font-style:italic;font-size:19px;line-height:1.45;
+  color:var(--ink);border-left:3px solid var(--signal);padding-left:18px;margin:0 0 22px;max-width:58ch;
+}
+
+/* ── idea cards ───────────────────────────────── */
+.idea{
+  display:grid;grid-template-columns:var(--rail) 1fr;gap:0;
+  border-top:1px solid var(--rule-hard);padding:30px 0 26px;
+}
+.idea .rank{
+  font-family:var(--f-display);font-size:58px;line-height:.8;color:var(--rule-hard);
+  padding-top:2px;
+}
+.idea.top .rank{color:var(--signal)}
+.idea .body h3{margin:0 0 6px;border:0;padding:0;font-size:23px;font-weight:600}
+.idea .body .ol{font-style:italic;color:var(--ink-2);margin:0 0 14px;font-size:17px;max-width:58ch}
+.idea .meta{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+
+/* two-col facts */
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:0;
+  border:1px solid var(--rule);margin:18px 0}
+.facts > div{padding:13px 15px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.facts dt{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:6px}
+.facts dd{margin:0;font-size:15px;line-height:1.5}
+
+/* callout */
+.call{
+  margin:22px 0;padding:16px 20px;border:1px solid var(--rule-hard);
+  border-left:4px solid var(--warn);background:var(--paper-2);font-size:15.5px;
+}
+.call.stop{border-left-color:var(--stop)}
+.call.go{border-left-color:var(--go)}
+.call .h{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-3);display:block;margin-bottom:7px}
+.call p:last-child{margin-bottom:0}
+
+/* timeline */
+.tl{list-style:none;padding:0;margin:24px 0;max-width:none}
+.tl li{
+  display:grid;grid-template-columns:var(--rail) 1fr;gap:0;
+  border-top:1px solid var(--rule);padding:16px 0;margin:0;
+}
+.tl .when{font-family:var(--f-mono);font-size:11px;font-weight:700;letter-spacing:.06em;
+  color:var(--signal);padding-right:14px;line-height:1.5}
+.tl .what{font-size:16px}
+.tl .what b{display:block;font-weight:600;margin-bottom:3px}
+
+/* footer */
+footer{margin-top:70px;padding-top:26px;border-top:3px double var(--rule-hard);
+  font-family:var(--f-mono);font-size:11.5px;color:var(--ink-3);line-height:1.8}
+footer .big{font-family:var(--f-display);font-size:28px;color:var(--ink);margin-bottom:14px}
+
+hr.rule{border:0;border-top:1px solid var(--rule);margin:34px 0}
+
+/* ── responsive ───────────────────────────────── */
+@media (max-width:680px){
+  body{font-size:16px}
+  .wrap{padding:0 18px 90px}
+  .idea,.tl li{grid-template-columns:46px 1fr}
+  .idea .rank{font-size:36px}
+  .reco{padding:30px 20px 24px;box-shadow:8px 8px 0 -1px var(--shadow)}
+  .shead{gap:12px}
+  .snum{min-width:26px;font-size:10px}
+}
+
+/* ── print ────────────────────────────────────── */
+@media print{
+  :root{--paper:#fff;--paper-2:#f7f5f0;--paper-3:#efece5;--ink:#000;--ink-2:#333;
+        --ink-3:#666;--rule:#ccc;--rule-hard:#999;--signal:#a33208;--shadow:transparent}
+  body::before{display:none}
+  nav.toc,.clock{display:none}
+  body{font-size:10.5pt}
+  .wrap{max-width:none;padding:0}
+  section{padding:22pt 0 0;page-break-inside:avoid}
+  .idea,.reco,.tbl,.facts,.call{page-break-inside:avoid}
+  h2{font-size:19pt}
+  table{font-size:8pt;min-width:0}
+  a{color:#000;border:0}
+  .reco{box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ══════════════ MASTHEAD ══════════════ -->
+<header class="mast rv">
+  <div class="kicker">
+    <span class="dot"></span><span>Field Brief</span>
+    <span class="sep">/</span><span>Deep Research</span>
+    <span class="sep">/</span><span>726 sources</span>
+    <span class="sep">/</span><span>Compiled 06 Aug 2026</span>
+  </div>
+
+  <h1 class="title">The Zerops<br>Challenge <em>&mdash;</em><br>what to build.</h1>
+
+  <p class="dek">A 48-hour solo hackathon judged on <b>the idea, the execution, and how Zerops is used</b>. This brief maps the platform's real unfair advantages, the ideas already saturated by the sponsor itself, and the one project where Zerops is structurally load-bearing rather than decorative.</p>
+
+  <dl class="specstrip">
+    <div><dt>Event window</dt><dd>08 &rarr; 09 Aug 2026</dd></div>
+    <div><dt>Format</dt><dd>Solo &middot; 48 hours</dd></div>
+    <div><dt>Main prize</dt><dd>MacBook Neo</dd></div>
+    <div><dt>Credits pool</dt><dd><span>$5,000</span></dd></div>
+    <div><dt>Research method</dt><dd>6 agents &middot; Exa</dd></div>
+  </dl>
+
+  <div class="clock">
+    <div>
+      <div class="lbl">T&ndash;minus &middot; submissions close</div>
+      <div class="val" id="cd">&mdash;&mdash;:&mdash;&mdash;:&mdash;&mdash;</div>
+    </div>
+    <p class="note">Assumes end of day 09 Aug local time. Verify the exact cutoff on the event page.</p>
+  </div>
+</header>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav class="toc">
+  <ol>
+    <li><a href="#verdict"><b>01</b>Verdict</a></li>
+    <li><a href="#brief"><b>02</b>The Brief</a></li>
+    <li><a href="#judging"><b>03</b>What Wins</a></li>
+    <li><a href="#platform"><b>04</b>Platform Edge</a></li>
+    <li><a href="#priorart"><b>05</b>Prior Art</a></li>
+    <li><a href="#ideas"><b>06</b>The Ideas</a></li>
+    <li><a href="#social"><b>07</b>Social Track</a></li>
+    <li><a href="#plan"><b>08</b>Execution</a></li>
+    <li><a href="#flags"><b>09</b>Flags</a></li>
+  </ol>
+</nav>
+
+<!-- ══════════════ 01 VERDICT ══════════════ -->
+<section id="verdict" class="rv" style="animation-delay:.08s">
+  <div class="shead">
+    <div class="snum">01</div>
+    <h2>The verdict<span class="sub">Lead with this &middot; everything else is support</span></h2>
+  </div>
+
+  <div class="reco">
+    <h3>Ephemeral full-stack environments for AI-generated pull requests</h3>
+    <p class="oneline">&ldquo;Every AI-written pull request gets a real, running, throwaway production stack &mdash; because you can't review what you can't run.&rdquo;</p>
+
+    <p>A GitHub App. On PR open, it calls the Zerops REST API to create a <strong>new isolated project</strong> &mdash; app service + Postgres + Valkey &mdash; runs migrations, seeds representative data, and comments the live URL on the PR with a resource and cost readout. On merge, close, or TTL expiry it destroys the project. A reconciler sweeps orphans so nothing leaks.</p>
+
+    <h4>Why it wins on the stated rubric</h4>
+    <ol>
+      <li><strong>Zerops is load-bearing, not decorative.</strong> The product cannot exist without API-driven provisioning of isolated, stateful, networked projects. Vercel and Netlify previews give you a frontend against one shared database &mdash; so two PRs touching the schema collide. This gives each PR its own network, its own Postgres, its own state.</li>
+      <li><strong>The problem is 2026-shaped and real.</strong> Coding agents now open PRs faster than humans can review them.</li>
+      <li><strong>The demo is one unbroken 60 seconds.</strong> Agent opens PR &rarr; bot comments &ldquo;environment ready&rdquo; &rarr; click &rarr; working app with seeded data &rarr; merge &rarr; environment gone.</li>
+    </ol>
+
+    <div class="call go">
+      <span class="h">The beat that closes the argument</span>
+      <p>Mid-demo, show a <strong>second PR running simultaneously with a conflicting schema change &mdash; both green.</strong> That is the entire case against shared-database previews, in five seconds. Do not skip it.</p>
+    </div>
+  </div>
+
+  <p style="margin-top:26px">Runner-up for pure spectacle: <a href="#i2">the Resilience Drill</a> &mdash; kill the Postgres primary live, app stays up. Wildcard for memorability: <a href="#i4">per-match UDP game servers</a>.</p>
+</section>
+
+<!-- ══════════════ 02 BRIEF ══════════════ -->
+<section id="brief">
+  <div class="shead">
+    <div class="snum">02</div>
+    <h2>The brief, verified<span class="sub">Two prizes &middot; two different games</span></h2>
+  </div>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Item</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Format</strong></td><td>Online, <strong>solo only</strong>, one project per participant, 48 hours</td></tr>
+        <tr><td><strong>Dates</strong></td><td>Kickoff livestream 08 Aug &rarr; submissions close 09 Aug</td></tr>
+        <tr><td><strong>Main prize</strong></td><td>MacBook Neo &mdash; judged on <strong>&ldquo;the idea, the execution, and how Zerops is used&rdquo;</strong></td></tr>
+        <tr><td><strong>Social prize</strong></td><td>Logitech MX Master 3 &mdash; <strong>&ldquo;clarity of the story, the demo, and its reach&rdquo;</strong></td></tr>
+        <tr><td><strong>Credits</strong></td><td>$5,000 in Zerops credits spread <em>across standout projects</em></td></tr>
+        <tr><td><strong>Hard requirements</strong></td><td>Deployed on Zerops &middot; Zerops &ldquo;meaningfully involved in how it is built, deployed, or operated&rdquo; &middot; live URL &middot; public source &middot; deployment stays live through judging</td></tr>
+        <tr><td><strong>Submission</strong></td><td>Repo + live URL + demo video + public build post (name, explanation, working-product video, live link, Zerops-usage explanation, tags <code>@WeMakeDevs</code> <code>@zeropsio</code>)</td></tr>
+        <tr><td><strong>AI policy</strong></td><td>&ldquo;AI can help you build it. It can't build it for you.&rdquo; Disclose all tools. Fully AI-generated projects with no meaningful original contribution are <strong>rejected</strong>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p>The credits pool being spread &ldquo;across standout projects&rdquo; means expected value of entering is high &mdash; you don't need the MacBook to walk away with something. And the Social Track is a <em>separate, much cheaper</em> win: it rewards storytelling and reach, not code. Budget explicit hours for it.</p>
+
+  <div class="call">
+    <span class="h">Discrepancy &middot; check before you architect</span>
+    <p>The hackathon page advertises <strong>$15</strong> free credits for new accounts. The Zerops pricing page states <strong>$65</strong> trial credit, no card required. Sign up and confirm your actual balance first.</p>
+  </div>
+</section>
+
+<!-- ══════════════ 03 JUDGING ══════════════ -->
+<section id="judging">
+  <div class="shead">
+    <div class="snum">03</div>
+    <h2>What actually wins<span class="sub">Published rubrics &middot; named winners &middot; a judge's own account</span></h2>
+  </div>
+
+  <h3>The published criteria</h3>
+  <p>WeMakeDevs reuse six dimensions across their events: <strong>Potential Impact &middot; Creativity &amp; Originality &middot; Technical Implementation &middot; Learning &amp; Growth &middot; Aesthetics &amp; UX &middot; Presentation &amp; Communication.</strong></p>
+  <p>Note that Learning &amp; Growth and Presentation are a third of the rubric. That is unusually generous to a well-told story &mdash; which means <strong>the demo video and README are scored artifacts, not packaging.</strong></p>
+
+  <h3>What moves scores in practice</h3>
+  <blockquote>
+    Everyone lands mid-range on the published rubric. The spread that produces a winner comes from two or three things the rubric does not name.
+    <cite>Working hackathon judge &middot; DEV &middot; July 2026</cite>
+  </blockquote>
+
+  <div class="tbl">
+    <table>
+      <thead><tr><th>#</th><th>Differentiator</th><th>Finding</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td><strong>Whether the demo ran</strong></td><td>&ldquo;The single largest score differentiator I saw. A working demo, live, beats a more ambitious project shown as slides almost every time &mdash; because a live demo removes doubt, and doubt is what a judge is actually managing under time pressure.&rdquo;</td></tr>
+        <tr><td class="n">2</td><td><strong>Whether you said what it is in sentence one</strong></td><td>Teams opening with context or market size lost a third of the slot before the judge knew what they were looking at. Give the anchor first.</td></tr>
+        <tr><td class="n">3</td><td><strong>Whether scope matched the time</strong></td><td>&ldquo;One narrow thing built well reads as a team that made decisions. A platform in 36 hours reads as a team that did not.&rdquo;</td></tr>
+        <tr><td class="n">4</td><td><strong>Admitting a limitation</strong> <span class="tag sig">counterintuitive</span></td><td>&ldquo;Teams that say nothing breaks lose credibility instantly, and teams that name the weakness gain more than they lose.&rdquo;</td></tr>
+        <tr><td class="n">5</td><td><strong>A one-line identity</strong></td><td>&ldquo;Judges score partly on whether they can imagine explaining your project to someone else.&rdquo; Three features with no center don't survive discussion.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><strong>What explicitly does not move scores:</strong> framework choice, credentials, slide decks, and polish beyond legibility &mdash; &ldquo;elaborate UI does not add on top of legible UI, and past a point it makes me wonder where the backend time went.&rdquo;</p>
+
+  <h3>Sponsor-tech depth is the multiplier</h3>
+  <p>An analysis of <strong>8,200 ETHGlobal projects across 38 events</strong> found that when a hungry specialist sponsor meets a genuinely novel category, projects win at <strong>3.30&times; expected rate</strong>. But:</p>
+  <blockquote>Alpha is a window, not a level. It closes on saturation every single time.</blockquote>
+  <p>One themed event drew 217 near-identical clones fighting over ~36 prizes; those projects won at <em>well under half</em> expected rate. Zerops is exactly the hungry specialist sponsor. The 3.3&times; is available &mdash; but only if your project isn't the thing forty other people also built. Which is what <a href="#priorart">&sect;05</a> is for.</p>
+
+  <h3>Named prior winners, and why</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Project</th><th>Event</th><th>Why it won</th></tr></thead>
+      <tbody>
+        <tr><td><strong>RivalMap</strong></td><td>AWS Autonomous Agents, Feb 2026 &mdash; <span class="tag go">1st overall</span></td><td>14-step pipeline, zero human-in-loop after URL submit, integrated 9 of 11 sponsor stacks against a 3 minimum. Demoed live on <code>linear.app</code> then <code>figma.com</code>, knowledge graph lighting up as the agent learned.</td></tr>
+        <tr><td><strong>Sentrix</strong></td><td>UCL AI Build Festival 2026 (24h)</td><td>&ldquo;Agentic police for AI swarms.&rdquo; Concrete failure modes, a live arc (anomaly &rarr; chase &rarr; quarantine), everything clonable. Story beat feature list.</td></tr>
+        <tr><td><strong>DCRCA Agent</strong></td><td>AgentHack 2025 &mdash; <strong>WeMakeDevs</strong> + Portia AI</td><td>Disaster-response coordination with human approval gates. Wired the sponsor framework deeply; real-world stakes.</td></tr>
+        <tr><td><strong>Lethe</strong></td><td>Hangover Hackathon, Jul 2026 &mdash; Cognee</td><td>Self-hosted incident triage that <em>forgets stale infra knowledge</em>. Sponsor tech at the core, not the surface.</td></tr>
+        <tr><td><strong>MCP-in-Browser</strong></td><td>E2B Hackathon &mdash; <span class="tag go">1st</span></td><td>Removed a real friction by orchestrating sponsor sandboxes. Shipped as an npm package.</td></tr>
+        <tr><td><strong>Voxy</strong></td><td>SF Voice Agent (1 day) &mdash; <span class="tag go">grand prize</span></td><td>&ldquo;The platform just works.&rdquo; Sponsor tech seamless and invisible to the user.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>The pattern:</strong> one-sentence identity + sponsor tech at the core + a live arc the judge can watch + narrow scope done completely + honesty about limits.</p>
+
+  <h3>The AI-disclosure play</h3>
+  <p>Every 2026 rulebook surveyed converges on the same line: <strong>disclosure is free, non-comprehension is fatal.</strong> One states outright that &ldquo;using AI tools with proper disclosure does not disadvantage your submission.&rdquo; The disqualifiers are undisclosed use, hallucinated logic, spray-and-pray submissions, and submitting output you never ran or understood. &ldquo;If a judge asks <em>explain this code</em>, you must be able to.&rdquo;</p>
+  <div class="call go">
+    <span class="h">Turn compliance into a scoring signal</span>
+    <p>Ship an <code>AI-USAGE.md</code> naming exactly what each tool did &mdash; e.g. &ldquo;Claude Code for the Zerops API client and the teardown reconciler; hand-written: the provisioning state machine and webhook verification.&rdquo; Then be able to explain the state machine cold. Given differentiator&nbsp;#4 above, volunteering your own limits <em>raises</em> your score.</p>
+  </div>
+</section>
+
+<!-- ══════════════ 04 PLATFORM ══════════════ -->
+<section id="platform">
+  <div class="shead">
+    <div class="snum">04</div>
+    <h2>Where the unfair advantage is<span class="sub">Verified against docs.zerops.io &middot; 06 Aug 2026</span></h2>
+  </div>
+
+  <h3>Managed services &mdash; 12, all on a private network, addressable by hostname</h3>
+  <p><code>PostgreSQL</code> <code>MariaDB/MySQL</code> <code>Valkey</code> <code>KeyDB</code> <code>Elasticsearch</code> <code>Typesense</code> <code>Meilisearch</code> <code>Qdrant</code> <code>NATS</code> <code>Kafka</code> <code>ClickHouse</code> <code>Object Storage (S3)</code> <code>Shared Storage</code></p>
+  <p>You reach these as <code>db:5432</code>, <code>valkey:6379</code> &mdash; no connection-string plumbing, no external add-on accounts.</p>
+
+  <h3>Runtimes &mdash; 13, plus real Linux</h3>
+  <p><code>Node</code> <code>PHP</code> <code>Python</code> <code>Go</code> <code>.NET</code> <code>Rust</code> <code>Java</code> <code>Deno</code> <code>Bun</code> <code>Elixir</code> <code>Gleam</code> <code>Ruby</code> <code>Nginx/Static</code> &mdash; plus <strong><code>Ubuntu</code>, <code>Alpine</code> and <code>Docker</code> service types</strong> with root access, system packages and SSH. Full Linux containers, not restricted app slots.</p>
+
+  <h3>The seven capabilities that are genuinely hard to get elsewhere</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>#</th><th>Capability</th><th>Why it's an unlock</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td><strong>Public REST API</strong> + published OpenAPI spec + Go SDK</td><td>You can <strong>create and destroy entire projects and services programmatically.</strong> This is the foundation for anything ephemeral &mdash; preview envs, sandboxes, per-tenant stacks, match servers. Very few PaaS expose this.</td></tr>
+        <tr><td class="n">2</td><td><strong>Raw TCP <em>and UDP</em> ports</strong><br><code>run.ports[].protocol</code></td><td>Inbound SMTP, MQTT, DNS, QUIC, game protocols, WireGuard. <strong>Structurally impossible on Vercel, Netlify or Workers.</strong> Almost nobody builds here.</td></tr>
+        <tr><td class="n">3</td><td><strong>One-click HA</strong> &mdash; 3-container clusters as a <em>toggle</em></td><td>Real failover you can demonstrate. Competitors gate this behind enterprise tiers.</td></tr>
+        <tr><td class="n">4</td><td><strong>Full Linux + Docker service type, root</strong></td><td>Arbitrary or untrusted workloads, custom daemons, anything needing <code>apt install</code>.</td></tr>
+        <tr><td class="n">5</td><td><strong>WireGuard VPN into the project network</strong><br><code>zcli vpn up</code></td><td>Your laptop joins the private network; local code talks to <code>db:5432</code> directly. Genuinely great demo material.</td></tr>
+        <tr><td class="n">6</td><td><strong><code>crontab</code> + <code>startCommands</code></strong> in <code>zerops.yml</code></td><td>Scheduled jobs and multi-process containers with no external scheduler.</td></tr>
+        <tr><td class="n">7</td><td><strong>Autoscaling, and no scale-to-zero</strong></td><td>Vertical re-evaluated ~every 10s in 0.125&nbsp;GB steps; horizontal 1&ndash;10 containers. The <em>absence</em> of scale-to-zero is a feature: long-running processes, websockets and stateful daemons just work, no cold starts.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><code>zerops.yml</code> shape &mdash; exact keys, for planning</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Block</th><th>Keys</th></tr></thead>
+      <tbody>
+        <tr><td><code>setup</code></td><td>service hostname &mdash; <strong>required</strong></td></tr>
+        <tr><td><code>extends</code></td><td>inherit from another service</td></tr>
+        <tr><td><code>build</code></td><td><code>base</code> <code>os</code> <code>prepareCommands</code> <code>buildCommands</code> <code>deployFiles</code> <code>cache</code> <code>addToRunPrepare</code> <code>envVariables</code></td></tr>
+        <tr><td><code>deploy</code></td><td><code>temporaryShutdown</code> <code>readinessCheck</code></td></tr>
+        <tr><td><code>run</code> <span class="tag sig">required</span></td><td><code>base</code> <code>os</code> <code>ports[{port,protocol,httpSupport}]</code> <code>prepareCommands</code> <code>initCommands</code> <code>start</code> <code>startCommands</code> <code>documentRoot</code> <code>siteConfigPath</code> <code>envVariables</code> <code>envReplace</code> <code>routing</code> <code>healthCheck</code> <code>crontab</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Autoscaling and HA are <strong>not</strong> <code>zerops.yml</code> keys &mdash; they live in the project-import YAML and the GUI.</p>
+
+  <h3>ZCP &mdash; the sponsor's own MCP server for coding agents</h3>
+  <p><strong>Confirmed real and active.</strong> <code>zeropsio/zcp</code>, pushed 05 Aug 2026, docs live, announced public preview May 2026. Runs remotely as a <code>zcp@1</code> service inside your project or locally over <code>zcli vpn up</code>. Supports Claude Code, Codex, Antigravity, Grok Build. Exposes deploy, logs, events, env, scale and verify operations.</p>
+  <div class="call stop">
+    <span class="h">This cuts both ways &mdash; plan around it</span>
+    <p><strong>Don't</strong> build &ldquo;an MCP server so agents can deploy to Zerops.&rdquo; The sponsor shipped it three months ago; you'd be demoing their own product back to them.</p>
+    <p><strong>Do</strong> use it as a disclosed accelerator, and do build agent-facing infrastructure <em>on</em> Zerops.</p>
+  </div>
+
+  <h3>Pricing reality for a weekend</h3>
+  <p>Lightweight project core is <strong>free</strong>; Serious is $10/mo. Shared CPU <strong>$0.60</strong>/core/mo, dedicated <strong>$6.00</strong>, RAM <strong>$3.00</strong>/GB/mo, disk <strong>$0.10</strong>/GB/mo &mdash; all billed <strong>per minute</strong>. With a $65 trial credit, a weekend of spinning projects up and down costs cents. Provisioning-heavy ideas are financially safe.</p>
+
+  <h3>Known rough edges &mdash; and name them in your demo</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Issue</th><th>Impact</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td><strong>GitLab integration</strong>: tokens expire ~2h, auto-deploy fails</td><td><span class="tag stop">high</span></td><td><strong>Use GitHub</strong>, or push via <code>zcli</code></td></tr>
+        <tr><td><strong>Build/run env vars are not shared by default</strong></td><td><span class="tag stop">bites everyone</span></td><td>Declare explicitly in <code>build.envVariables</code></td></tr>
+        <tr><td>VPN fails on Linux without <code>systemd-resolved</code></td><td><span class="tag warn">blocks local dev</span></td><td><code>sudo systemctl enable --now systemd-resolved</code></td></tr>
+        <tr><td>1-hour hard build timeout</td><td><span class="tag warn">heavy builds die</span></td><td>Use <code>build.cache</code>, split steps</td></tr>
+        <tr><td><code>zerops.yml</code> is not zero-config</td><td><span class="tag warn">~1h curve</span></td><td>Fork a recipe instead of writing from scratch</td></tr>
+        <tr><td>Shared storage: 60&nbsp;GB cap, locks per-container only</td><td><span class="tag warn">no DBs on it</span></td><td>Use object storage</td></tr>
+        <tr><td>Regions EU-first; US-East added Mar 2026</td><td><span class="tag go">low</span></td><td>Note honestly; irrelevant to judging</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Budget one hour today for the env-var and VPN gotchas specifically.</strong> They are the two most-reported first-deploy failures.</p>
+</section>
+
+<!-- ══════════════ 05 PRIOR ART ══════════════ -->
+<section id="priorart">
+  <div class="shead">
+    <div class="snum">05</div>
+    <h2>What not to build<span class="sub">Pulled live from 100+ repos in the zeropsio org</span></h2>
+  </div>
+
+  <p>If your idea is in this list it is <em>already a Zerops recipe</em> and will read as derivative.</p>
+
+  <h4>Framework deploys &mdash; fully covered</h4>
+  <p>Next.js, Nuxt, Astro, SvelteKit, Angular, Qwik, Analog, Solid, Ember, Sails, Turborepo, Laravel (&times;4), Django, Flask, Phoenix, Rails, NestJS, Adonis, Symfony, Nette, Medusa (&times;3), RedwoodJS, Payload, Ghost, WordPress, Odoo, Scala/Play, Gleam, Deno/Hono.</p>
+
+  <h4>Self-hosted app catalog &mdash; fully covered</h4>
+  <p><code>n8n</code> <code>nextcloud</code> <code>keycloak</code> <code>supertokens</code> <code>metabase</code> <code>mattermost</code> <code>airflow</code> <code>jenkins</code> <code>adminer</code> <code>medama</code> <code>imgproxy</code> <code>mailpit</code> &middot; observability: <code>elk</code> <code>prometheus-grafana</code> &middot; CI runners: <code>github-runner</code> <code>zcli-gitlab-runner</code> &middot; games: <code>minecraft-server</code> <code>quake3-server</code></p>
+
+  <div class="call stop">
+    <span class="h">Two landmines specifically</span>
+    <p><strong>RAG is dead on arrival.</strong> <code>recipe-rag-starter</code> is an official <strong>8-service</strong> showcase &mdash; Qdrant + Postgres + Valkey + NATS + S3 + FastAPI + worker + dashboard. &ldquo;A RAG app on Zerops&rdquo; is fully commoditized.</p>
+      <p><strong><code>zerops-showcase-deploy</code> already creates isolated projects per branch/PR via the API.</strong> Read it carefully &mdash; it is simultaneously the biggest overlap risk with the recommended idea <em>and</em> its single best accelerator. Your differentiation is the product layer: agent-PR framing, GitHub App UX, seeded data, TTL reconciliation, cost display. Credit it explicitly.</p>
+  </div>
+
+  <h3>Accelerators &mdash; use these</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Asset</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td><code>zeropsio/recipes</code></td><td>Fork the closest stack; each ships a <code>zerops-project-import.yml</code></td></tr>
+        <tr><td><code>zcli</code></td><td><code>zcli login &lt;token&gt;</code> &middot; <code>zcli push</code> &middot; <code>zcli service deploy</code> &middot; <code>zcli vpn up</code></td></tr>
+        <tr><td><code>zeropsio/actions</code></td><td>Official GitHub Action for deploys</td></tr>
+        <tr><td><code>zeropsio/openapi</code></td><td><strong>The key unlock</strong> &mdash; generate a typed API client in minutes</td></tr>
+        <tr><td><code>zeropsio/zerops-go</code></td><td>Official Go client</td></tr>
+        <tr><td><code>zerops-showcase-deploy</code></td><td><code>zerops/scripts/zerops-api.sh</code> &mdash; working <code>curl + jq</code> API calls</td></tr>
+        <tr><td><code>zvsc</code> &middot; <code>zerops-autoscaler</code> &middot; <code>libsql</code></td><td>Lesser-known org repos worth a skim</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Territory crowdedness &mdash; 2026 landscape</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Territory</th><th>State</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr><td>Hosted MCP servers</td><td><span class="tag stop">saturated</span> Glama, MCPLambda, Conduit, MCPBay, MCP Nest</td><td>Avoid</td></tr>
+        <tr><td>LLM observability</td><td><span class="tag stop">consolidated</span> Langfuse, LangSmith, Spanlens</td><td>Avoid</td></tr>
+        <tr><td>RAG starters</td><td><span class="tag stop">sponsor ships one</span></td><td>Avoid</td></tr>
+        <tr><td>Agent sandboxes</td><td><span class="tag warn">high</span> E2B, Daytona, Modal</td><td>Only with a sovereignty angle</td></tr>
+        <tr><td>Local-first sync</td><td><span class="tag warn">high</span> Electric, Zero, PowerSync</td><td>Reads derivative</td></tr>
+        <tr><td>Durable workflows for indies</td><td><span class="tag warn">medium</span> real gap</td><td>Hard to demo</td></tr>
+        <tr><td><strong>Ephemeral stateful environments</strong></td><td><span class="tag go">low</span> everyone does frontend previews; nobody does isolated full stacks</td><td><strong>Best opening</strong></td></tr>
+        <tr><td><strong>Non-HTTP protocol services</strong></td><td><span class="tag go">very low</span> most PaaS structurally can't</td><td><strong>Best differentiation story</strong></td></tr>
+        <tr><td>Agent memory / mergeable state</td><td><span class="tag go">low-medium</span> no standard yet</td><td>Abstract to demo</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════ 06 IDEAS ══════════════ -->
+<section id="ideas">
+  <div class="shead">
+    <div class="snum">06</div>
+    <h2>The ideas, ranked<span class="sub">Scored on: would this be impossible on Vercel, Render or Railway?</span></h2>
+  </div>
+  <p>That question <em>is</em> the &ldquo;how Zerops is used&rdquo; score. Everything below is judged against it.</p>
+
+  <!-- IDEA 1 -->
+  <article class="idea top" id="i1">
+    <div class="rank">01</div>
+    <div class="body">
+      <h3>Ephemeral full-stack environments for AI-generated PRs</h3>
+      <p class="ol">&ldquo;Every AI-written pull request gets a real, running, throwaway production stack.&rdquo;</p>
+      <div class="meta">
+        <span class="tag sig">recommended</span>
+        <span class="tag go">Zerops load-bearing &times;2</span>
+        <span class="tag go">feasibility: high</span>
+        <span class="tag warn">risk: teardown leaks</span>
+      </div>
+      <p>See <a href="#verdict">&sect;01</a> for the full case. The differentiator sentence to say out loud in the demo: <em>&ldquo;Vercel gives each PR a frontend against one shared database. This gives each PR its own network, its own Postgres, its own state &mdash; because Zerops lets me create whole projects over an API and bills per minute.&rdquo;</em></p>
+      <div class="facts">
+        <div><dt>48h scope &mdash; ship</dt><dd>Webhook &rarr; provision &rarr; seed &rarr; comment &rarr; destroy, for <strong>one</strong> hardcoded stack.</dd></div>
+        <div><dt>48h scope &mdash; cut</dt><dd>Multi-stack detection, dashboard, auth/orgs, cost analytics beyond a printed number.</dd></div>
+        <div><dt>Build first</dt><dd>The <strong>reconciler</strong>. Leaked projects burn credits silently.</dd></div>
+        <div><dt>Limitation to volunteer</dt><dd>&ldquo;Provisioning takes 60&ndash;90s so it's async &mdash; the bot edits its comment when ready. I cap concurrent envs; there's no queue yet.&rdquo;</dd></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- IDEA 2 -->
+  <article class="idea" id="i2">
+    <div class="rank">02</div>
+    <div class="body">
+      <h3>Resilience Drill &mdash; chaos testing that proves your HA</h3>
+      <p class="ol">&ldquo;Push a button, kill your database primary, and get a report proving your app survived.&rdquo;</p>
+      <div class="meta">
+        <span class="tag sig">best spectacle</span>
+        <span class="tag go">Zerops load-bearing &times;2</span>
+        <span class="tag go">feasibility: high</span>
+        <span class="tag warn">risk: reads as demo-ware</span>
+      </div>
+      <p>Point it at a Zerops project. It runs a scripted drill via the API &mdash; kill the Postgres primary, kill an app container, saturate a service &mdash; while continuously probing your endpoint. Output: a timeline of failover duration, dropped requests and recovery, as a shareable report you can run in CI.</p>
+      <p><strong>Why Zerops is load-bearing:</strong> real 3-node HA is a <em>toggle</em> here and an enterprise tier everywhere else. You cannot demonstrate genuine Postgres failover on Render's hobby tier at all. The project's entire value derives from the sponsor's most differentiated feature &mdash; the most direct possible answer to &ldquo;how is Zerops used.&rdquo;</p>
+      <div class="facts">
+        <div><dt>Verify in hour 0</dt><dd>That you can kill a <em>specific HA replica</em> via the API. If not, the idea collapses.</dd></div>
+        <div><dt>Framing that saves it</dt><dd>Call it <strong>resilience CI</strong>, not a chaos toy.</dd></div>
+        <div><dt>Limitation to volunteer</dt><dd>&ldquo;Three fault types only, and I measure from outside the cluster &mdash; so my failover numbers are upper bounds.&rdquo;</dd></div>
+        <div><dt>Why not #1</dt><dd>Killing a live database on camera is the most memorable 10 seconds of the weekend &mdash; but the <em>product</em> story is thinner, and judges reward something they can explain as a thing people would use.</dd></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- IDEA 3 -->
+  <article class="idea" id="i3">
+    <div class="rank">03</div>
+    <div class="body">
+      <h3>Email-as-an-API &mdash; inbound SMTP</h3>
+      <p class="ol">&ldquo;Give any app a real email address that turns inbound mail into structured webhooks &mdash; on your own infra.&rdquo;</p>
+      <div class="meta">
+        <span class="tag sig">sharpest differentiation</span>
+        <span class="tag go">uniquely enabled</span>
+        <span class="tag warn">feasibility: medium</span>
+        <span class="tag stop">risk: port 25 blocked?</span>
+      </div>
+      <p>A real SMTP server on a raw TCP port, parsing inbound mail into structured JSON (sender, subject, body, attachments &rarr; object storage), stored in Postgres, delivered as signed webhooks, with a live inbox UI. Self-hostable Postmark-inbound.</p>
+      <p><strong>Why Zerops is load-bearing:</strong> the strongest &ldquo;impossible elsewhere&rdquo; story in this brief. <strong>You cannot bind an inbound SMTP port on Vercel, Netlify or Cloudflare Workers.</strong> It needs a raw TCP listener, a long-running process, persistent storage and no scale-to-zero &mdash; exactly the shape Zerops has and serverless platforms don't.</p>
+      <div class="facts">
+        <div><dt>Verify first thing</dt><dd>That Zerops routes external traffic to your inbound port and that <strong>25 isn't blocked</strong>.</dd></div>
+        <div><dt>Fallback</dt><dd>Port 2525 + documented relay &mdash; or pivot to MQTT ingest &rarr; ClickHouse (same architectural story, no port politics).</dd></div>
+        <div><dt>Don't hand-roll</dt><dd>Use <code>emersion/go-smtp</code> or <code>aiosmtpd</code>. Never write a MIME parser at a hackathon.</dd></div>
+        <div><dt>Limitation to volunteer</dt><dd>&ldquo;No SPF/DKIM/DMARC verification, and I'm on a non-standard port &mdash; this is a receiver, not a deliverability story.&rdquo;</dd></div>
+      </div>
+    </div>
+  </article>
+
+  <!-- IDEA 4 -->
+  <article class="idea" id="i4">
+    <div class="rank">04</div>
+    <div class="body">
+      <h3>Dedicated UDP match servers, provisioned per game</h3>
+      <p class="ol">&ldquo;Every match gets its own authoritative game server, spun up on demand and destroyed when the match ends.&rdquo;</p>
+      <div class="meta">
+        <span class="tag sig">most memorable</span>
+        <span class="tag go">uniquely enabled</span>
+        <span class="tag stop">feasibility: low&ndash;medium</span>
+        <span class="tag stop">risk: scope</span>
+      </div>
+      <p>A browser game whose matchmaking service provisions a real dedicated authoritative server on a <strong>raw UDP port</strong> via the Zerops API, hands both clients the endpoint, and destroys it when the match ends.</p>
+      <p><strong>Why Zerops is load-bearing:</strong> UDP + API-driven provisioning + no cold starts. Unavailable on essentially every mainstream PaaS. The Minecraft and Quake&nbsp;3 recipes prove UDP game workloads run &mdash; but those are &ldquo;run a server&rdquo; recipes, not &ldquo;provision a server per match&rdquo; products, so you aren't duplicating them.</p>
+      <div class="facts">
+        <div><dt>Only attempt if</dt><dd>You already have game and netcode reflexes.</dd></div>
+        <div><dt>Mitigation</dt><dd>Make the game <em>trivially</em> simple &mdash; two dots and a ball. <strong>The product is the provisioning, not the gameplay.</strong></dd></div>
+        <div><dt>Failure mode</dt><dd>Two of {game, netcode, provisioning} eat the whole weekend.</dd></div>
+      </div>
+    </div>
+  </article>
+
+  <h3>Considered and rejected</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Idea</th><th>Why not</th></tr></thead>
+      <tbody>
+        <tr><td>Hosted MCP server platform</td><td>Saturated market <em>and</em> the sponsor ships <code>zcp</code></td></tr>
+        <tr><td>RAG / chat-with-docs</td><td><code>recipe-rag-starter</code> is an official 8-service showcase. Instantly derivative</td></tr>
+        <tr><td>LLM cost/observability dashboard</td><td>Consolidated market; also a dashboard, which demos poorly</td></tr>
+        <tr><td>&ldquo;Deploy X to Zerops in one click&rdquo;</td><td>The recipes catalog <em>is</em> this</td></tr>
+        <tr><td>Self-hosted Notion/Airtable clone</td><td>Zerops is incidental &mdash; it'd run anywhere. Fails the load-bearing test</td></tr>
+        <tr><td>Agent sandbox / E2B clone</td><td>Crowded, and the honest answer to &ldquo;how do you isolate untrusted code?&rdquo; is weak at 48h. Judges ask that question</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════ 07 SOCIAL ══════════════ -->
+<section id="social">
+  <div class="shead">
+    <div class="snum">07</div>
+    <h2>The Social Track<span class="sub">A separate prize &middot; cheap relative to the MacBook</span></h2>
+  </div>
+
+  <h3>Post anatomy</h3>
+  <ol>
+    <li><strong>Line 1&ndash;2 is everything.</strong> A specific claim or number plus a surprise. Never &ldquo;excited to announce.&rdquo;</li>
+    <li><strong>Native video in the first post.</strong> External links are deprioritized ~40&ndash;60%; native video outperforms link posts 3&ndash;5&times;. Put the live URL in a <em>reply</em> and say &ldquo;link in replies.&rdquo;</li>
+    <li><strong>Tag <code>@zeropsio</code> first</strong>, <code>@WeMakeDevs</code> second. The first tag reliably triggers the notification that gets you reposted.</li>
+    <li><strong>One specific Zerops sentence, not gratitude.</strong> &ldquo;Each PR gets its own Postgres because Zerops lets me create whole projects over an API&rdquo; gets quoted. &ldquo;Thanks for the platform&rdquo; does not.</li>
+    <li><strong>Then a 5&ndash;8 post thread</strong> on the build: the thing that broke, the fix, the number. Single post or thread &mdash; no middle length.</li>
+    <li><strong>Answer every reply for the first 30 minutes.</strong> Replies weigh more than likes; ~20 replies in 30 minutes is the &ldquo;For You&rdquo; trigger.</li>
+  </ol>
+
+  <h3>Demo video spec</h3>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Parameter</th><th>Spec</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Length</td><td><strong>30&ndash;60 seconds</strong></td><td>56&ndash;68% completion in that band; 90&ndash;120s is the dead zone</td></tr>
+        <tr><td>Hook</td><td><strong>3 seconds</strong> &mdash; visual pattern-interrupt or on-screen text promise</td><td>40&ndash;50% of viewers decide by second 3</td></tr>
+        <tr><td>Aspect</td><td>9:16 vertical</td><td>Fills mobile; required for video-tab discovery</td></tr>
+        <tr><td>Captions</td><td>Burned-in, mandatory</td><td>~80% watch muted</td></tr>
+        <tr><td>Narration</td><td><strong>Silent screen recording with captions</strong></td><td>Beats talking-head ~2&times; on conversion &mdash; viewers want the actual UI</td></tr>
+        <tr><td>Zoom</td><td>In. Hard.</td><td>Unreadable terminal text on a phone is the #1 dev-demo failure</td></tr>
+        <tr><td>Content</td><td>Show the <em>arc</em>, not the features</td><td>For idea&nbsp;#1: two conflicting PRs, both green</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Anti-patterns</h4>
+  <p>&ldquo;Excited to announce&rdquo; &middot; architecture diagram as the opener &middot; three-minute walkthrough &middot; uncaptioned voiceover &middot; live link in the first post &middot; posting once and going to sleep &middot; thanking the sponsor generically.</p>
+</section>
+
+<!-- ══════════════ 08 PLAN ══════════════ -->
+<section id="plan">
+  <div class="shead">
+    <div class="snum">08</div>
+    <h2>Execution plan<span class="sub">48 hours, sequenced by risk</span></h2>
+  </div>
+
+  <ol class="tl">
+    <li><span class="when">PRE<br>~2h</span><span class="what"><b>De-risk the platform, not the project</b>Create the account and confirm your real credit balance. Fork the closest recipe and deploy it once, end to end, so the <code>zerops.yml</code> curve and the build/run env-var gotcha happen <em>before</em> the clock. Get a PAT, make one successful REST call. Read <code>zerops-api.sh</code>. <em>Legal &mdash; the rules restrict project code, not learning the platform. Keep the hackathon repo empty until kickoff.</em></span></li>
+    <li><span class="when">H0&ndash;4</span><span class="what"><b>Prove the single riskiest primitive</b>Throwaway script. Idea 1: create <em>and destroy</em> a project via API. Idea 2: kill a specific HA container. Idea 3: bind and receive on your inbound port. <strong>If it doesn't work, pivot now &mdash; not at hour 30.</strong></span></li>
+    <li><span class="when">H4&ndash;20</span><span class="what"><b>The spine</b>One unbroken happy path, hardcoded everywhere it can be. No UI polish, no config, no auth.</span></li>
+    <li><span class="when">H20&ndash;28</span><span class="what"><b>The second beat</b>The one detail that makes the demo an argument (idea 1: concurrent conflicting PRs). Then the reconciler and cleanup.</span></li>
+    <li><span class="when">H28&ndash;36</span><span class="what"><b>Freeze and film</b>Code freeze at 36 with the deployment live. Record <em>before</em> you're tired &mdash; expect 4&ndash;6 takes.</span></li>
+    <li><span class="when">H36&ndash;44</span><span class="what"><b>The scored artifacts</b>README with the one-liner in the first sentence, a screenshot of the thing running, a &ldquo;what breaks first at scale&rdquo; section, and <code>AI-USAGE.md</code>. Then the social post.</span></li>
+    <li><span class="when">H44&ndash;48</span><span class="what"><b>Buffer</b>Verify the live URL from a clean browser and a phone. It must stay up through judging.</span></li>
+  </ol>
+
+  <div class="call stop">
+    <span class="h">The three things that lose the most points, in order</span>
+    <p>1. A dead live URL at judging time. &nbsp;2. A demo video where the terminal is unreadable. &nbsp;3. A README that explains your architecture before it says what the thing is.</p>
+  </div>
+</section>
+
+<!-- ══════════════ 09 FLAGS ══════════════ -->
+<section id="flags">
+  <div class="shead">
+    <div class="snum">09</div>
+    <h2>Open flags<span class="sub">Unverified &middot; resolve in hour 0</span></h2>
+  </div>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>#</th><th>Flag</th><th>Blocks</th></tr></thead>
+      <tbody>
+        <tr><td class="n">1</td><td><strong>Credit amount is ambiguous</strong> &mdash; event page says $15, pricing page says $65</td><td>Architecture sizing</td></tr>
+        <tr><td class="n">2</td><td><strong>Port 25 / inbound TCP routing unverified</strong></td><td>Idea 3</td></tr>
+        <tr><td class="n">3</td><td><strong>API kill of a specific HA replica unverified</strong></td><td>Idea 2</td></tr>
+        <tr><td class="n">4</td><td><code>zerops-showcase-deploy</code> <strong>overlaps idea 1's mechanism</strong> &mdash; read it, credit it, be explicit that your contribution is the product layer</td><td>Originality score</td></tr>
+        <tr><td class="n">5</td><td><strong>Use GitHub, not GitLab</strong> &mdash; the token-expiry bug is well documented and costs hours</td><td>Whole weekend</td></tr>
+        <tr><td class="n">6</td><td>&ldquo;MacBook Neo&rdquo; is the prize as written on the event page; the model could not be independently verified</td><td>Nothing</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <div class="big">Method &amp; provenance</div>
+  <p style="font-family:var(--f-mono);font-size:11.5px;max-width:80ch;color:var(--ink-3)">
+  Six parallel research agents over Exa, <strong>726 sources</strong>: platform capability surface (155) &middot; practitioner differentiators and rough edges (100) &middot; judging patterns and prior winners (120) &middot; Zerops prior art and accelerators (70) &middot; 2026 infrastructure whitespace (152) &middot; social and demo mechanics (129).
+  </p>
+  <p style="font-family:var(--f-mono);font-size:11.5px;max-width:80ch;color:var(--ink-3)">
+  Independently verified by direct fetch on 06 Aug 2026: <code>docs.zerops.io/services</code>, <code>docs.zerops.io/zerops-yaml/specification</code>, <code>docs.zerops.io/zcp</code>, <code>zerops.io/pricing</code>, <code>github.com/zeropsio/recipe-rag-starter</code>, and the full <code>zeropsio</code> org repo listing via the GitHub API.
+  </p>
+  <p style="font-family:var(--f-mono);font-size:11.5px;max-width:80ch;color:var(--ink-3)">
+  <strong>Agent claims corrected during verification:</strong> ClickHouse <em>is</em> offered (an agent omitted it) &middot; trial credit is $65 on the pricing page (agent and event page disagreed) &middot; several speculatively-listed recipes were replaced with the verified GitHub listing &middot; <code>horizontalAutoscaling</code> and <code>verticalAutoscaling</code> are <em>not</em> <code>zerops.yml</code> keys.
+  </p>
+</footer>
+
+</div>
+
+<script>
+// T-minus to end of 09 Aug 2026, local time. Approximate by design — labelled as such.
+(function(){
+  var target = new Date(2026, 7, 9, 23, 59, 0); // month is 0-indexed: 7 = August
+  var el = document.getElementById('cd');
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function tick(){
+    var ms = target - new Date();
+    if (ms <= 0){ el.textContent = 'WINDOW CLOSED'; el.style.color = 'var(--ink-3)'; return; }
+    var s = Math.floor(ms/1000),
+        d = Math.floor(s/86400),
+        h = Math.floor(s%86400/3600),
+        m = Math.floor(s%3600/60),
+        sec = s%60;
+    el.textContent = (d>0 ? d+'d ' : '') + pad(h)+':'+pad(m)+':'+pad(sec);
+  }
+  tick(); setInterval(tick, 1000);
+})();
+
+// Nav active-state on scroll
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+  var secs  = links.map(function(a){ return document.querySelector(a.getAttribute('href')); });
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var i = secs.indexOf(e.target);
+      links.forEach(function(l,j){
+        l.style.color = j===i ? 'var(--signal)' : '';
+        l.style.background = j===i ? 'var(--paper-2)' : '';
+      });
+    });
+  }, { rootMargin: '-52px 0px -70% 0px' });
+  secs.forEach(function(s){ if(s) obs.observe(s); });
+})();
+</script>
+</body>
+</html>

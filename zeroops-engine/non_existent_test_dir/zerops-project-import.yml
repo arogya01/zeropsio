@@ -1,0 +1,18 @@
+project:
+  name: test-app
+  services:
+    - name: postgres
+      type: postgresql@16
+      mode: HA
+    - name: valkey
+      type: valkey@7
+      mode: HA
+    - name: frontend
+      type: nodejs@20
+      mode: NON_HA
+    - name: api
+      type: go@1.22
+      mode: NON_HA
+    - name: worker
+      type: python@3.11
+      mode: NON_HA

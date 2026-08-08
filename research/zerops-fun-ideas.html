@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zerops Challenge — Fun Ideas (Prize-Ready)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700&family=Fragment+Mono:ital@0;1&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf6f1;
+      --bg-grid: rgba(168, 73, 47, 0.045);
+      --surface: #fffdf9;
+      --surface-2: #f0e8df;
+      --surface-hero: #f7ebe3;
+      --border: rgba(61, 40, 32, 0.1);
+      --border-strong: rgba(61, 40, 32, 0.18);
+      --text: #2a1f1a;
+      --text-dim: #6b564c;
+      --text-faint: #9a8478;
+      --terracotta: #c2410c;
+      --terracotta-mid: #a8492f;
+      --terracotta-dim: rgba(194, 65, 12, 0.1);
+      --sage: #4d7c55;
+      --sage-dim: rgba(77, 124, 85, 0.12);
+      --gold: #b45309;
+      --gold-dim: rgba(180, 83, 9, 0.12);
+      --ink: #3d2820;
+      --ink-dim: rgba(61, 40, 32, 0.08);
+      --font-display: "Bricolage Grotesque", "Segoe UI", sans-serif;
+      --font-body: "Source Serif 4", Georgia, serif;
+      --font-mono: "Fragment Mono", "Menlo", monospace;
+      --shadow: 0 1px 2px rgba(61, 40, 32, 0.04), 0 10px 28px rgba(61, 40, 32, 0.07);
+      --radius: 14px;
+      --max: 1080px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #14110f;
+        --bg-grid: rgba(232, 168, 124, 0.04);
+        --surface: #1c1815;
+        --surface-2: #26201c;
+        --surface-hero: #221a16;
+        --border: rgba(232, 200, 170, 0.1);
+        --border-strong: rgba(232, 200, 170, 0.18);
+        --text: #f0e6dc;
+        --text-dim: #b5a394;
+        --text-faint: #7d6f63;
+        --terracotta: #e07a5f;
+        --terracotta-mid: #f0a58a;
+        --terracotta-dim: rgba(224, 122, 95, 0.12);
+        --sage: #8fbc8f;
+        --sage-dim: rgba(143, 188, 143, 0.12);
+        --gold: #e8b86d;
+        --gold-dim: rgba(232, 184, 109, 0.12);
+        --ink: #e8d5c4;
+        --ink-dim: rgba(232, 213, 196, 0.08);
+        --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 14px 36px rgba(0,0,0,0.3);
+      }
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      font-size: 16.5px;
+      line-height: 1.55;
+      color: var(--text);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(ellipse 70% 40% at 0% 0%, var(--terracotta-dim), transparent 50%),
+        radial-gradient(ellipse 50% 30% at 100% 10%, var(--gold-dim), transparent 45%),
+        linear-gradient(var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+      background-size: auto, auto, 28px 28px, 28px 28px;
+      -webkit-font-smoothing: antialiased;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { animation: none !important; transition: none !important; }
+    }
+    a { color: var(--terracotta-mid); text-underline-offset: 2px; }
+    a:hover { color: var(--gold); }
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.8em;
+      background: var(--ink-dim);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 1.25rem 4rem; }
+
+    .topbar {
+      position: sticky; top: 0; z-index: 40;
+      backdrop-filter: blur(12px);
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      max-width: var(--max); margin: 0 auto; padding: 0.6rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem; overflow-x: auto;
+    }
+    .topbar-brand {
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-dim);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .topbar-brand span { color: var(--terracotta); }
+    .topbar nav { display: flex; gap: 0.1rem; }
+    .topbar nav a {
+      font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.02em;
+      color: var(--text-dim); text-decoration: none; padding: 0.35rem 0.5rem;
+      border-radius: 6px; white-space: nowrap;
+    }
+    .topbar nav a:hover { background: var(--terracotta-dim); color: var(--terracotta); }
+
+    .hero {
+      margin: 2rem 0 2.25rem; padding: 2.25rem 2rem;
+      background:
+        linear-gradient(155deg, var(--surface-hero), var(--surface));
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) + 2px);
+      box-shadow: var(--shadow);
+      animation: fadeUp 0.5s ease both;
+    }
+    .eyebrow {
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--terracotta); margin: 0 0 0.7rem;
+    }
+    .hero h1 {
+      font-family: var(--font-display); font-size: clamp(2rem, 5vw, 2.85rem);
+      font-weight: 700; line-height: 1.12; margin: 0 0 0.85rem; letter-spacing: -0.02em;
+    }
+    .hero h1 em { font-style: normal; color: var(--terracotta); }
+    .lead { font-size: 1.12rem; color: var(--text-dim); max-width: 40rem; margin: 0 0 1.25rem; }
+    .thesis {
+      border-left: 3px solid var(--terracotta);
+      padding: 0.85rem 1rem;
+      background: var(--terracotta-dim);
+      border-radius: 0 10px 10px 0;
+      font-size: 0.98rem;
+      color: var(--text);
+      margin: 0 0 1.25rem;
+    }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+    .chip {
+      font-family: var(--font-mono); font-size: 0.7rem; padding: 0.32rem 0.6rem;
+      border-radius: 999px; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim);
+    }
+    .chip--hot {
+      background: var(--terracotta-dim);
+      border-color: color-mix(in srgb, var(--terracotta) 30%, transparent);
+      color: var(--terracotta);
+    }
+    .chip--sage {
+      background: var(--sage-dim);
+      border-color: color-mix(in srgb, var(--sage) 30%, transparent);
+      color: var(--sage);
+    }
+
+    section { margin-bottom: 2.6rem; animation: fadeUp 0.45s ease both; }
+    .section-label {
+      display: flex; align-items: center; gap: 0.45rem;
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); margin: 0 0 0.55rem;
+    }
+    .section-label::before {
+      content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--terracotta); flex-shrink: 0;
+    }
+    h2 {
+      font-family: var(--font-display); font-size: clamp(1.45rem, 3vw, 1.9rem);
+      font-weight: 700; margin: 0 0 0.35rem; letter-spacing: -0.02em;
+    }
+    .section-intro { color: var(--text-dim); margin: 0 0 1.15rem; max-width: 38rem; }
+
+    .ve-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.1rem 1.2rem;
+    }
+    .ve-card--hot {
+      background: linear-gradient(145deg, var(--terracotta-dim), var(--surface));
+      border-color: color-mix(in srgb, var(--terracotta) 28%, var(--border));
+      box-shadow: var(--shadow);
+    }
+
+    .lens-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem;
+    }
+    @media (max-width: 800px) { .lens-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 520px) { .lens-grid { grid-template-columns: 1fr; } }
+    .lens {
+      padding: 0.95rem 1rem; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); min-width: 0;
+    }
+    .lens h3 {
+      font-family: var(--font-display); font-size: 1rem; font-weight: 600;
+      margin: 0 0 0.35rem; letter-spacing: -0.01em;
+    }
+    .lens p { margin: 0; font-size: 0.88rem; color: var(--text-dim); }
+
+    .table-wrap {
+      overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 540px; }
+    thead th {
+      background: var(--surface-2); font-family: var(--font-mono); font-size: 0.66rem;
+      letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-dim);
+      text-align: left; padding: 0.65rem 0.85rem; border-bottom: 1px solid var(--border-strong);
+    }
+    tbody td {
+      padding: 0.7rem 0.85rem; border-bottom: 1px solid var(--border); vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:nth-child(even) { background: color-mix(in srgb, var(--surface-2) 50%, transparent); }
+    tbody tr:hover { background: var(--terracotta-dim); }
+
+    .idea-list { display: flex; flex-direction: column; gap: 0.8rem; }
+    .idea {
+      display: grid; grid-template-columns: auto 1fr; gap: 0.9rem 1rem;
+      padding: 1.1rem 1.2rem; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); min-width: 0;
+    }
+    .idea--pick {
+      background: linear-gradient(145deg, var(--gold-dim), var(--surface));
+      border-color: color-mix(in srgb, var(--gold) 35%, var(--border));
+      box-shadow: var(--shadow);
+    }
+    .idea--zerops {
+      background: linear-gradient(145deg, var(--sage-dim), var(--surface));
+      border-color: color-mix(in srgb, var(--sage) 30%, var(--border));
+    }
+    .rank {
+      font-family: var(--font-display); font-size: 1.6rem; font-weight: 700;
+      color: var(--terracotta); line-height: 1; width: 1.75rem; padding-top: 0.1rem;
+    }
+    .idea--pick .rank { color: var(--gold); }
+    .idea--zerops .rank { color: var(--sage); }
+    .idea-body { min-width: 0; }
+    .idea-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.65rem; margin-bottom: 0.3rem; }
+    .idea-title {
+      font-family: var(--font-display); font-size: 1.2rem; font-weight: 600;
+      margin: 0; letter-spacing: -0.015em;
+    }
+    .badge {
+      font-family: var(--font-mono); font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase; padding: 0.18rem 0.42rem; border-radius: 4px;
+    }
+    .badge--pick { background: var(--gold-dim); color: var(--gold); }
+    .badge--z { background: var(--sage-dim); color: var(--sage); }
+    .badge--f { background: var(--terracotta-dim); color: var(--terracotta); }
+    .idea-one { color: var(--text-dim); margin: 0 0 0.7rem; font-size: 0.95rem; }
+    .idea-meta {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.55rem;
+    }
+    @media (max-width: 700px) {
+      .idea-meta { grid-template-columns: 1fr; }
+      .idea { grid-template-columns: 1fr; }
+    }
+    .meta-block {
+      background: var(--surface-2); border-radius: 8px; padding: 0.5rem 0.65rem; min-width: 0;
+    }
+    .meta-block dt {
+      font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--text-faint); margin: 0 0 0.15rem;
+    }
+    .meta-block dd { margin: 0; font-size: 0.82rem; overflow-wrap: break-word; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    @media (max-width: 720px) { .two-col { grid-template-columns: 1fr; } }
+
+    .anti { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .anti span {
+      font-size: 0.78rem; padding: 0.28rem 0.5rem; border-radius: 6px;
+      background: var(--terracotta-dim); color: var(--terracotta);
+      border: 1px solid color-mix(in srgb, var(--terracotta) 18%, transparent);
+    }
+    .safe span {
+      font-size: 0.78rem; padding: 0.28rem 0.5rem; border-radius: 6px;
+      background: var(--sage-dim); color: var(--sage);
+      border: 1px solid color-mix(in srgb, var(--sage) 18%, transparent);
+    }
+
+    .defaults {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem;
+    }
+    @media (max-width: 700px) { .defaults { grid-template-columns: 1fr; } }
+    .def {
+      padding: 1rem 1.1rem; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); min-width: 0;
+    }
+    .def dt { font-size: 0.85rem; color: var(--text-dim); margin: 0 0 0.3rem; }
+    .def dd {
+      margin: 0; font-family: var(--font-display); font-size: 1.15rem; font-weight: 600;
+    }
+
+    .arch {
+      font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.55;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.15rem; overflow-x: auto; color: var(--text-dim); white-space: pre;
+    }
+    .arch strong { color: var(--terracotta); font-weight: 600; }
+
+    .check-list { list-style: none; margin: 0; padding: 0; }
+    .check-list li {
+      display: flex; gap: 0.5rem; padding: 0.38rem 0; font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .check-list li:last-child { border-bottom: none; }
+    .check-box {
+      flex-shrink: 0; width: 13px; height: 13px; margin-top: 0.25rem;
+      border: 1.5px solid var(--border-strong); border-radius: 3px;
+    }
+
+    footer {
+      margin-top: 1.5rem; padding-top: 1.1rem; border-top: 1px solid var(--border);
+      font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-faint);
+    }
+    footer a { color: var(--text-dim); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-brand">Fun lens <span>×</span> prize bar</div>
+      <nav>
+        <a href="#thesis">Thesis</a>
+        <a href="#lenses">Lenses</a>
+        <a href="#ideas">Ideas</a>
+        <a href="#tech">Tech</a>
+        <a href="#choose">Choose</a>
+        <a href="#checklist">Checklist</a>
+        <a href="./zerops-hackathon-ideas.html">Heavy brief</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header class="hero" id="thesis">
+      <p class="eyebrow">Deep research · fun + differentiated · Aug 8, 2026</p>
+      <h1>Don’t compete as “most fun.”<br>Compete as the best product that <em>happens</em> to delight.</h1>
+      <p class="lead">
+        Heavy tools (Architecture Studio, migration assistants) are safe and gray.
+        A playful surface with multi-service proof underneath is how you get remembered
+        <em>and</em> still clear the MacBook bar.
+      </p>
+      <p class="thesis">
+        <strong>Formula:</strong> playful one-liner → unfakeable live moment (2nd browser / worker finish / pet reacts)
+        → multi-service on Zerops → one steel thread → honest limits.
+        If removing the joke leaves nothing to judge, it’s a skit. If the system still stands, it’s a winner in a costume.
+      </p>
+      <div class="meta-row">
+        <span class="chip chip--hot">~224 sources · 4 streams</span>
+        <span class="chip chip--sage">Trojan-horse pattern</span>
+        <span class="chip">Solo · 48h · live URL</span>
+        <span class="chip">Social track advantage</span>
+      </div>
+    </header>
+
+    <section id="lenses">
+      <p class="section-label">01 · Differentiated lenses</p>
+      <h2>Pick one framing, not five half-jokes</h2>
+      <p class="section-intro">When quality is equal, narrative is the differentiator. Bind every joke mechanic to a real Zerops primitive.</p>
+      <div class="lens-grid">
+        <div class="lens">
+          <h3>Infrastructure as stage</h3>
+          <p>Queues, backlog, trophies in S3 — the backend <em>is</em> the show.</p>
+        </div>
+        <div class="lens">
+          <h3>Anthropomorphized ops</h3>
+          <p>Pet/monster vitals map to worker lag and job health.</p>
+        </div>
+        <div class="lens">
+          <h3>Game rules as spec</h3>
+          <p>Mechanics require rooms, workers, object storage — not optional.</p>
+        </div>
+        <div class="lens">
+          <h3>Joke with depth</h3>
+          <p>Absurd one-liner; serious multi-service substrate.</p>
+        </div>
+        <div class="lens">
+          <h3>Audience co-op</h3>
+          <p>Judges/viewers become load generators in the demo.</p>
+        </div>
+        <div class="lens">
+          <h3>Single magic contrast</h3>
+          <p>One 90-second “oh it works” beat, not a feature tour.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="ideas">
+      <p class="section-label">02 · Ranked fun builds</p>
+      <h2>Prize-ready ideas (not toys)</h2>
+      <p class="section-intro">Scored on fun hook × demo wow × Zerops fit × 48h safety × social. Every idea needs FE + API + DB (+ WS/worker).</p>
+
+      <div class="idea-list">
+        <article class="idea idea--pick">
+          <div class="rank">1</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">Room Code Roast</h3>
+              <span class="badge badge--pick">Best overall fun</span>
+              <span class="badge badge--f">Jackbox-style</span>
+            </div>
+            <p class="idea-one">Host TV + phones; absurd prompts; live vote; scoreboard; optional AI fill when someone freezes.</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>2nd phone joins · votes move shared scores</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd><code>web</code> · <code>api</code>+WS · Postgres · Valkey · optional worker</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>3 rounds · 4-char codes · timers · 1 AI fill</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="idea idea--zerops">
+          <div class="rank">2</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">Queue Circus</h3>
+              <span class="badge badge--z">Max Zerops score</span>
+              <span class="badge badge--f">Infra theater</span>
+            </div>
+            <p class="idea-one">Audience submits dares → real jobs on private-net workers → live backlog → trophies land in object storage.</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>20 submits · backlog red · S3 trophy appears</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd><code>web</code> · <code>api</code> · worker · Postgres · queue · S3</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>Submit · job states · live ring · prize cabinet</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="idea idea--zerops">
+          <div class="rank">3</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">PetOps</h3>
+              <span class="badge badge--z">Ops as care</span>
+              <span class="badge badge--f">Tamagotchi</span>
+            </div>
+            <p class="idea-one">Pet hunger/happiness maps to worker lag and job backlog; heal hits private APIs; care logs in S3.</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>Starve worker → pet sickens → heal → evolve</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd><code>web</code> · <code>api</code> · worker · Postgres · Valkey · S3</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>1 pet · 3 vitals · feed/heal · history</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="idea">
+          <div class="rank">4</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">Doodle Anthem</h3>
+              <span class="badge badge--f">Creative pipeline</span>
+            </div>
+            <p class="idea-one">Lobby draws together; Compose kicks workers that turn scribbles into lyrics/audio; group reveal.</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>Snapshot → processing → track plays for room</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd>WS · api · worker · Postgres · S3 · queue</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>1 lobby · canvas snap · 1 gen path · listen</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="idea">
+          <div class="rank">5</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">AI Gallery Party</h3>
+              <span class="badge badge--f">Media multiplayer</span>
+            </div>
+            <p class="idea-one">Shared room; each player submits a prompt; wall fills as async jobs complete (out of order).</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>Two browsers submit · wall fills live</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd>api · worker · Postgres · queue · S3 · web</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>Room · progress UI · gallery · seed jobs</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="idea">
+          <div class="rank">6</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">Meme Court</h3>
+              <span class="badge badge--f">Comedy room</span>
+            </div>
+            <p class="idea-one">Upload/generate meme; AI prosecutor files charges; room votes; hall of fame in storage.</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>Live vote + verdict + persisted case</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd>WS · api · worker · Postgres · S3 · Valkey</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>1 courtroom · vote · top-10 gallery</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="idea">
+          <div class="rank">7</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">PawPress</h3>
+              <span class="badge badge--f">Cozy shareable</span>
+            </div>
+            <p class="idea-one">Pet photo → worker produces dated magazine cover → archive + share link. Screenshot rocket fuel.</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>Upload → job → Issue #1 cover</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd>api · worker · Postgres · S3 · rate-limit Valkey</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>Upload · status · cover · archive grid</dd></div>
+            </dl>
+          </div>
+        </article>
+
+        <article class="idea">
+          <div class="rank">8</div>
+          <div class="idea-body">
+            <div class="idea-head">
+              <h3 class="idea-title">Boss-Fight To-Do</h3>
+              <span class="badge badge--f">Raid productivity</span>
+            </div>
+            <p class="idea-one">Tasks are monsters; complete work to DPS; friends join a live raid on your backlog.</p>
+            <dl class="idea-meta">
+              <div class="meta-block"><dt>Unfakeable moment</dt><dd>2nd user in raid · shared HP drops</dd></div>
+              <div class="meta-block"><dt>Services</dt><dd>web · api+WS · Postgres · Valkey</dd></div>
+              <div class="meta-block"><dt>MVP</dt><dd>Tasks as HP · 1 raid room · leaderboard</dd></div>
+            </dl>
+          </div>
+        </article>
+      </div>
+
+      <div class="table-wrap" style="margin-top:1.15rem">
+        <table>
+          <thead>
+            <tr><th>Also strong</th><th>When</th><th>Main risk</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Blob Radio</strong></td><td>Presence + shared queue hangout</td><td>Media sync complexity</td></tr>
+            <tr><td><strong>Impostor Agents</strong></td><td>Strong LLM orchestration</td><td>Bots feel dumb; scope</td></tr>
+            <tr><td><strong>Photo Booth Chaos</strong></td><td>QR / event wall energy</td><td>Image pipeline polish time</td></tr>
+            <tr><td><strong>Dungeon Deploy</strong></td><td>Love games + ops</td><td>Game-design explosion</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="tech">
+      <p class="section-label">03 · Weekend tech</p>
+      <h2>Safe patterns vs weekend killers</h2>
+      <p class="section-intro">Long-lived WS containers and private-net workers are Zerops advantages. Don’t invent netcode science.</p>
+
+      <div class="two-col">
+        <div class="ve-card">
+          <p class="section-label" style="margin-bottom:0.55rem">Ship these</p>
+          <div class="safe" style="display:flex;flex-wrap:wrap;gap:0.35rem">
+            <span>WS rooms 2–8 · server authority</span>
+            <span>Join codes, not full auth</span>
+            <span>API → queue → worker → S3</span>
+            <span>HTTP turn-log for async games</span>
+            <span>Seeded always-works room</span>
+            <span>Socket.IO or Colyseus you know</span>
+          </div>
+        </div>
+        <div class="ve-card">
+          <p class="section-label" style="margin-bottom:0.55rem">Avoid these</p>
+          <div class="anti">
+            <span>FPS / prediction netcode</span>
+            <span>WebRTC P2P first</span>
+            <span>Self-hosted GPU</span>
+            <span>DIY CRDT editor</span>
+            <span>Multiplayer bolted on last</span>
+            <span>In-memory only state</span>
+            <span>Mean “humor” products</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch" style="margin-top:0.9rem"><strong>browser</strong> → web → api (+WS)
+         ├→ postgres
+         ├→ valkey
+         ├→ nats/queue → <strong>worker</strong> → external AI
+         └→ s3</div>
+    </section>
+
+    <section id="choose">
+      <p class="section-label">04 · Decision</p>
+      <h2>What to build in the next hour</h2>
+      <p class="section-intro">Fun vs heavy is a trade on memorability and social — not on lowering the prize bar.</p>
+
+      <div class="defaults">
+        <div class="def ve-card--hot">
+          <dt>Best fun that can still take main prize</dt>
+          <dd>Room Code Roast</dd>
+        </div>
+        <div class="def">
+          <dt>Best fun + maximum Zerops score</dt>
+          <dd>Queue Circus or PetOps</dd>
+        </div>
+        <div class="def">
+          <dt>Best creative showcase stack</dt>
+          <dd>Doodle Anthem / Gallery Party</dd>
+        </div>
+        <div class="def">
+          <dt>Heavy lane (other brief)</dt>
+          <dd>Architecture Studio</dd>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:1rem">
+        <table>
+          <thead>
+            <tr><th>Choose fun if…</th><th>Choose heavy if…</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>You want social track + sticky memory</td>
+              <td>You want pure platform-native DX tool</td>
+            </tr>
+            <tr>
+              <td>Strong at product / UI / realtime</td>
+              <td>Strongest at infra / YAML / DX</td>
+            </tr>
+            <tr>
+              <td>Demo = people join and play</td>
+              <td>Demo = generate importable artifact</td>
+            </tr>
+            <tr>
+              <td>Energy/video is a strength</td>
+              <td>Calm technical walkthrough is a strength</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ve-card ve-card--hot" style="margin-top:1rem">
+        <strong style="font-family:var(--font-display);font-size:1.15rem">Hybrid sweet spot</strong>
+        <p style="margin:0.4rem 0 0;color:var(--text-dim);font-size:0.95rem">
+          <strong>Queue Circus</strong> or <strong>PetOps</strong> — fun surface, infrastructure theater,
+          maximum “how Zerops is used” without being the fourth architecture studio of the weekend.
+        </p>
+      </div>
+    </section>
+
+    <section id="checklist">
+      <p class="section-label">05 · Prize-ready fun checklist</p>
+      <h2>Same bar. Better costume.</h2>
+      <div class="two-col">
+        <div class="ve-card">
+          <ul class="check-list">
+            <li><span class="check-box"></span> One sentence identity (X for Y, live on Zerops)</li>
+            <li><span class="check-box"></span> Unfakeable moment in first 90s of video</li>
+            <li><span class="check-box"></span> Multi-service with private hostnames</li>
+            <li><span class="check-box"></span> DB write + read survives refresh</li>
+            <li><span class="check-box"></span> Second browser / phone in the demo</li>
+          </ul>
+        </div>
+        <div class="ve-card">
+          <ul class="check-list">
+            <li><span class="check-box"></span> Visible async job or WS room</li>
+            <li><span class="check-box"></span> Seeded room code for cold judges</li>
+            <li><span class="check-box"></span> Architecture page or 15s service map</li>
+            <li><span class="check-box"></span> Honest “what breaks first”</li>
+            <li><span class="check-box"></span> Social: motion + Zerops sentence + tags</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Markdown: <a href="./zerops-fun-ideas-2026-08-08.md">zerops-fun-ideas-2026-08-08.md</a> ·
+      Heavy brief: <a href="./zerops-hackathon-ideas.html">zerops-hackathon-ideas.html</a> ·
+      Event: <a href="https://www.wemakedevs.org/hackathons/zerops" target="_blank" rel="noopener">WeMakeDevs × Zerops</a>
+    </footer>
+  </div>
+</body>
+</html>

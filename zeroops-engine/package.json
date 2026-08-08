@@ -1,0 +1,40 @@
+{
+  "name": "zeroops-engine",
+  "version": "1.0.0",
+  "description": "ZeroOps Agentic Micro-SaaS Engine - Full-Stack Prompt-to-Cloud Factory for Zerops (ZCP)",
+  "main": "src/server/index.js",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "node --watch src/server/index.js",
+    "verify": "node src/server/health-checker.js",
+    "build": "npx tsc",
+    "test": "npx vitest run"
+  },
+  "dependencies": {
+    "@types/js-yaml": "4.0.9",
+    "commander": "15.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "js-yaml": "5.2.3",
+    "picocolors": "1.1.1",
+    "ws": "^8.18.0"
+  },
+  "keywords": [
+    "zerops",
+    "zcp",
+    "hackathon",
+    "micro-saas",
+    "cloud-factory"
+  ],
+  "author": "ZeroOps Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/cors": "2.8.19",
+    "@types/express": "5.0.6",
+    "@types/node": "26.2.0",
+    "@types/ws": "8.18.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroOps Engine | Supabase Emerald Cloud Mesh (Variant 3)</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles-supabase.css">
+</head>
+<body class="supa-theme">
+  <!-- Top Variant Switcher Navigation Bar -->
+  <nav class="variant-switcher-bar">
+    <span class="switcher-label">DESIGN VARIANTS:</span>
+    <a href="variant1-linear.html" class="v-tab">
+      <span class="v-icon">⚡</span> Variant 1: Linear / Railway (Command Deck)
+    </a>
+    <a href="variant2-vercel.html" class="v-tab">
+      <span class="v-icon">▲</span> Variant 2: Vercel / Next (Monochrome)
+    </a>
+    <a href="variant3-supabase.html" class="v-tab active">
+      <span class="v-icon">⚡</span> Variant 3: Supabase (Emerald Cloud Mesh)
+    </a>
+  </nav>
+
+  <div class="supa-shell">
+    <!-- Supabase Header -->
+    <header class="supa-header">
+      <div class="supa-brand">
+        <div class="supa-bolt">⚡</div>
+        <div class="brand-info">
+          <h2>ZeroOps Studio</h2>
+          <span class="supa-badge">Supabase Emerald Cloud Edition</span>
+        </div>
+      </div>
+
+      <div class="supa-meta">
+        <div class="meta-card">
+          <span class="m-label">Zerops Region:</span>
+          <span class="m-val">eu-central-1</span>
+        </div>
+        <div class="meta-card">
+          <span class="m-label">Private Subnet:</span>
+          <span class="m-val supa-green-txt">10.160.0.0/16</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="supa-grid">
+      <!-- Left Column -->
+      <section class="supa-panel">
+        <div class="supa-panel-head">
+          <span class="s-icon">⚡</span>
+          <h3>1. Application Prompt Specification</h3>
+        </div>
+
+        <form id="prompt-form-v3" class="supa-form">
+          <textarea id="prompt-input-v3" class="supa-textarea" placeholder="e.g. Build an AI PDF summarizer SaaS with user auth, background queue processing, PostgreSQL storage, and Valkey caching" required></textarea>
+
+          <div class="supa-chips">
+            <button type="button" class="s-chip" data-prompt="AI Video Clipper SaaS with Next.js, Go API, Python Whisper worker, PostgreSQL, and Valkey">🎬 AI Video Clipper</button>
+            <button type="button" class="s-chip" data-prompt="E-Commerce API with Bun frontend, Go backend, PostgreSQL HA, Valkey cache, and Meilisearch">🛒 Multi-Service E-Com</button>
+            <button type="button" class="s-chip" data-prompt="Enterprise RAG Search Engine with React, FastAPI, Typesense, PostgreSQL pgvector, and Valkey">🧠 Vector RAG Stack</button>
+          </div>
+
+          <button type="submit" id="deploy-btn-v3" class="supa-btn">
+            <span>⚡ Synthesize &amp; Provision on Zerops</span>
+          </button>
+        </form>
+
+        <!-- Supabase Style Interactive Container Node Cards Grid -->
+        <div class="supa-node-grid">
+          <div class="s-node" id="v3-node-web-frontend">
+            <div class="s-n-top">
+              <span class="s-n-icon">🌐</span>
+              <span class="s-n-badge status-idle">IDLE</span>
+            </div>
+            <h4>web-frontend</h4>
+            <p>Bun@1 · SSR / React</p>
+            <span class="s-n-ip">10.160.0.12:3000</span>
+          </div>
+
+          <div class="s-node" id="v3-node-api-gateway">
+            <div class="s-n-top">
+              <span class="s-n-icon">⚙️</span>
+              <span class="s-n-badge status-idle">IDLE</span>
+            </div>
+            <h4>api-gateway</h4>
+            <p>Go@1.22 · REST API</p>
+            <span class="s-n-ip">10.160.0.15:8080</span>
+          </div>
+
+          <div class="s-node" id="v3-node-ai-worker">
+            <div class="s-n-top">
+              <span class="s-n-icon">🐍</span>
+              <span class="s-n-badge status-idle">IDLE</span>
+            </div>
+            <h4>ai-worker</h4>
+            <p>Python@3.12 · Queue</p>
+            <span class="s-n-ip">10.160.0.18:5000</span>
+          </div>
+
+          <div class="s-node" id="v3-node-db-postgres">
+            <div class="s-n-top">
+              <span class="s-n-icon">🐘</span>
+              <span class="s-n-badge status-idle">IDLE</span>
+            </div>
+            <h4>db-postgres</h4>
+            <p>PostgreSQL@16 · HA Cluster</p>
+            <span class="s-n-ip">10.160.0.21:5432</span>
+          </div>
+
+          <div class="s-node" id="v3-node-cache-valkey">
+            <div class="s-n-top">
+              <span class="s-n-icon">⚡</span>
+              <span class="s-n-badge status-idle">IDLE</span>
+            </div>
+            <h4>cache-valkey</h4>
+            <p>Valkey@7.2 · Cache</p>
+            <span class="s-n-ip">10.160.0.25:6379</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column -->
+      <section class="supa-panel">
+        <div class="supa-tabs">
+          <button class="s-tab-btn active" data-tab="s-term-tab">ZCP Build Console</button>
+          <button class="s-tab-btn" data-tab="s-yaml-tab">zerops.yml Blueprint</button>
+        </div>
+
+        <div class="s-pane active" id="s-term-tab">
+          <div class="supa-term">
+            <pre id="term-body-v3">Supabase Emerald ZCP Console ready. Submit prompt to provision stack...</pre>
+          </div>
+        </div>
+
+        <div class="s-pane" id="s-yaml-tab">
+          <div class="supa-term">
+            <pre id="yaml-body-v3"># zerops.yml blueprint preview will render here...</pre>
+          </div>
+        </div>
+
+        <!-- Success Banner -->
+        <div class="supa-success-banner hidden" id="success-banner-v3">
+          <div class="banner-content">
+            <span class="supa-emerald-badge">⚡ 100% HEALTH AUDITS PASSED</span>
+            <h3>SaaS Stack Deployed on Zerops!</h3>
+            <div class="url-row">
+              <a href="#" id="live-link-v3" target="_blank" class="s-url">https://zeroops-demo.zerops.app</a>
+              <a href="#" id="live-btn-v3" target="_blank" class="s-go-btn">Open App ↗</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app-v3.js"></script>
+</body>
+</html>
