@@ -1,0 +1,19 @@
+zerops:
+  - setup: aiworker
+    build:
+      base: python@3.12
+      buildCommands:
+        - pip install -r requirements.txt
+      deployFiles:
+        - main.py
+        - requirements.txt
+    run:
+      base: python@3.12
+      ports:
+        - port: 8000
+          http: true
+      start: python main.py
+      envVariables:
+        PORT: "8000"
+        DB_HOST: "dbpostgres"
+        VALKEY_HOST: "cachevalkey"

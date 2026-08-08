@@ -1,0 +1,37 @@
+{
+  "name": "E-Commerce Platform",
+  "description": "Multi-service online store platform featuring product catalog frontend, Go REST API for orders & cart, AI recommendation worker, PostgreSQL database, and Valkey cache.",
+  "icon": "🛒",
+  "services": [
+    {
+      "name": "webapp",
+      "type": "nodejs@22",
+      "category": "webapp",
+      "description": "Node.js Frontend presenting product catalog, shopping cart & checkout UI"
+    },
+    {
+      "name": "apigateway",
+      "type": "go@1.22",
+      "category": "api",
+      "description": "Go REST API handling product inventory, cart management & order placement"
+    },
+    {
+      "name": "aiworker",
+      "type": "python@3.12",
+      "category": "worker",
+      "description": "Python recommendation worker calculating product similarity & personalized suggestions"
+    },
+    {
+      "name": "dbpostgres",
+      "type": "postgresql@16",
+      "category": "database",
+      "description": "PostgreSQL database storing catalog products, user accounts & order history"
+    },
+    {
+      "name": "cachevalkey",
+      "type": "valkey@7.2",
+      "category": "cache",
+      "description": "Valkey in-memory cache for fast cart storage & session management"
+    }
+  ]
+}

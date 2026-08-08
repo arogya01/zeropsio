@@ -1,5 +1,5 @@
 /**
- * ZeroOps Studio — Client Logic (Bolt.new-inspired layout)
+ * ZeroOps Studio — Client Logic (Multi-tenant with auth + templates)
  */
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('prompt-form');
@@ -14,10 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const feedUserMsg = document.getElementById('feed-user-msg');
   const feedSuccess = document.getElementById('feed-success');
   const successLink = document.getElementById('success-link');
+  const templateGrid = document.querySelector('.template-grid');
 
-  const templateCards = document.querySelectorAll('.template-card');
   const wbTabs = document.querySelectorAll('.wb-tab');
   const wbPanes = document.querySelectorAll('.wb-pane');
+
+  const onboarding = document.getElementById('onboarding');
+  const userNameEl = document.getElementById('user-name');
 
   const steps = {
     synth: document.getElementById('feed-step-synth'),
@@ -35,14 +38,61 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let socket = null;
+  let currentUser = null;
+  let zeropsToken = null;
+  let selectedTemplateId = null;
 
-  // ─── Template Cards ───
-  templateCards.forEach(card => {
-    card.addEventListener('click', () => {
-      promptInput.value = card.dataset.prompt;
-      promptInput.focus();
-    });
-  });
+  // ─── Auth Check ───
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (!data.user) {
+        window.location.href = '/';
+        return;
+      }
+      currentUser = data.user;
+      userNameEl.textContent = currentUser.name;
+
+      if (!data.hasToken) {
+        onboarding.classList.remove('hidden');
+      }
+    } catch {
+      window.location.href = '/';
+    }
+  }
+  checkAuth();
+
+  // ─── Load Templates ───
+  async function loadTemplates() {
+    try {
+      const res = await fetch('/api/templates');
+      const data = await res.json();
+
+      if (data.templates && data.templates.length > 0) {
+        templateGrid.innerHTML = '';
+        data.templates.forEach(t => {
+          const btn = document.createElement('button');
+          btn.className = 'template-card';
+          btn.dataset.templateId = t.id;
+          btn.dataset.prompt = t.description || t.name;
+          btn.innerHTML = `
+            <span class="template-card__icon">${t.icon || '📦'}</span>
+            <span class="template-card__label">${t.name}</span>
+          `;
+          btn.addEventListener('click', () => {
+            selectedTemplateId = t.id;
+            promptInput.value = t.description || t.name;
+            promptInput.focus();
+          });
+          templateGrid.appendChild(btn);
+        });
+      }
+    } catch (e) {
+      console.log('No templates found:', e);
+    }
+  }
+  loadTemplates();
 
   // ─── Ctrl/Cmd + Enter ───
   promptInput.addEventListener('keydown', (e) => {
@@ -74,18 +124,17 @@ document.addEventListener('DOMContentLoaded', () => {
         terminal.textContent += data.text + '\n';
         terminal.scrollTop = terminal.scrollHeight;
 
-        // Detect pipeline phases
         const t = data.text.toLowerCase();
-        if (t.includes('synthesiz')) setStep('synth', 'active');
-        if (t.includes('subnet') || t.includes('network') || t.includes('10.160')) {
+        if (t.includes('synthesiz') || t.includes('spec')) setStep('synth', 'active');
+        if (t.includes('subnet') || t.includes('network') || t.includes('10.160') || t.includes('yaml file was checked')) {
           setStep('synth', 'done');
           setStep('net', 'active');
         }
-        if (t.includes('lxd') || t.includes('container') || t.includes('provision')) {
+        if (t.includes('lxd') || t.includes('container') || t.includes('provision') || t.includes('services to be added') || t.includes('stack.create')) {
           setStep('net', 'done');
           setStep('lxd', 'active');
         }
-        if (t.includes('health') || t.includes('audit') || t.includes('verif')) {
+        if (t.includes('health') || t.includes('audit') || t.includes('verif') || t.includes('project imported')) {
           setStep('lxd', 'done');
           setStep('health', 'active');
         }
@@ -102,13 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (data.type === 'complete') {
         deployBtn.disabled = false;
         deployBtn.innerHTML = 'Deploy <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
         setStep('health', 'done');
-
         successLink.href = data.liveUrl;
         feedSuccess.classList.remove('hidden');
-
-        // Scroll feed to bottom
         const scroll = document.querySelector('.panel-left__scroll');
         scroll.scrollTop = scroll.scrollHeight;
       }
@@ -116,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.onclose = () => setTimeout(connectWS, 3000);
   }
-
   connectWS();
 
   // ─── Form Submit ───
@@ -156,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify({ prompt })
       });
       const result = await res.json();
-
       if (result.success) {
         yamlView.textContent = result.zeropsYml;
         renderCodeFiles(result.codeFiles);
@@ -166,10 +209,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (socket && socket.readyState === WebSocket.OPEN) {
-      socket.send(JSON.stringify({ action: 'deploy', prompt }));
+      socket.send(JSON.stringify({
+        action: 'deploy',
+        prompt,
+        templateId: selectedTemplateId,
+        zeropsToken: zeropsToken
+      }));
     }
 
     promptInput.value = '';
+    selectedTemplateId = null;
   });
 
   function setStep(key, state) {
@@ -186,18 +235,48 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const [filename, content] of Object.entries(files)) {
       const block = document.createElement('div');
       block.className = 'code-tree__file';
-
       const header = document.createElement('div');
       header.className = 'code-tree__filename';
       header.textContent = filename;
-
       const pre = document.createElement('pre');
       pre.className = 'code-tree__content';
       pre.textContent = content;
-
       block.appendChild(header);
       block.appendChild(pre);
       codeTree.appendChild(block);
     }
   }
+
+  // ─── Global functions for onboarding + logout ───
+  window.saveToken = async function() {
+    const tokenInput = document.getElementById('zerops-token-input');
+    const token = tokenInput.value.trim();
+    if (!token) return;
+
+    try {
+      const res = await fetch('/api/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (data.success) {
+        zeropsToken = token;
+        onboarding.classList.add('hidden');
+      } else {
+        const errEl = document.getElementById('token-error');
+        errEl.textContent = data.error || 'Failed to save token';
+        errEl.style.display = 'block';
+      }
+    } catch {
+      const errEl = document.getElementById('token-error');
+      errEl.textContent = 'Connection error';
+      errEl.style.display = 'block';
+    }
+  };
+
+  window.logout = async function() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/';
+  };
 });

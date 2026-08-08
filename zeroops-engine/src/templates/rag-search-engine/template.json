@@ -1,0 +1,37 @@
+{
+  "name": "RAG Search Engine",
+  "description": "Retrieval-Augmented Generation (RAG) search engine with query UI, Go vector search API, Python document ingestion & embedding worker, PostgreSQL database, and Valkey cache.",
+  "icon": "🔍",
+  "services": [
+    {
+      "name": "webapp",
+      "type": "nodejs@22",
+      "category": "webapp",
+      "description": "Node.js Web Search UI with live query input, vector search results & document viewer"
+    },
+    {
+      "name": "apigateway",
+      "type": "go@1.22",
+      "category": "api",
+      "description": "Go REST API processing search queries, vector similarity matching & document retrieval"
+    },
+    {
+      "name": "aiworker",
+      "type": "python@3.12",
+      "category": "worker",
+      "description": "Python document ingestion worker generating text embeddings & chunking knowledge base files"
+    },
+    {
+      "name": "dbpostgres",
+      "type": "postgresql@16",
+      "category": "database",
+      "description": "PostgreSQL database storing document metadata, text chunks & vector embeddings"
+    },
+    {
+      "name": "cachevalkey",
+      "type": "valkey@7.2",
+      "category": "cache",
+      "description": "Valkey cache storing high-frequency search query embeddings & search result caches"
+    }
+  ]
+}

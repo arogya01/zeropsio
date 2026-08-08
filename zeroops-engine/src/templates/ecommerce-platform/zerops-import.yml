@@ -1,0 +1,18 @@
+project:
+  name: ecommerceplatform
+  services:
+    - name: webapp
+      type: nodejs@22
+      mode: NON_HA
+    - name: apigateway
+      type: go@1.22
+      mode: NON_HA
+    - name: aiworker
+      type: python@3.12
+      mode: NON_HA
+    - name: dbpostgres
+      type: postgresql@16
+      mode: NON_HA
+    - name: cachevalkey
+      type: valkey@7.2
+      mode: NON_HA

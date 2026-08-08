@@ -1,0 +1,18 @@
+zerops:
+  - setup: webapp
+    build:
+      base: nodejs@22
+      buildCommands:
+        - npm install --production
+      deployFiles:
+        - package.json
+        - server.js
+    run:
+      base: nodejs@22
+      ports:
+        - port: 3000
+          http: true
+      start: node server.js
+      envVariables:
+        PORT: "3000"
+        API_GATEWAY_URL: "http://apigateway:8080"

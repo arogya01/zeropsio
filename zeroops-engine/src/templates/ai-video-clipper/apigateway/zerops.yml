@@ -1,0 +1,21 @@
+zerops:
+  - setup: apigateway
+    build:
+      base: go@1.22
+      buildCommands:
+        - go build -o server main.go
+      deployFiles:
+        - server
+    run:
+      base: go@1.22
+      ports:
+        - port: 8080
+          http: true
+      start: ./server
+      envVariables:
+        PORT: "8080"
+        DB_HOST: "dbpostgres"
+        DB_PORT: "5432"
+        VALKEY_HOST: "cachevalkey"
+        VALKEY_PORT: "6379"
+        AI_WORKER_URL: "http://aiworker:8000"

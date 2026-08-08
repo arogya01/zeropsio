@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroOps Studio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="studio.css">
+  <style>
+    /* Token Onboarding Overlay */
+    .onboarding-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.85);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .onboarding-overlay.hidden { display: none; }
+    .onboarding-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 32px; max-width: 440px; width: 100%;
+    }
+    .onboarding-card h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .onboarding-card p { font-size: 13px; color: var(--text-2); line-height: 1.6; margin-bottom: 20px; }
+    .onboarding-card input {
+      width: 100%; background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 12px; color: var(--text-1);
+      font-family: var(--mono); font-size: 13px; margin-bottom: 12px;
+    }
+    .onboarding-card input:focus { outline: none; border-color: var(--accent); }
+    .onboarding-card button {
+      width: 100%; background: var(--accent); color: #000;
+      font-family: var(--font); font-weight: 600; font-size: 14px;
+      padding: 10px; border: none; border-radius: 8px; cursor: pointer;
+    }
+    .onboarding-card button:hover { opacity: 0.9; }
+    .onboarding-card a { color: var(--accent); font-size: 12px; }
+    .onboarding-error { color: #f87171; font-size: 12px; margin-bottom: 8px; display: none; }
+
+    /* User pill in topbar */
+    .topbar__user {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--text-2);
+    }
+    .topbar__logout {
+      background: none; border: 1px solid var(--border); color: var(--text-3);
+      font-family: var(--font); font-size: 11px; padding: 4px 10px;
+      border-radius: 4px; cursor: pointer;
+    }
+    .topbar__logout:hover { color: var(--text-1); border-color: var(--text-3); }
+  </style>
+</head>
+<body>
+
+  <!-- ─── TOKEN ONBOARDING ─── -->
+  <div class="onboarding-overlay hidden" id="onboarding">
+    <div class="onboarding-card">
+      <h2>Connect your Zerops account</h2>
+      <p>Paste your Personal Access Token to deploy containers to your own Zerops infrastructure. <a href="https://app.zerops.io/settings/token-management" target="_blank">Get token →</a></p>
+      <div class="onboarding-error" id="token-error">Invalid token</div>
+      <input type="password" id="zerops-token-input" placeholder="Paste your Zerops token here…">
+      <button onclick="saveToken()">Connect &amp; Continue</button>
+    </div>
+  </div>
+
+  <!-- ─── TOPBAR ─── -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <div class="topbar__logo">Z</div>
+      <span class="topbar__name">ZeroOps</span>
+    </div>
+    <div class="topbar__center">
+      <span class="status-dot status-dot--live"></span>
+      <span class="topbar__status-text">ZCP Agent <strong>connected</strong></span>
+      <span class="topbar__divider">·</span>
+      <span class="topbar__net">10.160.0.0/16</span>
+    </div>
+    <div class="topbar__right">
+      <div class="topbar__user">
+        <span id="user-name"></span>
+        <button class="topbar__logout" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── MAIN LAYOUT: LEFT CHAT + RIGHT WORKBENCH ─── -->
+  <div class="main-layout">
+
+    <!-- ═══ LEFT PANEL: PROMPT & PIPELINE ═══ -->
+    <aside class="panel-left">
+      <div class="panel-left__scroll">
+
+        <!-- Welcome / Empty State -->
+        <div class="chat-welcome" id="chat-welcome">
+          <h2 class="chat-welcome__title">What do you want to deploy?</h2>
+          <p class="chat-welcome__sub">Describe your app. ZeroOps generates full-stack code, provisions LXD containers on Zerops via ZCP, and streams build logs in real-time.</p>
+
+          <div class="template-grid">
+            <button class="template-card" data-prompt="AI Video Clipper SaaS with Next.js, Go API, Python Whisper worker, PostgreSQL, and Valkey">
+              <span class="template-card__icon">🎬</span>
+              <span class="template-card__label">AI Video Clipper</span>
+            </button>
+            <button class="template-card" data-prompt="E-Commerce platform with Bun frontend, Go backend, PostgreSQL HA, Valkey cache, and Meilisearch">
+              <span class="template-card__icon">🛒</span>
+              <span class="template-card__label">Multi-Service E-Com</span>
+            </button>
+            <button class="template-card" data-prompt="Enterprise RAG Search with React, FastAPI, Typesense, PostgreSQL pgvector, and Valkey">
+              <span class="template-card__icon">🧠</span>
+              <span class="template-card__label">Private RAG Engine</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pipeline Feed (shown after deploy) -->
+        <div class="pipeline-feed hidden" id="pipeline-feed">
+          <div class="feed-msg feed-msg--user" id="feed-user-msg"></div>
+
+          <div class="feed-msg feed-msg--system" id="feed-step-synth">
+            <span class="feed-step-icon">01</span>
+            <div class="feed-step-body">
+              <strong>Code Synthesis</strong>
+              <span>Generating zerops.yml, frontend, API, worker, and SQL migrations…</span>
+            </div>
+            <span class="feed-step-status" data-status="waiting">waiting</span>
+          </div>
+
+          <div class="feed-msg feed-msg--system" id="feed-step-net">
+            <span class="feed-step-icon">02</span>
+            <div class="feed-step-body">
+              <strong>Network Allocation</strong>
+              <span>Assigning private IPs on 10.160.0.0/16 subnet…</span>
+            </div>
+            <span class="feed-step-status" data-status="waiting">waiting</span>
+          </div>
+
+          <div class="feed-msg feed-msg--system" id="feed-step-lxd">
+            <span class="feed-step-icon">03</span>
+            <div class="feed-step-body">
+              <strong>LXD Container Provisioning</strong>
+              <span>Spawning 5 isolated runtimes via ZCP…</span>
+            </div>
+            <span class="feed-step-status" data-status="waiting">waiting</span>
+          </div>
+
+          <div class="feed-msg feed-msg--system" id="feed-step-health">
+            <span class="feed-step-icon">04</span>
+            <div class="feed-step-body">
+              <strong>Health Audit</strong>
+              <span>Verifying HTTP 200, DB connectivity, cache pings…</span>
+            </div>
+            <span class="feed-step-status" data-status="waiting">waiting</span>
+          </div>
+
+          <!-- Success Card -->
+          <div class="feed-msg feed-msg--success hidden" id="feed-success">
+            <div class="success-card">
+              <div class="success-card__check">✓</div>
+              <div class="success-card__body">
+                <strong>Deployed &amp; Verified</strong>
+                <p>5 LXD containers live on Zerops. All health checks passed.</p>
+                <a href="#" id="success-link" class="success-card__link" target="_blank">Open Live App →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Prompt Input (always visible, pinned to bottom) -->
+      <div class="prompt-bar">
+        <form id="prompt-form" class="prompt-bar__form">
+          <textarea
+            id="prompt-input"
+            class="prompt-bar__input"
+            placeholder="Describe what you want to build…"
+            rows="2"
+            required
+          ></textarea>
+          <div class="prompt-bar__actions">
+            <button type="submit" id="deploy-btn" class="prompt-bar__send">
+              Deploy
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <!-- ═══ RIGHT PANEL: WORKBENCH ═══ -->
+    <main class="panel-right">
+
+      <!-- Workbench Top Tabs -->
+      <div class="wb-tabs">
+        <button class="wb-tab active" data-tab="wb-terminal">
+          <span class="wb-tab__dot"></span>
+          Terminal
+        </button>
+        <button class="wb-tab" data-tab="wb-yaml">zerops.yml</button>
+        <button class="wb-tab" data-tab="wb-code">Code</button>
+      </div>
+
+      <!-- Terminal Pane -->
+      <div class="wb-pane active" id="wb-terminal">
+        <pre class="terminal" id="terminal">ZeroOps Studio ready.
+Waiting for deployment…</pre>
+      </div>
+
+      <!-- zerops.yml Pane -->
+      <div class="wb-pane" id="wb-yaml">
+        <pre class="code-view" id="yaml-view"># zerops.yml will appear here after synthesis…</pre>
+      </div>
+
+      <!-- Code Pane -->
+      <div class="wb-pane" id="wb-code">
+        <div class="code-tree" id="code-tree">
+          <p class="code-tree__empty">Generated code files will appear here after synthesis.</p>
+        </div>
+      </div>
+
+      <!-- Topology Strip (inside workbench, bottom) -->
+      <div class="topo-strip">
+        <div class="topo-strip__inner">
+          <div class="topo-chip" id="node-web-frontend">
+            <span class="topo-chip__dot"></span>
+            <span class="topo-chip__name">web-frontend</span>
+            <span class="topo-chip__ip">10.160.0.12</span>
+          </div>
+          <span class="topo-arrow">→</span>
+          <div class="topo-chip" id="node-api-gateway">
+            <span class="topo-chip__dot"></span>
+            <span class="topo-chip__name">api-gateway</span>
+            <span class="topo-chip__ip">10.160.0.15</span>
+          </div>
+          <span class="topo-arrow">→</span>
+          <div class="topo-chip" id="node-ai-worker">
+            <span class="topo-chip__dot"></span>
+            <span class="topo-chip__name">ai-worker</span>
+            <span class="topo-chip__ip">10.160.0.18</span>
+          </div>
+          <span class="topo-arrow">⇄</span>
+          <div class="topo-chip topo-chip--db" id="node-db-postgres">
+            <span class="topo-chip__dot"></span>
+            <span class="topo-chip__name">db-postgres</span>
+            <span class="topo-chip__ip">10.160.0.21</span>
+          </div>
+          <span class="topo-arrow">⇄</span>
+          <div class="topo-chip topo-chip--db" id="node-cache-valkey">
+            <span class="topo-chip__dot"></span>
+            <span class="topo-chip__name">cache-valkey</span>
+            <span class="topo-chip__ip">10.160.0.25</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="studio.js"></script>
+</body>
+</html>

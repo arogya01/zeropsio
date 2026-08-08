@@ -1,0 +1,2 @@
+# Lightweight dependencies for Python AI Worker
+# Standard library used for HTTP server

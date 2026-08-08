@@ -1,0 +1,37 @@
+{
+  "name": "AI Video Clipper",
+  "description": "Automated video clipping and Whisper-based AI transcription system with Go API Gateway, Python worker, Node.js frontend, PostgreSQL database, and Valkey cache.",
+  "icon": "🎬",
+  "services": [
+    {
+      "name": "webapp",
+      "type": "nodejs@22",
+      "category": "webapp",
+      "description": "Node.js Web Frontend with video upload UI & transcript preview"
+    },
+    {
+      "name": "apigateway",
+      "type": "go@1.22",
+      "category": "api",
+      "description": "Go REST API for video job creation, status polling & storage"
+    },
+    {
+      "name": "aiworker",
+      "type": "python@3.12",
+      "category": "worker",
+      "description": "Python worker for AI audio extraction & Whisper transcription"
+    },
+    {
+      "name": "dbpostgres",
+      "type": "postgresql@16",
+      "category": "database",
+      "description": "PostgreSQL database storing video clips metadata & transcripts"
+    },
+    {
+      "name": "cachevalkey",
+      "type": "valkey@7.2",
+      "category": "cache",
+      "description": "Valkey cache & pub/sub queue for processing jobs"
+    }
+  ]
+}
