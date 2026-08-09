@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in · ZeroOps V1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/design/tokens.css" />
+  <link rel="stylesheet" href="/design/motion.css" />
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    body { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .card {
+      width: min(420px, 100%); border: 1px solid var(--border); background: var(--surface);
+      border-radius: calc(var(--radius) + 4px); padding: 28px; box-shadow: var(--shadow);
+      opacity: 0; transform: translateY(12px) scale(0.98);
+      animation: card-in var(--dur-panel) var(--ease-out) forwards;
+    }
+    @keyframes card-in { to { opacity: 1; transform: none; } }
+    .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; font-weight: 700; }
+    .mark { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); font-weight: 800; }
+    h1 { font-family: var(--font-display); font-size: 1.75rem; line-height: 1.15; margin-bottom: 8px; }
+    .sub { color: var(--text-2); font-size: 14px; line-height: 1.55; margin-bottom: 22px; }
+    label { display: block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+    input {
+      width: 100%; margin-bottom: 12px; padding: 11px 12px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--surface-2); color: var(--text-1);
+      font: 14px var(--font-body);
+    }
+    input:focus { outline: none; border-color: var(--brand); }
+    button[type=submit] {
+      width: 100%; margin-top: 6px; padding: 12px; border: 0; border-radius: 999px;
+      background: var(--brand); color: var(--brand-ink); font-weight: 700; cursor: pointer; font-family: var(--font-body);
+    }
+    .toggle { margin-top: 14px; text-align: center; font-size: 13px; color: var(--text-3); }
+    .toggle a { color: var(--brand); cursor: pointer; }
+    .error {
+      display: none; margin-bottom: 12px; padding: 8px 10px; border-radius: 8px;
+      border: 1px solid color-mix(in srgb, var(--danger) 40%, var(--border));
+      background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); font-size: 13px;
+    }
+    .error.is-on { display: block; animation: shake 0.35s var(--ease-out); }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      25% { transform: translateX(-4px); }
+      75% { transform: translateX(4px); }
+    }
+    .back { display: inline-block; margin-bottom: 16px; font-size: 12px; color: var(--text-3); text-decoration: none; }
+    .variant-bar { margin-top: 18px; justify-content: center; }
+    @media (prefers-reduced-motion: reduce) {
+      .card { animation: none; opacity: 1; transform: none; }
+      .error.is-on { animation: none; }
+    }
+  </style>
+</head>
+<body class="v1">
+  <div class="card">
+    <a class="back" href="/preview/v1/landing">← Back to landing</a>
+    <div class="brand"><span class="mark">Z</span> ZeroOps</div>
+    <h1>Enter the studio</h1>
+    <p class="sub">Sign in to connect your Zerops PAT and deploy multi-service stacks with live zcli streaming.</p>
+    <div class="error" id="login-error"></div>
+    <form id="auth-form">
+      <div id="name-field" style="display:none">
+        <label for="name">Name</label>
+        <input id="name" type="text" placeholder="Your name" />
+      </div>
+      <label for="email">Email</label>
+      <input id="email" type="email" required placeholder="you@company.com" />
+      <label for="password">Password</label>
+      <input id="password" type="password" required placeholder="••••••••" />
+      <button class="btn-press" type="submit" id="auth-btn">Sign In</button>
+    </form>
+    <div class="toggle">
+      <span id="toggle-text">Don't have an account?</span>
+      <a id="toggle-link">Create one</a>
+    </div>
+    <div class="variant-bar"><a class="active" href="/preview/v1/login">V1 Signal Deck</a><a class="" href="/preview/v2/login">V2 Editorial Factory</a><a class="" href="/preview/v3/login">V3 Circuit Atlas</a><a class="" href="/preview/v4/login">V4 Warm Build</a></div>
+  </div>
+  <script>
+    let isSignup = false;
+    document.getElementById('toggle-link').onclick = () => {
+      isSignup = !isSignup;
+      document.getElementById('name-field').style.display = isSignup ? 'block' : 'none';
+      document.getElementById('auth-btn').textContent = isSignup ? 'Create Account' : 'Sign In';
+      document.getElementById('toggle-text').textContent = isSignup ? 'Already have an account?' : "Don't have an account?";
+      document.getElementById('toggle-link').textContent = isSignup ? 'Sign in' : 'Create one';
+      document.getElementById('login-error').classList.remove('is-on');
+    };
+    document.getElementById('auth-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById('login-error');
+      const endpoint = isSignup ? '/api/auth/signup' : '/api/auth/login';
+      const body = isSignup
+        ? { email: email.value, password: password.value, name: name.value }
+        : { email: email.value, password: password.value };
+      try {
+        const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+        const data = await res.json();
+        if (data.success) window.location.href = '/studio';
+        else {
+          errorEl.textContent = data.error || 'Auth failed';
+          errorEl.classList.add('is-on');
+        }
+      } catch {
+        errorEl.textContent = 'Connection error';
+        errorEl.classList.add('is-on');
+      }
+    });
+    fetch('/api/auth/me').then(r => r.json()).then(d => { if (d.user) location.href = '/studio'; }).catch(() => {});
+  </script>
+</body>
+</html>

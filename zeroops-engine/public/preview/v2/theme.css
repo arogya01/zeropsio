@@ -1,0 +1,27 @@
+body.v2 {
+  --bg: #f6f1e8;
+  --surface: #fffdf8;
+  --surface-2: #efe8db;
+  --border: #ddd2c0;
+  --text-1: #14120f;
+  --text-2: #5c564c;
+  --text-3: #8a8276;
+  --brand: #1d4ed8;
+  --brand-ink: #f8fafc;
+  --accent: #c2410c;
+  --ok: #15803d;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Manrope', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  background: var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-body);
+}
+.v2 .nav { background: rgba(246,241,232,0.9); border-bottom-color: var(--border); backdrop-filter: blur(10px); }
+.v2 .display { font-style: italic; font-weight: 500; letter-spacing: -0.02em; text-transform: none; }
+.v2 .hero-kicker { color: var(--accent); }
+.v2 .btn-primary { background: var(--text-1); color: var(--bg); }
+.v2 .btn-primary:hover { background: var(--brand); color: #fff; }
+.v2 .pipeline { box-shadow: 0 24px 60px rgba(20,18,15,0.08); }
+.v2 .section-dark { background: #17140f; color: #f6f1e8; }
+.v2 .section-dark .muted { color: #b5aa98; }

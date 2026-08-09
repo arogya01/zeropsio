@@ -1,0 +1,52 @@
+# Auto-deploy ZeroOps Studio to Zerops on every push to main.
+# Requires repo secret ZEROPS_TOKEN (Zerops → Settings → Access Token Management).
+# Service ID from live project notes; monorepo app lives under zeroops-engine/.
+name: Deploy to Zerops
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'zeroops-engine/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-zerops-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: zeroops-engine
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install zcli
+        run: |
+          curl -fsSL \
+            https://github.com/zeropsio/zcli/releases/latest/download/zcli-linux-amd64 \
+            -o /usr/local/bin/zcli
+          chmod +x /usr/local/bin/zcli
+          zcli version
+
+      - name: Login to Zerops
+        env:
+          ZEROPS_TOKEN: ${{ secrets.ZEROPS_TOKEN }}
+        run: |
+          if [ -z "$ZEROPS_TOKEN" ]; then
+            echo "::error::ZEROPS_TOKEN secret is missing. Add it under Settings → Secrets → Actions."
+            exit 1
+          fi
+          zcli login "$ZEROPS_TOKEN"
+
+      - name: Push studio service
+        run: |
+          zcli push studio \
+            --project-id Rqpl1t8sSfWadFknP4nOig \
+            --service-id CisTbT0KSWGBVxL6qRGa2Q

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Studio shell · ZeroOps V1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/design/tokens.css" />
+  <link rel="stylesheet" href="/design/motion.css" />
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; }
+    .top {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--surface);
+    }
+    .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+    .mark { width: 26px; height: 26px; border-radius: 6px; display: grid; place-items: center; background: var(--brand); color: var(--brand-ink); font-size: 12px; font-weight: 800; }
+    .status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); font-family: var(--font-mono); }
+    .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); display: inline-block; }
+    .status.is-ready i { background: var(--ok); box-shadow: 0 0 8px color-mix(in srgb, var(--ok) 60%, transparent); }
+    .layout { flex: 1; display: grid; min-height: 0; }
+    @media (min-width: 900px) { .layout { grid-template-columns: 360px 1fr; } }
+    .left, .right { border-right: 1px solid var(--border); padding: 16px; min-height: 280px; }
+    .right { border-right: 0; display: flex; flex-direction: column; gap: 12px; }
+    .welcome h2 { font-family: var(--font-display); font-size: 1.35rem; margin-bottom: 8px; }
+    .welcome p { color: var(--text-2); font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+    .tpl { display: grid; gap: 8px; }
+    .tpl button {
+      text-align: left; border: 1px solid var(--border); background: var(--surface-2); color: var(--text-1);
+      border-radius: 10px; padding: 12px; cursor: pointer; font-family: var(--font-body);
+      opacity: 0; transform: translateY(8px);
+      animation: rise var(--dur-panel) var(--ease-out) forwards;
+    }
+    .tpl button:nth-child(2) { animation-delay: 60ms; }
+    .tpl button:nth-child(3) { animation-delay: 120ms; }
+    .tpl button:hover { border-color: var(--brand); }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+    .term {
+      flex: 1; font-family: var(--font-mono); font-size: 12px; line-height: 1.5;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: var(--text-2);
+      min-height: 180px;
+    }
+    .topo { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 8px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background: var(--surface-2); font-family: var(--font-mono); font-size: 11px; color: var(--text-2);
+    }
+    .chip .d { width: 7px; height: 7px; border-radius: 50%; background: var(--text-3); }
+    .chip.building .d { background: var(--accent); animation: pulse-dot 0.9s ease-in-out infinite; }
+    .chip.healthy .d { background: var(--ok); box-shadow: 0 0 8px color-mix(in srgb, var(--ok) 50%, transparent); }
+    .note { font-size: 12px; color: var(--text-3); padding: 10px 18px; border-top: 1px solid var(--border); }
+    .note a { color: var(--brand); }
+    @media (prefers-reduced-motion: reduce) {
+      .tpl button { animation: none; opacity: 1; transform: none; }
+      .chip.building .d { animation: none; }
+    }
+  </style>
+</head>
+<body class="v1">
+  <header class="top">
+    <div class="brand"><span class="mark">Z</span> ZeroOps Studio · V1</div>
+    <div class="status is-ready"><i></i> Ready · waiting for deploy</div>
+    <div class="variant-bar"><a class="active" href="/preview/v1/studio">V1 Signal Deck</a><a class="" href="/preview/v2/studio">V2 Editorial Factory</a><a class="" href="/preview/v3/studio">V3 Circuit Atlas</a><a class="" href="/preview/v4/studio">V4 Warm Build</a></div>
+  </header>
+  <div class="layout">
+    <aside class="left welcome">
+      <h2>What do you want to deploy?</h2>
+      <p>Shell preview — production studio keeps real WS logs &amp; topology IDs. Motion shows idle → building → healthy on chips.</p>
+      <div class="tpl">
+        <button type="button" data-demo>🎬 AI Video Clipper</button>
+        <button type="button" data-demo>🛒 E-Commerce</button>
+        <button type="button" data-demo>🧠 RAG Search</button>
+      </div>
+    </aside>
+    <main class="right">
+      <div class="term" id="term">ZeroOps Studio shell ready.
+Click a template to preview motion…</div>
+      <div class="topo" id="topo">
+        <div class="chip" data-n="0"><span class="d"></span>webapp</div>
+        <span>→</span>
+        <div class="chip" data-n="1"><span class="d"></span>apigateway</div>
+        <span>→</span>
+        <div class="chip" data-n="2"><span class="d"></span>aiworker</div>
+        <span>⇄</span>
+        <div class="chip" data-n="3"><span class="d"></span>dbpostgres</div>
+        <span>⇄</span>
+        <div class="chip" data-n="4"><span class="d"></span>cachevalkey</div>
+      </div>
+    </main>
+  </div>
+  <div class="note">Preview only. <a href="/studio">Open production studio</a> · <a href="/preview/v1/landing">Landing</a> · <a href="/preview">Gallery</a></div>
+  <script>
+    const term = document.getElementById('term');
+    const chips = [...document.querySelectorAll('.chip')];
+    async function demo() {
+      chips.forEach(c => c.className = 'chip');
+      term.textContent = '';
+      const lines = ['[synth] generating stack…','[zcli] project-import','[zcli] build ok','[audit] probing…','[ok] healthy'];
+      for (let i = 0; i < chips.length; i++) {
+        chips[i].classList.add('building');
+        term.textContent += lines[Math.min(i, lines.length-1)] + '\n';
+        await new Promise(r => setTimeout(r, 280));
+      }
+      chips.forEach(c => { c.classList.remove('building'); c.classList.add('healthy'); });
+      term.textContent += 'Live URL ready.\n';
+    }
+    document.querySelectorAll('[data-demo]').forEach(b => b.addEventListener('click', demo));
+  </script>
+</body>
+</html>

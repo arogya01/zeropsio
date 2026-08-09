@@ -4,10 +4,13 @@ zerops:
     build:
       base: nodejs@22
       buildCommands:
+        - npm ci
+        - npm run build:web
         - npm ci --omit=dev
       deployFiles:
         - src
         - public
+        - web/dist
         - package.json
         - package-lock.json
         - node_modules

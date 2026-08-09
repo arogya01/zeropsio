@@ -1,0 +1,27 @@
+body.v4 {
+  --bg: #1a1410;
+  --surface: #241c16;
+  --surface-2: #2e241c;
+  --border: #3d3126;
+  --text-1: #faf3ea;
+  --text-2: #c4b2a0;
+  --text-3: #8a7664;
+  --brand: #e07a3d;
+  --brand-ink: #1a1008;
+  --accent: #f0c987;
+  --ok: #86efac;
+  --font-display: 'Archivo Black', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  background:
+    radial-gradient(800px 400px at 50% -10%, rgba(224,122,61,0.14), transparent 55%),
+    var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-body);
+}
+.v4 .nav { background: rgba(26,20,16,0.9); border-bottom-color: var(--border); }
+.v4 .display { text-transform: uppercase; letter-spacing: -0.01em; line-height: 0.95; }
+.v4 .hero-kicker { color: var(--accent); }
+.v4 .btn-primary { background: var(--brand); color: var(--brand-ink); }
+.v4 .brick { border-radius: 4px; }
+.v4 .pipeline__node { border-radius: 6px; }

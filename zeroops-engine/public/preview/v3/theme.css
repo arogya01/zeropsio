@@ -1,0 +1,32 @@
+body.v3 {
+  --bg: #07111c;
+  --surface: #0c1a2b;
+  --surface-2: #122438;
+  --border: #1e3a55;
+  --text-1: #e8f1ff;
+  --text-2: #93a9c4;
+  --text-3: #5d7593;
+  --brand: #7dd3fc;
+  --brand-ink: #042f2e;
+  --accent: #d97706;
+  --ok: #34d399;
+  --font-display: 'Sora', system-ui, sans-serif;
+  --font-body: 'Sora', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+  background:
+    radial-gradient(900px 500px at 80% 0%, rgba(217,119,6,0.12), transparent 50%),
+    radial-gradient(700px 400px at 0% 40%, rgba(125,211,252,0.1), transparent 50%),
+    var(--bg);
+  color: var(--text-1);
+  font-family: var(--font-body);
+}
+.v3 .nav { background: rgba(7,17,28,0.88); border-bottom-color: #163049; }
+.v3 .display { letter-spacing: -0.03em; }
+.v3 .hero-kicker { color: var(--accent); font-family: var(--font-mono); }
+.v3 .atlas-lines {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.35;
+  background:
+    linear-gradient(115deg, transparent 40%, rgba(125,211,252,0.08) 50%, transparent 60%),
+    repeating-linear-gradient(0deg, transparent, transparent 48px, rgba(30,58,85,0.35) 49px);
+}
+.v3 .pipeline__node.is-healthy { box-shadow: 0 0 20px rgba(52,211,153,0.15); }

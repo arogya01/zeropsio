@@ -1,0 +1,34 @@
+body.v1 {
+  --bg: #050605;
+  --surface: #0d100c;
+  --surface-2: #141a13;
+  --border: #243022;
+  --text-1: #e8f5d8;
+  --text-2: #9bb08a;
+  --text-3: #5c6b52;
+  --brand: #c8f542;
+  --brand-ink: #0a1200;
+  --accent: #f5a623;
+  --ok: #7CFF6B;
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body: 'IBM Plex Mono', ui-monospace, monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(200,245,66,0.08), transparent 55%),
+    linear-gradient(180deg, #050605 0%, #080a07 100%);
+  color: var(--text-1);
+  font-family: var(--font-body);
+}
+.v1 .nav { border-bottom-color: #1c2818; backdrop-filter: blur(8px); background: rgba(5,6,5,0.85); }
+.v1 .hero-kicker { color: var(--brand); }
+.v1 .display { letter-spacing: -0.03em; text-transform: uppercase; }
+.v1 .pipeline { box-shadow: 0 0 0 1px #1c2818, 0 30px 80px rgba(0,0,0,0.55); }
+.v1 .grid-bg::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none; opacity: 0.2;
+  background-image:
+    linear-gradient(rgba(200,245,66,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,245,66,0.07) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+}

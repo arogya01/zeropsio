@@ -51,8 +51,11 @@ app.use(session({
   }
 }));
 
-// Static files
-app.use(express.static(path.join(__dirname, '../../public')));
+const publicDir = path.join(__dirname, '../../public');
+const webDistDir = path.join(__dirname, '../../web/dist');
+const useReactUi = fs.existsSync(path.join(webDistDir, 'index.html'));
+
+// Static + page routes are registered AFTER API routes (see bottom of file).
 
 // ─── AUTH MIDDLEWARE ───
 function requireAuth(req, res, next) {
@@ -180,16 +183,45 @@ app.post('/api/synthesize', (req, res) => {
   });
 });
 
-// ─── PAGES ───
-// Serve login page at root
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/login.html'));
-});
-
-// Serve studio at /studio
-app.get('/studio', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../public/studio.html'));
-});
+// ─── UI (React SPA when web/dist exists; else legacy public HTML) ───
+if (useReactUi) {
+  app.use(express.static(webDistDir, { index: false }));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/ws')) return next();
+    res.sendFile(path.join(webDistDir, 'index.html'));
+  });
+  console.log('[UI] Serving React app from web/dist');
+} else {
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(publicDir, 'landing.html'));
+  });
+  app.get('/login', (req, res) => {
+    res.sendFile(path.join(publicDir, 'login.html'));
+  });
+  app.get('/studio', (req, res) => {
+    res.sendFile(path.join(publicDir, 'studio.html'));
+  });
+  app.get('/preview', (req, res) => {
+    res.sendFile(path.join(publicDir, 'preview', 'index.html'));
+  });
+  app.get('/preview/v:n', (req, res) => {
+    const n = String(req.params.n || '');
+    if (!/^[1-5]$/.test(n)) return res.status(404).send('Variant not found');
+    const file = path.join(publicDir, 'preview', `v${n}`, 'landing.html');
+    if (!fs.existsSync(file)) return res.status(404).send('Page not found');
+    res.sendFile(file);
+  });
+  app.get('/preview/v:n/:page(landing|login|studio)', (req, res) => {
+    const n = String(req.params.n || '');
+    if (!/^[1-5]$/.test(n)) return res.status(404).send('Variant not found');
+    const page = req.params.page || 'landing';
+    const file = path.join(publicDir, 'preview', `v${n}`, `${page}.html`);
+    if (!fs.existsSync(file)) return res.status(404).send('Page not found');
+    res.sendFile(file);
+  });
+  app.use(express.static(publicDir, { index: false }));
+  console.log('[UI] Serving legacy public/ HTML (run: npm run build:web)');
+}
 
 // ─── WEBSOCKET ───
 // Map sessionId -> zeropsToken for WS auth

@@ -228,9 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
           node.className = `topo-chip ${rawStatus}`;
           if (isDb) node.classList.add('topo-chip--db');
 
-          if (data.privateIp) {
+          const hostLabel = data.privateHost || data.privateIp;
+          if (hostLabel) {
             const ipEl = node.querySelector('.topo-chip__ip');
-            if (ipEl) ipEl.textContent = data.privateIp;
+            if (ipEl) ipEl.textContent = hostLabel;
           }
         }
       } else if (data.type === 'complete') {

@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* ZeroOps design tokens (Tailwind v4 @theme) */
+@theme {
+  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+
+  --color-zo-bg: #0b0c0e;
+  --color-zo-surface: #12141a;
+  --color-zo-surface-2: #181b22;
+  --color-zo-line: #262a33;
+  --color-zo-line-2: #1a1d24;
+  --color-zo-text: #e8eaef;
+  --color-zo-muted: #9aa3b2;
+  --color-zo-dim: #6b7380;
+  --color-zo-mark: #e8e8e8;
+  --color-zo-ink: #0b0c0e;
+  --color-zo-idle: #6b7380;
+  --color-zo-run: #d4a017;
+  --color-zo-ok: #3ecf8e;
+  --color-zo-fail: #e85d5d;
+  --color-zo-info: #7aa2d4;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply m-0 bg-zo-bg font-sans text-sm text-zo-text antialiased;
+  }
+
+  code {
+    @apply font-mono text-[0.92em];
+  }
+}
+
+@layer components {
+  .zo-mark {
+    @apply inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-sm bg-zo-mark font-mono text-[11px] font-semibold text-zo-ink;
+  }
+
+  .zo-btn {
+    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-sm border border-zo-line bg-zo-surface px-3.5 text-[13px] font-medium text-zo-text no-underline transition-colors hover:border-zo-dim hover:bg-zo-surface-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0;
+  }
+
+  .zo-btn-primary {
+    @apply border-zo-mark bg-zo-mark text-zo-ink hover:border-white hover:bg-white;
+  }
+
+  .zo-input {
+    @apply h-9 w-full rounded-sm border border-zo-line bg-zo-bg px-2.5 font-sans text-[13px] text-zo-text outline-none focus:border-zo-dim;
+  }
+
+  .zo-label {
+    @apply mb-1.5 block font-mono text-[10px] tracking-wider text-zo-dim uppercase;
+  }
+
+  .zo-panel {
+    @apply rounded-sm border border-zo-line bg-zo-surface;
+  }
+
+  .zo-panel-h {
+    @apply flex items-center justify-between gap-3 border-b border-zo-line-2 px-3.5 py-2.5 font-mono text-[11px] text-zo-dim;
+  }
+
+  .zo-panel-b {
+    @apply p-3.5;
+  }
+
+  .zo-ghost-btn {
+    @apply cursor-pointer rounded-sm border border-zo-line bg-transparent px-2 py-1 font-mono text-[10px] text-zo-dim hover:border-zo-dim hover:text-zo-text;
+  }
+}
+
+@keyframes packet-flow {
+  0% {
+    opacity: 0.25;
+    transform: translateX(-1px);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateX(1px);
+  }
+  100% {
+    opacity: 0.25;
+    transform: translateX(-1px);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.animate-packet {
+  animation: packet-flow 1.5s ease-in-out infinite;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 1s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-packet,
+  .animate-pulse-dot {
+    animation: none !important;
+  }
+}

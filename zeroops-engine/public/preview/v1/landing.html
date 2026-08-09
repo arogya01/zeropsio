@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ZeroOps — Signal Deck (V1)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/design/tokens.css" />
+  <link rel="stylesheet" href="/design/motion.css" />
+  <link rel="stylesheet" href="theme.css" />
+  <style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { min-height: 100vh; -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+.wrap { width: min(1120px, calc(100% - 40px)); margin: 0 auto; }
+.nav {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.nav-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
+.nav-mark {
+  width: 28px; height: 28px; border-radius: 7px; display: grid; place-items: center;
+  background: var(--brand); color: var(--brand-ink); font-size: 14px; font-weight: 800;
+}
+.nav-links { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.nav-links a { font-size: 13px; color: var(--text-2); text-decoration: none; }
+.nav-links a:hover { color: var(--text-1); }
+.variant-bar {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  font-size: 11px; color: var(--text-3);
+}
+.variant-bar a {
+  text-decoration: none; border: 1px solid var(--border); border-radius: 999px;
+  padding: 4px 10px; color: var(--text-2); background: var(--surface);
+  transition: border-color var(--dur-ui) var(--ease-out), color var(--dur-ui) var(--ease-out);
+}
+.variant-bar a.active, .variant-bar a:hover {
+  border-color: var(--brand); color: var(--text-1);
+}
+.hero {
+  position: relative;
+  display: grid; gap: 36px; padding: 56px 0 40px;
+}
+@media (min-width: 900px) {
+  .hero { grid-template-columns: 1fr 1.05fr; align-items: center; padding: 72px 0 56px; }
+}
+.hero-kicker {
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 14px;
+}
+.display {
+  font-family: var(--font-display); font-size: clamp(2.2rem, 5vw, 3.6rem);
+  line-height: 1.05; margin-bottom: 16px;
+}
+.lead { font-size: 1.05rem; line-height: 1.65; color: var(--text-2); max-width: 38ch; margin-bottom: 28px; }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn-primary, .btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px; padding: 12px 18px; font-size: 14px; font-weight: 600;
+  text-decoration: none; border: 1px solid transparent; cursor: pointer;
+  font-family: var(--font-body);
+}
+.btn-primary { background: var(--brand); color: var(--brand-ink); }
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-ghost { border-color: var(--border); color: var(--text-1); background: transparent; }
+.btn-ghost:hover { border-color: var(--text-3); }
+.muted { color: var(--text-2); }
+.section { padding: 64px 0; }
+.section h2 {
+  font-family: var(--font-display); font-size: clamp(1.6rem, 3vw, 2.2rem);
+  margin-bottom: 12px; letter-spacing: -0.02em;
+}
+.section .sub { color: var(--text-2); max-width: 52ch; margin-bottom: 28px; line-height: 1.6; }
+.steps { display: grid; gap: 14px; }
+@media (min-width: 800px) { .steps { grid-template-columns: repeat(4, 1fr); } }
+.step {
+  border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius);
+  padding: 18px; min-height: 150px;
+  transition: transform var(--dur-ui) var(--ease-out), border-color var(--dur-ui) var(--ease-out);
+}
+.step:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--brand) 40%, var(--border)); }
+.step-num {
+  font-family: var(--font-mono); font-size: 11px; color: var(--brand); letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+.step h3 { font-size: 15px; margin-bottom: 8px; }
+.step p { font-size: 13px; color: var(--text-2); line-height: 1.55; }
+.templates { display: grid; gap: 12px; }
+@media (min-width: 800px) { .templates { grid-template-columns: repeat(3, 1fr); } }
+.t-card {
+  border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius);
+  padding: 18px; transition: transform var(--dur-ui) var(--ease-out), border-color var(--dur-ui) var(--ease-out);
+}
+.t-card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.t-card h3 { font-size: 15px; margin: 8px 0; }
+.t-card p { font-size: 13px; color: var(--text-2); line-height: 1.5; }
+.t-mini { display: flex; gap: 4px; margin-top: 12px; }
+.t-mini span {
+  width: 8px; height: 8px; border-radius: 50%; background: var(--text-3); opacity: 0.5;
+}
+.t-card:hover .t-mini span {
+  animation: mini-pulse 1s var(--ease-in-out) infinite;
+}
+.t-card:hover .t-mini span:nth-child(2) { animation-delay: 0.15s; background: var(--accent); opacity: 1; }
+.t-card:hover .t-mini span:nth-child(3) { animation-delay: 0.3s; background: var(--ok); opacity: 1; }
+@keyframes mini-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+}
+.footer {
+  border-top: 1px solid var(--border); padding: 28px 0 40px;
+  display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between;
+  font-size: 12px; color: var(--text-3);
+}
+.footer a { color: var(--text-2); }
+.hero-aside { position: relative; }
+.grid-bg { position: relative; }
+</style>
+</head>
+<body class="v1">
+  <div class="wrap">
+    <header class="nav">
+      <a class="nav-brand" href="/preview/v1/landing"><span class="nav-mark">Z</span> ZeroOps</a>
+      <div class="variant-bar" title="Design variants"><a class="active" href="/preview/v1/landing">V1 Signal Deck</a><a class="" href="/preview/v2/landing">V2 Editorial Factory</a><a class="" href="/preview/v3/landing">V3 Circuit Atlas</a><a class="" href="/preview/v4/landing">V4 Warm Build</a></div>
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="/preview/v1/login">Log in</a>
+        <a class="btn-primary btn-press" href="/login" style="padding:8px 14px;font-size:13px">Open Studio</a>
+      </nav>
+    </header>
+
+    <section class="hero grid-bg">
+      <div class="reveal">
+        <p class="hero-kicker">Ops / industrial · Prompt → Zerops</p>
+        <h1 class="display">Prompt in.<br/>Multi-service stack out.</h1>
+        <p class="lead">ZeroOps turns a template or natural-language prompt into polyglot services, <code style="font-family:var(--font-mono);font-size:0.9em">zerops.yml</code>, live <strong>zcli</strong> provisioning on your Zerops account, health audits, and a real URL.</p>
+        <div class="cta-row">
+          <a class="btn-primary btn-press" href="/login">Deploy with your PAT</a>
+          <a class="btn-ghost btn-press" href="#how">Watch the pipeline</a>
+        </div>
+        <p class="muted" style="margin-top:16px;font-size:12px;font-family:var(--font-mono)">Live host: studio-2cbd-3000.prg1.zerops.app</p>
+      </div>
+      <div class="hero-aside reveal">
+        
+<div class="pipeline" data-pipeline>
+  <div class="pipeline__progress"><i></i></div>
+  <div class="pipeline__stage-label" data-stage>01 · Describe</div>
+  <div class="pipeline__grid">
+    <div>
+      <div class="pipeline__prompt">
+        <span class="pipeline__prompt-text"></span><span class="pipeline__caret"></span>
+      </div>
+      <div style="height:12px"></div>
+      <div class="pipeline__stage-label">Services</div>
+      <div class="pipeline__nodes">
+        <div class="pipeline__node"><span class="dot"></span>webapp</div>
+        <span class="pipeline__edge">→</span>
+        <div class="pipeline__node"><span class="dot"></span>apigateway</div>
+        <span class="pipeline__edge">→</span>
+        <div class="pipeline__node"><span class="dot"></span>aiworker</div>
+        <span class="pipeline__edge">⇄</span>
+        <div class="pipeline__node"><span class="dot"></span>dbpostgres</div>
+        <span class="pipeline__edge">⇄</span>
+        <div class="pipeline__node"><span class="dot"></span>cachevalkey</div>
+      </div>
+      <div class="pipeline__url">
+        <span class="pipeline__url-badge">Live</span>
+        <a href="https://studio-2cbd-3000.prg1.zerops.app" target="_blank" rel="noopener">studio-2cbd-3000.prg1.zerops.app</a>
+      </div>
+    </div>
+    <div>
+      <div class="pipeline__stage-label">zcli stream</div>
+      <div class="pipeline__log" aria-live="polite"></div>
+    </div>
+  </div>
+</div>
+      </div>
+    </section>
+
+    <section class="section" id="how">
+      <h2 class="reveal">How it works</h2>
+      <p class="sub reveal">Motion on this page is the product: each beat is a real stage of the Studio pipeline — not a decorative background.</p>
+      <div class="steps reveal-stagger">
+        <article class="step reveal"><div class="step-num">01</div><h3>Describe</h3><p>Pick a template or write a prompt. Studio captures intent — no Dockerfiles by hand.</p></article>
+        <article class="step reveal"><div class="step-num">02</div><h3>Synthesize</h3><p>Generate multi-service code + import YAML for app, API, worker, Postgres, Valkey.</p></article>
+        <article class="step reveal"><div class="step-num">03</div><h3>Provision</h3><p>Run <code style="font-family:var(--font-mono)">zcli project-import</code> with your PAT. Stream build logs over WebSocket.</p></article>
+        <article class="step reveal"><div class="step-num">04</div><h3>Verify</h3><p>Health audits probe the live URL and services. Open the verified Zerops subdomain.</p></article>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:0">
+      <h2 class="reveal">Templates</h2>
+      <p class="sub reveal">Three polyglot stacks ready for one-click deploy in Studio.</p>
+      <div class="templates reveal-stagger">
+        <article class="t-card reveal"><div class="step-num">🎬</div><h3>AI Video Clipper</h3><p>Next.js · Go API · Python Whisper · Postgres · Valkey</p><div class="t-mini"><span></span><span></span><span></span></div></article>
+        <article class="t-card reveal"><div class="step-num">🛒</div><h3>E-Commerce</h3><p>Bun frontend · Go orders · Python recs · Postgres · Valkey</p><div class="t-mini"><span></span><span></span><span></span></div></article>
+        <article class="t-card reveal"><div class="step-num">🧠</div><h3>RAG Search</h3><p>React · FastAPI · embedder · pgvector · Valkey</p><div class="t-mini"><span></span><span></span><span></span></div></article>
+      </div>
+    </section>
+
+    <section class="section" style="padding-top:12px">
+      <div class="reveal" style="border:1px solid var(--border);border-radius:var(--radius);padding:28px;background:var(--surface);display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between">
+        <div>
+          <h2 style="margin-bottom:8px">Open the factory floor</h2>
+          <p class="muted" style="max-width:42ch">Sign in, paste your Zerops PAT, deploy a stack, and watch topology chips move from idle → building → healthy.</p>
+        </div>
+        <a class="btn-primary btn-press" href="/login">Enter Studio</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>ZeroOps · Zerops Challenge · V1 Signal Deck</span>
+      <span>
+        <a href="/preview">All variants</a> ·
+        <a href="/preview/v1/login">Login skin</a> ·
+        <a href="/preview/v1/studio">Studio shell</a> ·
+        <a href="/studio">Production studio</a>
+      </span>
+    </footer>
+  </div>
+  <script src="/design/motion.js"></script>
+  <script src="/design/pipeline.js"></script>
+</body>
+</html>

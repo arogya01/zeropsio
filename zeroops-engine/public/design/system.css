@@ -1,0 +1,188 @@
+/* ZeroOps system — one product surface.
+   Body text: IBM Plex Sans. System artifacts: IBM Plex Mono.
+   Color is state, not decoration. No gradients, no glow kits. */
+
+:root {
+  --bg: #0b0c0e;
+  --surface: #12141a;
+  --surface-2: #181b22;
+  --line: #262a33;
+  --line-2: #1a1d24;
+
+  --text: #e8eaef;
+  --text-2: #9aa3b2;
+  --text-3: #6b7380;
+
+  /* Single brand mark — used sparingly for primary action */
+  --mark: #e8e8e8;
+  --mark-ink: #0b0c0e;
+
+  /* State only */
+  --idle: #6b7380;
+  --running: #d4a017;
+  --ok: #3ecf8e;
+  --fail: #e85d5d;
+  --info: #7aa2d4;
+
+  --font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+
+  --r: 2px;
+  --pad: 16px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+a {
+  color: var(--text);
+}
+
+code,
+.mono {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+/* Shared chrome pieces */
+.zo-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: var(--mark);
+  color: var(--mark-ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--r);
+  flex-shrink: 0;
+}
+
+.zo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: var(--r);
+}
+
+.zo-btn:hover {
+  border-color: var(--text-3);
+  background: var(--surface-2);
+}
+
+.zo-btn:active {
+  transform: translateY(1px);
+}
+
+.zo-btn--primary {
+  background: var(--mark);
+  color: var(--mark-ink);
+  border-color: var(--mark);
+}
+
+.zo-btn--primary:hover {
+  background: #fff;
+  border-color: #fff;
+}
+
+.zo-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.zo-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  border-radius: var(--r);
+}
+
+.zo-input:focus {
+  outline: none;
+  border-color: var(--text-3);
+}
+
+textarea.zo-input {
+  height: auto;
+  padding: 10px;
+  resize: vertical;
+  font-family: var(--font);
+  line-height: 1.45;
+}
+
+.zo-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.zo-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.zo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--idle);
+  flex-shrink: 0;
+}
+
+.zo-dot--ok {
+  background: var(--ok);
+}
+
+.zo-dot--run {
+  background: var(--running);
+}
+
+.zo-dot--fail {
+  background: var(--fail);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zo-btn:active {
+    transform: none;
+  }
+}
