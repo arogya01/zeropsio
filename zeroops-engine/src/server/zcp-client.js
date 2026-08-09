@@ -80,6 +80,7 @@ services:
     }
 
     return new Promise((resolve) => {
+      let stdoutBuffer = '';
       const zcliProc = childProcess.spawn('zcli', ['project', 'project-import', '-'], {
         env: {
           ...process.env,
@@ -95,6 +96,7 @@ services:
       if (zcliProc && zcliProc.stdout) {
         zcliProc.stdout.on('data', (data) => {
           const text = data.toString().trim();
+          stdoutBuffer += data.toString();
           if (text) {
             log(`[zcli stdout] ${text}`);
           }
@@ -104,6 +106,7 @@ services:
       if (zcliProc && zcliProc.stderr) {
         zcliProc.stderr.on('data', (data) => {
           const text = data.toString().trim();
+          stdoutBuffer += data.toString();
           if (text) {
             log(`[zcli info] ${text}`);
           }
@@ -118,15 +121,13 @@ services:
           settled = true;
           log(`[zcli exit] Process finished with exit code ${code}`);
 
-          const liveDomain = `${cleanName}.zerops.app`;
-
           log(`\n[ZCP-SUCCESS] Project '${cleanName}' (${services.length} services) provisioned on Zerops!`);
           log(`[ZCP-URL] Live Zerops Dashboard: https://app.zerops.io`);
 
           resolve({
             status: code === 0 ? 'active' : 'error',
             projectName: cleanName,
-            liveUrl: `https://${liveDomain}`,
+            liveUrl: extractLiveUrl(stdoutBuffer),
             services
           });
         });
@@ -138,7 +139,7 @@ services:
           resolve({
             status: 'error',
             projectName: cleanName,
-            liveUrl: `https://${cleanName}.zerops.app`,
+            liveUrl: extractLiveUrl(stdoutBuffer),
             services
           });
         });
@@ -147,7 +148,7 @@ services:
         resolve({
           status: 'active',
           projectName: cleanName,
-          liveUrl: `https://${cleanName}.zerops.app`,
+          liveUrl: extractLiveUrl(stdoutBuffer),
           services
         });
       }
@@ -155,5 +156,17 @@ services:
   }
 }
 
+/**
+ * Extract a real Zerops subdomain from zcli output.
+ * Returns null when zcli printed no URL — we never synthesize one.
+ */
+function extractLiveUrl(output) {
+  if (!output) return null;
+  const match = output.match(/https:\/\/[a-z0-9][a-z0-9-]*\.zerops\.app[^\s'"]*/i);
+  return match ? match[0] : null;
+}
+
 module.exports = ZCPClient;
+module.exports.ZCPClient = ZCPClient;
+module.exports.extractLiveUrl = extractLiveUrl;
 
