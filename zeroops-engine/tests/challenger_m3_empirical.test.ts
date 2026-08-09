@@ -21,8 +21,11 @@ import { WebSocket } from 'ws';
 // connectivity to fabricated *.zerops.app hosts. Opt this file's server
 // instance into mock mode explicitly, at the require call site, so the
 // mocking is visible here rather than ambient — production `index.js`
-// itself is untouched and still defaults to real probing.
-process.env.MOCK_MODE = 'true';
+// itself is untouched and still defaults to real probing. Uses vi.stubEnv
+// (not a raw `process.env` assignment) so restoration is handled by
+// Vitest's own env-stub bookkeeping rather than a hand-written cleanup
+// line that could be skipped if something upstream throws.
+vi.stubEnv('MOCK_MODE', 'true');
 const { server } = require('../src/server/index');
 const childProcess = require('child_process');
 import { validateZeroStubs } from '../src/code-gen/stub-validator';
@@ -46,12 +49,12 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
   });
 
   afterAll(async () => {
+    // Undo the module-load-time MOCK_MODE override above first, so it is
+    // restored even if closing the server below throws.
+    vi.unstubAllEnvs();
     if (httpServer) {
       await new Promise<void>((resolve) => httpServer.close(() => resolve()));
     }
-    // Undo the module-load-time MOCK_MODE override above so it can't leak
-    // into any other test file that happens to share this worker process.
-    delete process.env.MOCK_MODE;
   });
 
   const TEMPLATES = ['ai-video-clipper', 'ecommerce-platform', 'rag-search-engine'] as const;

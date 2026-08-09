@@ -16,8 +16,11 @@ import WebSocket from 'ws';
 // connectivity to fabricated *.zerops.app hosts. Opt this file's server
 // instance into mock mode explicitly, at the require call site, so the
 // mocking is visible here rather than ambient — production `index.js`
-// itself is untouched and still defaults to real probing.
-process.env.MOCK_MODE = 'true';
+// itself is untouched and still defaults to real probing. Uses vi.stubEnv
+// (not a raw `process.env` assignment) so restoration is handled by
+// Vitest's own env-stub bookkeeping rather than a hand-written cleanup
+// line that could be skipped if something upstream throws.
+vi.stubEnv('MOCK_MODE', 'true');
 const { server, users } = require('../src/server/index');
 const Synthesizer = require('../src/server/synthesizer');
 const HealthChecker = require('../src/server/health-checker');
@@ -46,12 +49,12 @@ describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
   });
 
   afterAll(async () => {
+    // Undo the module-load-time MOCK_MODE override above first, so it is
+    // restored even if closing the server below throws.
+    vi.unstubAllEnvs();
     if (httpServer) {
       await new Promise<void>((resolve) => httpServer.close(() => resolve()));
     }
-    // Undo the module-load-time MOCK_MODE override above so it can't leak
-    // into any other test file that happens to share this worker process.
-    delete process.env.MOCK_MODE;
   });
 
   describe('1. API Input Fuzzing & Type Boundary Verification', () => {
@@ -153,8 +156,11 @@ describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
       const result = await checker.runAudit('test-app', 'https://test-app.zerops.app', (msg) => logs.push(msg));
 
       expect(result.success).toBe(true);
-      expect(result.auditsPassed).toBe(4);
-      expect(result.auditsTotal).toBe(4);
+      // 5 checks now: HTTP, API gateway, DB, cache, and the queue round-trip
+      // (previously the queue result wasn't counted in the denominator at
+      // all, which let `score` read 100% while the queue silently failed).
+      expect(result.auditsPassed).toBe(5);
+      expect(result.auditsTotal).toBe(5);
       expect(result.score).toBe('100%');
       expect(result.details.publicHttp.passed).toBe(true);
       expect(result.details.apiGateway.passed).toBe(true);

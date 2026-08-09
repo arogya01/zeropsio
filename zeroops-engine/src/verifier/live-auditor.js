@@ -288,16 +288,20 @@ class LiveAuditor {
     if (apiGatewayRes.ok) { passedCount++; } else { errors.push(`API Gateway health check failed with status ${apiGatewayRes.status}`); }
     if (dbRes.connected && dbRes.writeOk) { passedCount++; } else { errors.push('Database read/write verification failed'); }
     if (cacheRes.pingOk) { passedCount++; } else { errors.push('Valkey cache ping verification failed'); }
-    if (!queueRes.passed) { errors.push('Queue end-to-end processing verification failed'); }
+    // Queue is counted in the same denominator as the other four checks so a
+    // skipped or failed queue audit is always visible in `score`, never just
+    // in `success` — the two can never disagree in a way that flatters the
+    // result (see TEST-4/queue skip handling above).
+    if (queueRes.passed) { passedCount++; } else { errors.push('Queue end-to-end processing verification failed'); }
 
-    const totalAudits = 4;
+    const totalAudits = 5;
     const passed = errors.length === 0;
     const scoreNum = Math.round((passedCount / totalAudits) * 100);
     const score = `${scoreNum}%`;
 
     if (onLogStream) {
       if (passed) {
-        onLogStream(`--- [HEALTH-AUDIT] ALL 4 AUDITS PASSED 100% SUCCESS ---`);
+        onLogStream(`--- [HEALTH-AUDIT] ALL ${totalAudits} AUDITS PASSED 100% SUCCESS ---`);
       } else {
         onLogStream(`--- [HEALTH-AUDIT] AUDIT FAILED (${passedCount}/${totalAudits} passed) ---`);
       }

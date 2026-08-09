@@ -346,7 +346,10 @@ services:
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
-      expect(result.auditsPassed).toBe(4);
+      // 5 checks now: HTTP, API gateway, DB, cache, and the queue round-trip
+      // are all counted in the same denominator, so score can't overstate
+      // what ran (see live-auditor's runFullAudit accounting).
+      expect(result.auditsPassed).toBe(5);
       expect(result.score).toBe('100%');
       // Verify no forced artificial 300ms delays occurred
       expect(duration).toBeLessThan(1000);

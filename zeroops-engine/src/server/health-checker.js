@@ -37,7 +37,7 @@ class HealthChecker {
         return {
           success: Boolean(fullResult.success && fullResult.passed !== false),
           auditsPassed: fullResult.auditsPassed ?? 0,
-          auditsTotal: fullResult.auditsTotal ?? 4,
+          auditsTotal: fullResult.auditsTotal ?? 5,
           score: fullResult.score || '0%',
           details: fullResult.details || {
             publicHttp: { passed: false, statusCode: 500 },
@@ -55,7 +55,7 @@ class HealthChecker {
       return {
         success: false,
         auditsPassed: 0,
-        auditsTotal: 4,
+        auditsTotal: 5,
         score: '0%',
         details: {
           publicHttp: { passed: false, statusCode: 500 },
