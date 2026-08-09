@@ -335,7 +335,11 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
 
         const completeMsg = receivedMessages.find((m) => m.type === 'complete');
         expect(completeMsg).toBeDefined();
-        expect(completeMsg.audit.success).toBe(true);
+        // This environment has no real Zerops project/token to provision against,
+        // so zcli genuinely fails (or prints no reachable URL) and the health
+        // audit honestly reports failure. Asserting `true` here would only pass
+        // by re-introducing the fabricated success signal this fix removes.
+        expect(completeMsg.audit.success).toBe(false);
         expect(completeMsg.liveUrl).toBeDefined();
       }, 15000);
     }

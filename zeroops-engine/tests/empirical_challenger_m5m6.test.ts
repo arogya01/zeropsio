@@ -246,7 +246,9 @@ describe('Empirical Verification Suite: Auth, PAT Overlay, Process Spawning, Env
 
       expect(res.status).toBe('error');
       expect(res.projectName).toBe('errapp');
-      expect(logs.some(l => l.includes('Failed to spawn zcli process'))).toBe(true);
+      // Log message updated to the honest [ZCP-FAILED] wording (was "Failed to
+      // spawn zcli process") as part of removing fabricated success signals.
+      expect(logs.some(l => l.includes('Could not spawn zcli'))).toBe(true);
 
       spy.mockRestore();
       process.env.NODE_ENV = origNodeEnv;

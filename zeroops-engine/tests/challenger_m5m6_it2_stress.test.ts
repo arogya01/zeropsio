@@ -141,7 +141,9 @@ services:
       for (const tc of testCases) {
         const result = await client.provisionProject(tc.input as any, '', () => {});
         expect(result.projectName).toBe(tc.expected);
-        expect(result.liveUrl).toBe(`https://${tc.expected}.zerops.app`);
+        // The mocked zcli process exits 0 but prints no stdout, so there is no
+        // real URL to parse. We must never fabricate one from the project name.
+        expect(result.liveUrl).toBeNull();
       }
 
       vi.restoreAllMocks();
@@ -251,7 +253,9 @@ services:
       const result = await client.provisionProject('ErrorApp', '', (m) => logs.push(m));
 
       expect(result.status).toBe('error');
-      expect(logs.some(l => l.includes('Failed to spawn zcli process'))).toBe(true);
+      // Log message updated to the honest [ZCP-FAILED] wording (was "Failed to
+      // spawn zcli process") as part of removing fabricated success signals.
+      expect(logs.some(l => l.includes('Could not spawn zcli'))).toBe(true);
 
       vi.restoreAllMocks();
     });

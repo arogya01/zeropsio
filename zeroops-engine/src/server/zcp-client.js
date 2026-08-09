@@ -119,37 +119,54 @@ services:
         zcliProc.on('close', (code) => {
           if (settled) return;
           settled = true;
+
+          const ok = code === 0;
+          const liveUrl = ok ? extractLiveUrl(stdoutBuffer) : null;
+
           log(`[zcli exit] Process finished with exit code ${code}`);
 
-          log(`\n[ZCP-SUCCESS] Project '${cleanName}' (${services.length} services) provisioned on Zerops!`);
-          log(`[ZCP-URL] Live Zerops Dashboard: https://app.zerops.io`);
+          if (ok) {
+            log(`\n[ZCP-OK] Import for '${cleanName}' completed (${services.length} services declared).`);
+            if (liveUrl) {
+              log(`[ZCP-URL] Live URL: ${liveUrl}`);
+            } else {
+              log(`[ZCP-WARN] Import succeeded but zcli printed no public URL.`);
+              log(`[ZCP-WARN] Check subdomain access at https://app.zerops.io`);
+            }
+          } else {
+            log(`\n[ZCP-FAILED] zcli exited ${code}. No project was provisioned.`);
+          }
 
           resolve({
-            status: code === 0 ? 'active' : 'error',
+            status: ok ? 'active' : 'error',
             projectName: cleanName,
-            liveUrl: extractLiveUrl(stdoutBuffer),
-            services
+            liveUrl,
+            services,
+            exitCode: code
           });
         });
 
         zcliProc.on('error', (err) => {
           if (settled) return;
           settled = true;
-          log(`[zcli error] Failed to spawn zcli process: ${err.message}`);
+          log(`[ZCP-FAILED] Could not spawn zcli: ${err.message}`);
+          log(`[ZCP-HINT] Is zcli installed and on PATH?`);
           resolve({
             status: 'error',
             projectName: cleanName,
-            liveUrl: extractLiveUrl(stdoutBuffer),
-            services
+            liveUrl: null,
+            services,
+            exitCode: null
           });
         });
       } else {
-        // Fallback for mocked zcliProc missing .on listener
+        // zcliProc has no event emitter (mocked in tests) — we cannot observe an outcome.
         resolve({
-          status: 'active',
+          status: 'unknown',
           projectName: cleanName,
-          liveUrl: extractLiveUrl(stdoutBuffer),
-          services
+          liveUrl: null,
+          services,
+          exitCode: null
         });
       }
     });

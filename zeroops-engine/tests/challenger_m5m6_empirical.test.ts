@@ -160,34 +160,43 @@ describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
         } catch (e) {}
       });
 
-      ws.send(JSON.stringify({
-        action: 'deploy',
-        templateId: 'ai-video-clipper',
-        zeropsToken: 'zerops_mock_pat_token_123'
-      }));
+      try {
+        ws.send(JSON.stringify({
+          action: 'deploy',
+          templateId: 'ai-video-clipper',
+          zeropsToken: 'zerops_mock_pat_token_123'
+        }));
 
-      // Wait for complete message
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => reject(new Error('Timeout waiting for completion')), 5000);
-        ws.on('message', (data) => {
-          try {
-            const parsed = JSON.parse(data.toString());
-            if (parsed.type === 'complete') {
-              clearTimeout(timeout);
-              resolve();
-            }
-          } catch (e) {}
+        // Wait for complete message
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Timeout waiting for completion')), 5000);
+          ws.on('message', (data) => {
+            try {
+              const parsed = JSON.parse(data.toString());
+              if (parsed.type === 'complete') {
+                clearTimeout(timeout);
+                resolve();
+              }
+            } catch (e) {}
+          });
         });
-      });
 
-      expect(messages.some((m) => m.type === 'log')).toBe(true);
-      expect(messages.some((m) => m.type === 'topology-update')).toBe(true);
-      const completeMsg = messages.find((m) => m.type === 'complete');
-      expect(completeMsg).toBeDefined();
-      expect(completeMsg.projectName).toBe('aivideoclipper');
-      expect(completeMsg.audit.success).toBe(true);
-
-      ws.close();
+        expect(messages.some((m) => m.type === 'log')).toBe(true);
+        expect(messages.some((m) => m.type === 'topology-update')).toBe(true);
+        const completeMsg = messages.find((m) => m.type === 'complete');
+        expect(completeMsg).toBeDefined();
+        expect(completeMsg.projectName).toBe('aivideoclipper');
+        // This environment has no real Zerops project/token to provision against,
+        // so zcli genuinely fails (or prints no reachable URL) and the health
+        // audit honestly reports failure. Asserting `true` here would only pass
+        // by re-introducing the fabricated success signal this fix removes.
+        expect(completeMsg.audit.success).toBe(false);
+      } finally {
+        // Close the socket even when an assertion above throws — an abandoned
+        // open WebSocket otherwise holds the server connection open and hangs
+        // this file's afterAll (httpServer.close()) until it times out.
+        ws.close();
+      }
     });
   });
 });
