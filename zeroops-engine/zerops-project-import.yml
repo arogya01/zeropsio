@@ -1,0 +1,15 @@
+project:
+  name: zeroops-studio
+  tags:
+    - zerops-challenge
+
+services:
+  - hostname: studio
+    type: nodejs@22
+    enableSubdomainAccess: true
+    minContainers: 1
+    maxContainers: 1
+
+  - hostname: cache
+    type: valkey@7.2
+    mode: NON_HA
