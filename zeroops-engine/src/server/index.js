@@ -441,10 +441,14 @@ async function runDemoDeploy({ jobId, prompt, templateId, pat }) {
     });
   } catch (err) {
     console.error('[demo/deploy]', err);
+    // Deliberately no `fallback: 'simulate'`. The guard refusals above set that
+    // because nothing was attempted, but once the pipeline has started, falling
+    // back to the animation paints every service green and reports "no real
+    // project was provisioned" — while a half-built project is in fact sitting
+    // in the org. A failed build has to read as a failed build.
     deployJobs.finish(jobId, {
       type: 'error',
       error: err.message || 'Deploy failed',
-      fallback: 'simulate',
       quota: demoQuota.status(),
     });
   }

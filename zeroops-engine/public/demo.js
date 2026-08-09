@@ -354,6 +354,10 @@
         allChips('building');
         if (level === 'ok') setChip('db', 'healthy');
         break;
+      case 'activate':
+        setMode('activating services', 'run');
+        if (level === 'ok') setChip('db', 'healthy');
+        break;
       case 'materialize':
         setMode('staging files', 'run');
         break;

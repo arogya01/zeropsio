@@ -6,6 +6,7 @@
  *
  *   1. import     — create the project + its two services from the import spec
  *   2. resolve    — find the new project's id
+ *   2a. activate  — poll until both services can be deployed to
  *   3. materialize— write the scaffolded file tree to a temp directory
  *   4. push       — `zcli push webapp` builds and deploys the code
  *   5. subdomain  — ensure public HTTP access is enabled
@@ -39,9 +40,17 @@ function resolveZcli() {
 
 const ZCLI = resolveZcli();
 
-/** Per-step ceilings. A hung zcli must never hold a demo request open forever. */
+/**
+ * Per-step ceilings. A hung zcli must never wedge a demo slot forever.
+ *
+ * `import` is generous on purpose: `project-import` blocks until Zerops finishes
+ * core-services activation, which has been measured between ~105s and well over
+ * 3 minutes for the same two-service spec. The old 120s ceiling sat right on
+ * that boundary, so the import was killed mid-activation and the run failed with
+ * "project import timed out" while leaving a half-built project behind.
+ */
 const TIMEOUTS = {
-  import: 120_000,
+  import: 420_000,
   list: 60_000,
   push: 420_000,
   subdomain: 60_000,
@@ -50,6 +59,10 @@ const TIMEOUTS = {
 
 const VERIFY_TIMEOUT_MS = 150_000;
 const VERIFY_INTERVAL_MS = 5_000;
+
+/** How long to wait for both services to finish activating before pushing. */
+const SERVICES_READY_TIMEOUT_MS = 600_000;
+const SERVICES_POLL_MS = 8_000;
 
 /**
  * Run a command, streaming each output line to `onLine`.
@@ -104,6 +117,71 @@ function run(cmd, args, { cwd, stdin, env, onLine, timeout = 120_000 } = {}) {
       finish(null);
     });
   });
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** Statuses from which a service can be pushed to. */
+const READY_STATES = new Set(['READY_TO_DEPLOY', 'ACTIVE']);
+
+/**
+ * Parse `zcli service list` into { hostname: STATUS }.
+ * Rows look like: │ <id> │ <name> │ <status> │
+ */
+function parseServiceStatuses(out) {
+  const statuses = {};
+  for (const line of (out || '').split('\n')) {
+    const cells = line
+      .split('│')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    if (cells.length < 3) continue;
+    const [id, name, status] = cells;
+    if (!/^[A-Za-z0-9_-]{16,}$/.test(id)) continue; // skips the header row
+    if (!/^[A-Z_]+$/.test(status)) continue;
+    statuses[name] = status;
+  }
+  return statuses;
+}
+
+/**
+ * Block until every service can be deployed to.
+ *
+ * `project-import` is supposed to wait for this, but how long activation takes
+ * varies enormously — ~105s on a good run, over ten minutes on a bad one — so
+ * hanging the whole deploy on that one command's exit code is what made the demo
+ * flaky. Polling status is cheap, tells the log what is actually happening, and
+ * lets a slow-but-fine import proceed instead of failing.
+ *
+ * @returns {Promise<Record<string,string>|null>} statuses, or null on timeout
+ */
+async function waitForServices(projectId, expected, env, emit, log) {
+  const deadline = Date.now() + SERVICES_READY_TIMEOUT_MS;
+  let announced = '';
+
+  while (Date.now() < deadline) {
+    const { out } = await run(ZCLI, ['service', 'list', '--project-id', projectId], {
+      env,
+      timeout: TIMEOUTS.list,
+    });
+    const statuses = parseServiceStatuses(out);
+    const names = Object.keys(statuses);
+
+    const summary = names
+      .map((n) => `${n}=${statuses[n]}`)
+      .sort()
+      .join(' ');
+    if (summary && summary !== announced) {
+      log(`[deploy] ${summary}`);
+      announced = summary;
+    }
+
+    if (names.length >= expected && names.every((n) => READY_STATES.has(statuses[n]))) {
+      return statuses;
+    }
+    await sleep(SERVICES_POLL_MS);
+  }
+  return null;
 }
 
 /**
@@ -267,19 +345,32 @@ async function deployApp(opts) {
       timeout: TIMEOUTS.import,
     });
 
-    if (imported.code !== 0) {
-      throw new Error(
-        imported.timedOut
-          ? 'project import timed out'
-          : `project import failed (exit ${imported.code})`
-      );
+    // A timeout is NOT fatal. `project-import` blocks on core-services
+    // activation, which the platform continues regardless of whether zcli is
+    // still waiting — so killing the command tells us nothing about whether the
+    // project exists. Step 2a settles that by looking, rather than by trusting
+    // this exit code.
+    if (imported.code !== 0 && !imported.timedOut) {
+      throw new Error(`project import failed (exit ${imported.code})`);
     }
-    emit('import', 'project imported', 'ok');
+    emit(
+      'import',
+      imported.timedOut ? 'import still activating — checking on it' : 'project imported',
+      'ok'
+    );
 
     // ── 2. resolve project id ──────────────────────────────────────────────
     const projectId = await resolveProjectId(projectName, env, log);
     if (!projectId) throw new Error('project imported but its id could not be resolved');
     emit('resolve', `project id ${projectId}`, 'ok');
+
+    // ── 2a. wait until both services can actually be deployed to ───────────
+    emit('activate', 'waiting for both services to finish activating', 'run');
+    const ready = await waitForServices(projectId, 2, env, emit, log);
+    if (!ready) {
+      throw new Error('services did not finish activating in time — nothing was pushed');
+    }
+    emit('activate', 'services ready to deploy', 'ok');
 
     // ── 3. materialize the scaffolded tree ─────────────────────────────────
     stagingDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zeroops-deploy-'));
@@ -388,6 +479,8 @@ module.exports = {
   urlFromEnvDump,
   resolveProjectId,
   resolveOrgId,
+  parseServiceStatuses,
+  waitForServices,
   materialize,
   run,
 };
