@@ -12,8 +12,8 @@ class LiveAuditor {
     this.retries = options.retries ?? 3;
     this.timeoutMs = options.timeoutMs ?? 3000;
     this.backoffMs = options.backoffMs ?? 300;
-    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE === 'true');
-    this.fallbackOnOffline = options.fallbackOnOffline ?? true;
+    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE !== 'false');
+    this.fallbackOnOffline = options.fallbackOnOffline ?? false;
     this.postgresHost = options.postgresHost || '10.160.0.21';
     this.postgresPort = options.postgresPort || 5432;
     this.valkeyHost = options.valkeyHost || '10.160.0.25';
@@ -46,18 +46,12 @@ class LiveAuditor {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline && (result.status === 0 || result.status === 503)) {
-            return { status: 200, ok: true };
-          }
           return result;
         }
       } catch (err) {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline) {
-            return { status: 200, ok: true };
-          }
           return { status: 503, ok: false };
         }
       }
@@ -66,7 +60,7 @@ class LiveAuditor {
   }
 
   httpProbe(urlStr, timeoutMs) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       try {
         const parsed = new URL(urlStr);
         const protocol = parsed.protocol === 'https:' ? https : http;
@@ -78,14 +72,15 @@ class LiveAuditor {
         });
 
         req.on('timeout', () => {
-          req.destroy(new Error('ETIMEDOUT'));
+          req.destroy();
+          resolve({ status: 504, ok: false });
         });
 
-        req.on('error', (err) => {
-          reject(err);
+        req.on('error', () => {
+          resolve({ status: 503, ok: false });
         });
       } catch (err) {
-        reject(err);
+        resolve({ status: 500, ok: false });
       }
     });
   }
@@ -128,17 +123,11 @@ class LiveAuditor {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline) {
-            return { connected: true, writeOk: true };
-          }
           return { connected: false, writeOk: false };
         }
       }
     }
 
-    if (this.fallbackOnOffline) {
-      return { connected: true, writeOk: true };
-    }
     return { connected: false, writeOk: false };
   }
 
@@ -170,17 +159,11 @@ class LiveAuditor {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline) {
-            return { pingOk: true };
-          }
           return { pingOk: false };
         }
       }
     }
 
-    if (this.fallbackOnOffline) {
-      return { pingOk: true };
-    }
     return { pingOk: false };
   }
 

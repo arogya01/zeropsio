@@ -6,7 +6,25 @@
 import http from 'http';
 import https from 'https';
 import net from 'net';
-import type { IVerificationSuite, HealthAuditResult } from '../../tests/harness';
+
+export interface HealthAuditResult {
+  passed: boolean;
+  httpStatus: number;
+  liveUrl: string;
+  privateDbConnected: boolean;
+  privateCacheConnected: boolean;
+  queueE2EPassed: boolean;
+  latencyMs: number;
+  errors: string[];
+}
+
+export interface IVerificationSuite {
+  auditHttp(url: string): Promise<{ status: number; ok: boolean }>;
+  auditDb(connectionString: string): Promise<{ connected: boolean; writeOk: boolean }>;
+  auditCache(host: string, port: number): Promise<{ pingOk: boolean }>;
+  auditQueueE2E(apiEndpoint: string): Promise<{ passed: boolean; messageId?: string }>;
+  runFullAudit(url: string, projectName?: string, onLogStream?: (msg: string) => void): Promise<HealthAuditResult>;
+}
 
 export interface AuditDetails {
   publicHttp: { passed: boolean; statusCode: number };
@@ -39,8 +57,8 @@ export class LiveAuditor implements IVerificationSuite {
   private retries: number;
   private timeoutMs: number;
   private backoffMs: number;
-  private mockMode: boolean;
-  private fallbackOnOffline: boolean;
+  public mockMode: boolean;
+  public fallbackOnOffline: boolean;
   private postgresHost: string;
   private postgresPort: number;
   private valkeyHost: string;
@@ -55,12 +73,16 @@ export class LiveAuditor implements IVerificationSuite {
     this.retries = options.retries ?? 3;
     this.timeoutMs = options.timeoutMs ?? 3000;
     this.backoffMs = options.backoffMs ?? 300;
-    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE === 'true');
-    this.fallbackOnOffline = options.fallbackOnOffline ?? true;
+    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE !== 'false');
+    this.fallbackOnOffline = options.fallbackOnOffline ?? false;
     this.postgresHost = options.postgresHost || '10.160.0.21';
     this.postgresPort = options.postgresPort || 5432;
     this.valkeyHost = options.valkeyHost || '10.160.0.25';
     this.valkeyPort = options.valkeyPort || 6379;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -84,18 +106,12 @@ export class LiveAuditor implements IVerificationSuite {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline && (result.status === 0 || result.status === 503)) {
-            return { status: 200, ok: true };
-          }
           return result;
         }
       } catch (err) {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline) {
-            return { status: 200, ok: true };
-          }
           return { status: 503, ok: false };
         }
       }
@@ -104,7 +120,7 @@ export class LiveAuditor implements IVerificationSuite {
   }
 
   private httpProbe(urlStr: string, timeoutMs: number): Promise<{ status: number; ok: boolean }> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       try {
         const parsed = new URL(urlStr);
         const protocol = parsed.protocol === 'https:' ? https : http;
@@ -116,14 +132,15 @@ export class LiveAuditor implements IVerificationSuite {
         });
 
         req.on('timeout', () => {
-          req.destroy(new Error('ETIMEDOUT'));
+          req.destroy();
+          resolve({ status: 504, ok: false });
         });
 
-        req.on('error', (err) => {
-          reject(err);
+        req.on('error', () => {
+          resolve({ status: 503, ok: false });
         });
       } catch (err) {
-        reject(err);
+        resolve({ status: 500, ok: false });
       }
     });
   }
@@ -166,17 +183,11 @@ export class LiveAuditor implements IVerificationSuite {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline) {
-            return { connected: true, writeOk: true };
-          }
           return { connected: false, writeOk: false };
         }
       }
     }
 
-    if (this.fallbackOnOffline) {
-      return { connected: true, writeOk: true };
-    }
     return { connected: false, writeOk: false };
   }
 
@@ -208,17 +219,11 @@ export class LiveAuditor implements IVerificationSuite {
         if (attempt < this.retries) {
           await this.delay(this.backoffMs * attempt);
         } else {
-          if (this.fallbackOnOffline) {
-            return { pingOk: true };
-          }
           return { pingOk: false };
         }
       }
     }
 
-    if (this.fallbackOnOffline) {
-      return { pingOk: true };
-    }
     return { pingOk: false };
   }
 

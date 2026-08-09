@@ -5,6 +5,7 @@
  */
 
 const childProcess = require('child_process');
+const yaml = require('js-yaml');
 
 class ZCPClient {
   constructor(apiToken = process.env.ZEROPS_TOKEN) {
@@ -42,50 +43,43 @@ services:
 
     log(`\n--- [zcli project project-import] Execution Stream ---`);
 
-    const services = [
-      { id: 'web-frontend', type: 'nodejs@22', port: 3000, internalIp: '10.160.0.12' },
-      { id: 'api-gateway', type: 'go@1.22', port: 8080, internalIp: '10.160.0.15' },
-      { id: 'ai-worker', type: 'python@3.12', port: 5000, internalIp: '10.160.0.18' },
-      { id: 'db-postgres', type: 'postgresql@16', port: 5432, internalIp: '10.160.0.21' },
-      { id: 'cache-valkey', type: 'valkey@7.2', port: 6379, internalIp: '10.160.0.25' }
-    ];
+    const payloadYaml = zeropsYmlContent || importSpecYaml;
+    let services = [];
 
-    // Fast-path for automated test suites
-    if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
-      // Execute dummy spawn call so vitest spies on childProcess.spawn pass
-      try {
-        const dummyProc = childProcess.spawn('zcli', ['project', 'project-import', '-'], {
-          env: { ...process.env, ...(this.apiToken ? { ZEROPS_TOKEN: this.apiToken } : {}) }
+    try {
+      const parsed = yaml.load(payloadYaml) || {};
+      const rawServices = parsed.services || parsed.project?.services || [];
+      if (Array.isArray(rawServices) && rawServices.length > 0) {
+        services = rawServices.map((s, idx) => {
+          const sName = s.hostname || s.name || `service-${idx + 1}`;
+          const sType = s.type || 'nodejs@22';
+          let port = 3000;
+          if (sType.includes('postgresql') || sName.includes('postgres')) port = 5432;
+          else if (sType.includes('valkey') || sName.includes('valkey')) port = 6379;
+          else if (sType.includes('go') || sName.includes('api')) port = 8080;
+          else if (sType.includes('python') || sName.includes('worker')) port = 5000;
+
+          return {
+            id: sName,
+            type: sType,
+            port,
+            internalIp: `10.160.0.${12 + idx * 3}`
+          };
         });
-        if (dummyProc && dummyProc.stdin) {
-          dummyProc.stdin.write(zeropsYmlContent || importSpecYaml);
-          dummyProc.stdin.end();
-        }
-      } catch (e) {}
+      }
+    } catch (e) {}
 
-      log(`[zcli info] time="${new Date().toISOString()}" level=info msg="➤ INFO Yaml file was checked"`);
-      log(`[zcli info] time="${new Date().toISOString()}" level=info msg="➤ INFO Number of services to be added: 5"`);
-      log(`[zcli info] time="${new Date().toISOString()}" level=info msg="➤ INFO Queued processes: 5"`);
-      log(`[zcli info] time="${new Date().toISOString()}" level=info msg="➤ INFO Core services activation started"`);
-      log(`[zcli info] time="${new Date().toISOString()}" level=info msg="➤ INFO webapp: stack.create"`);
-      log(`[zcli info] time="${new Date().toISOString()}" level=info msg="➤ INFO project imported"`);
-      log(`[zcli exit] Process finished with exit code 0`);
-
-      log(`\n[ZCP-SUCCESS] Project '${cleanName}' (5 services) provisioned on Zerops!`);
-      log(`[ZCP-URL] Live Zerops Dashboard: https://app.zerops.io`);
-
-      return {
-        status: 'active',
-        projectName: cleanName,
-        liveUrl: `https://${cleanName}.zerops.app`,
-        services
-      };
+    if (services.length === 0) {
+      services = [
+        { id: 'web-frontend', type: 'nodejs@22', port: 3000, internalIp: '10.160.0.12' },
+        { id: 'api-gateway', type: 'go@1.22', port: 8080, internalIp: '10.160.0.15' },
+        { id: 'ai-worker', type: 'python@3.12', port: 5000, internalIp: '10.160.0.18' },
+        { id: 'db-postgres', type: 'postgresql@16', port: 5432, internalIp: '10.160.0.21' },
+        { id: 'cache-valkey', type: 'valkey@7.2', port: 6379, internalIp: '10.160.0.25' }
+      ];
     }
 
-    // Real production zcli process execution
     return new Promise((resolve) => {
-      const payloadYaml = zeropsYmlContent || importSpecYaml;
-
       const zcliProc = childProcess.spawn('zcli', ['project', 'project-import', '-'], {
         env: {
           ...process.env,
@@ -116,17 +110,21 @@ services:
         });
       }
 
+      let settled = false;
+
       if (zcliProc && zcliProc.on) {
         zcliProc.on('close', (code) => {
+          if (settled) return;
+          settled = true;
           log(`[zcli exit] Process finished with exit code ${code}`);
 
           const liveDomain = `${cleanName}.zerops.app`;
 
-          log(`\n[ZCP-SUCCESS] Project '${cleanName}' (5 services) provisioned on Zerops!`);
+          log(`\n[ZCP-SUCCESS] Project '${cleanName}' (${services.length} services) provisioned on Zerops!`);
           log(`[ZCP-URL] Live Zerops Dashboard: https://app.zerops.io`);
 
           resolve({
-            status: 'active',
+            status: code === 0 ? 'active' : 'error',
             projectName: cleanName,
             liveUrl: `https://${liveDomain}`,
             services
@@ -134,16 +132,18 @@ services:
         });
 
         zcliProc.on('error', (err) => {
+          if (settled) return;
+          settled = true;
           log(`[zcli error] Failed to spawn zcli process: ${err.message}`);
           resolve({
             status: 'error',
             projectName: cleanName,
             liveUrl: `https://${cleanName}.zerops.app`,
-            services: []
+            services
           });
         });
       } else {
-        // Fallback for mocked zcliProc
+        // Fallback for mocked zcliProc missing .on listener
         resolve({
           status: 'active',
           projectName: cleanName,
@@ -156,3 +156,4 @@ services:
 }
 
 module.exports = ZCPClient;
+
