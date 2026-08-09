@@ -14,6 +14,9 @@ const crypto = require('crypto');
 const ZCPClient = require('./zcp-client');
 const Synthesizer = require('./synthesizer');
 const HealthChecker = require('./health-checker');
+const { scaffoldApp } = require('./llm/scaffold');
+const { listTemplates: listMappedTemplates } = require('./llm/template-mapper');
+const demoQuota = require('./llm/demo-quota');
 
 const app = express();
 const server = http.createServer(app);
@@ -72,7 +75,13 @@ app.post('/api/auth/signup', (req, res) => {
 
   const hashedPassword = hashPassword(password);
   const userName = (name && name.trim()) ? name.trim() : cleanEmail.split('@')[0];
-  users[cleanEmail] = { email: cleanEmail, password: hashedPassword, name: userName, zeropsToken: null };
+  users[cleanEmail] = {
+    email: cleanEmail,
+    password: hashedPassword,
+    name: userName,
+    zeropsToken: null,
+    openaiApiKey: null,
+  };
 
   req.session.regenerate((err) => {
     if (err) return res.status(500).json({ error: 'Session regeneration failed' });
@@ -94,7 +103,12 @@ app.post('/api/auth/login', (req, res) => {
   req.session.regenerate((err) => {
     if (err) return res.status(500).json({ error: 'Session regeneration failed' });
     req.session.user = { email: cleanEmail, name: user.name };
-    res.json({ success: true, user: req.session.user, hasToken: !!user.zeropsToken });
+    res.json({
+      success: true,
+      user: req.session.user,
+      hasToken: !!user.zeropsToken,
+      hasOpenAIKey: !!user.openaiApiKey,
+    });
   });
 });
 
@@ -111,8 +125,24 @@ app.get('/api/auth/me', (req, res) => {
   const user = users[cleanEmail];
   res.json({
     user: req.session.user,
-    hasToken: !!(user && user.zeropsToken)
+    hasToken: !!(user && user.zeropsToken),
+    hasOpenAIKey: !!(user && user.openaiApiKey),
   });
+});
+
+// ─── OPENAI KEY (BYOK — post-login synth) ───
+app.post('/api/auth/openai-key', requireAuth, (req, res) => {
+  const { apiKey } = req.body || {};
+  const cleanKey = apiKey ? String(apiKey).trim() : '';
+  if (!cleanKey || !cleanKey.startsWith('sk-')) {
+    return res.status(400).json({ error: 'Valid OpenAI API key required (sk-...)' });
+  }
+
+  const cleanEmail = req.session.user.email ? req.session.user.email.toLowerCase().trim() : '';
+  const user = users[cleanEmail];
+  if (!user) return res.status(404).json({ error: 'User not found' });
+  user.openaiApiKey = cleanKey;
+  res.json({ success: true, hasOpenAIKey: true });
 });
 
 // ─── ZEROPS TOKEN ───
@@ -169,37 +199,227 @@ app.get('/api/templates/:id', (req, res) => {
   res.json({ id: req.params.id, ...meta, importYaml });
 });
 
-// ─── SYNTHESIZE (legacy) ───
-app.post('/api/synthesize', (req, res) => {
-  const { prompt } = req.body;
-  if (!prompt) return res.status(400).json({ error: 'Prompt is required' });
+// ─── SYNTHESIZE (legacy topology + optional LLM scaffold when user has key) ───
+app.post('/api/synthesize', async (req, res) => {
+  const { prompt, templateId, useLlm } = req.body || {};
+  if (!prompt && !templateId) return res.status(400).json({ error: 'Prompt is required' });
 
-  const result = synthesizer.synthesize(prompt);
+  // Prefer LLM scaffold when authenticated user has OpenAI key (or server demo key)
+  let apiKey = null;
+  if (req.session && req.session.user && req.session.user.email) {
+    const u = users[req.session.user.email.toLowerCase().trim()];
+    if (u && u.openaiApiKey) apiKey = u.openaiApiKey;
+  }
+  if (!apiKey) apiKey = demoQuota.getDemoOpenAIKey();
+
+  if (useLlm !== false && apiKey) {
+    try {
+      const scaffolded = await scaffoldApp({
+        prompt: prompt || '',
+        templateId,
+        apiKey,
+        useLlm: true,
+      });
+      return res.json({
+        success: true,
+        projectName: scaffolded.projectName,
+        zeropsYml: scaffolded.importYaml,
+        codeFiles: scaffolded.codeFiles,
+        templateId: scaffolded.templateId,
+        plan: scaffolded.plan,
+        topology: scaffolded.topology,
+        llmUsed: scaffolded.llmUsed,
+        llmError: scaffolded.llmError,
+      });
+    } catch (err) {
+      console.error('[synthesize/llm]', err);
+      // fall through to deterministic synth
+    }
+  }
+
+  const result = synthesizer.synthesize(prompt || templateId || 'AI SaaS');
   res.json({
     success: true,
     projectName: result.projectName,
     zeropsYml: result.zeropsYml,
-    codeFiles: result.codeFiles
+    codeFiles: result.codeFiles,
+    llmUsed: false,
   });
 });
 
-// ─── UI (React SPA when web/dist exists; else legacy public HTML) ───
+// ─── DEMO APIs (public, judge-day; server keys only) ───
+app.get('/api/demo/status', (req, res) => {
+  res.json({ ok: true, ...demoQuota.status(), templates: listMappedTemplates() });
+});
+
+app.post('/api/demo/scaffold', async (req, res) => {
+  const { prompt, templateId } = req.body || {};
+  if (!prompt && !templateId) {
+    return res.status(400).json({ error: 'prompt or templateId required' });
+  }
+
+  try {
+    const result = await scaffoldApp({
+      prompt: prompt || '',
+      templateId,
+      apiKey: demoQuota.getDemoOpenAIKey(),
+      useLlm: true,
+    });
+    res.json(result);
+  } catch (err) {
+    console.error('[demo/scaffold]', err);
+    res.status(500).json({ error: err.message || 'Scaffold failed' });
+  }
+});
+
+/**
+ * Scripted topology animation payload for the demo canvas when real deploy is off
+ * or slots are full. Client can also animate locally; this is the shared-stack story.
+ */
+app.post('/api/demo/simulate', async (req, res) => {
+  const { prompt, templateId } = req.body || {};
+  try {
+    const result = await scaffoldApp({
+      prompt: prompt || 'demo',
+      templateId,
+      apiKey: demoQuota.getDemoOpenAIKey(),
+      useLlm: !!demoQuota.getDemoOpenAIKey(),
+    });
+
+    const steps = result.topology.map((s, i) => ({
+      serviceId: s.id,
+      privateHost: s.privateHost,
+      delayMs: 400 + i * 500,
+      status: 'healthy',
+    }));
+
+    res.json({
+      success: true,
+      mode: 'simulate',
+      projectName: result.projectName,
+      templateId: result.templateId,
+      plan: result.plan,
+      codeFiles: result.codeFiles,
+      importYaml: result.importYaml,
+      topology: result.topology,
+      steps,
+      liveUrl: process.env.DEMO_SHARED_URL || 'https://zeroops-demo.zerops.app',
+      llmUsed: result.llmUsed,
+      quota: demoQuota.status(),
+    });
+  } catch (err) {
+    console.error('[demo/simulate]', err);
+    res.status(500).json({ error: err.message || 'Simulate failed' });
+  }
+});
+
+app.post('/api/demo/deploy', async (req, res) => {
+  const { prompt, templateId } = req.body || {};
+  const quota = demoQuota.status();
+
+  if (!demoQuota.isRealDeployEnabled()) {
+    return res.status(503).json({
+      error: 'Real demo deploy disabled (DEMO_REAL_DEPLOY=0). Use simulate.',
+      quota,
+    });
+  }
+  if (!demoQuota.canProvision()) {
+    return res.status(429).json({
+      error: `Demo deploy slots full (${quota.activeCount}/${quota.maxProjects}). Showing shared stack instead.`,
+      quota,
+      fallback: 'simulate',
+    });
+  }
+
+  const pat = demoQuota.getDemoPat();
+  if (!pat) {
+    return res.status(503).json({
+      error: 'No ZEROPS_DEMO_PAT / ZEROPS_TOKEN on server. Use simulate or set env.',
+      quota,
+      fallback: 'simulate',
+    });
+  }
+
+  try {
+    const scaffolded = await scaffoldApp({
+      prompt: prompt || '',
+      templateId,
+      apiKey: demoQuota.getDemoOpenAIKey(),
+      useLlm: true,
+    });
+
+    const zcp = new ZCPClient(pat);
+    const logs = [];
+    const sendLog = (text) => logs.push(String(text));
+
+    const deployResult = await zcp.provisionProject(
+      scaffolded.projectName || 'zeroops-demo',
+      scaffolded.importYaml || '',
+      sendLog
+    );
+
+    const id = `demo-${Date.now()}`;
+    demoQuota.registerProject(id, {
+      projectName: deployResult.projectName || scaffolded.projectName,
+      liveUrl: deployResult.liveUrl || null,
+    });
+
+    res.json({
+      success: true,
+      mode: 'real',
+      id,
+      projectName: deployResult.projectName || scaffolded.projectName,
+      liveUrl: deployResult.liveUrl,
+      services: deployResult.services,
+      logs,
+      topology: scaffolded.topology.map((s) => ({ ...s, status: 'healthy' })),
+      plan: scaffolded.plan,
+      codeFiles: scaffolded.codeFiles,
+      importYaml: scaffolded.importYaml,
+      llmUsed: scaffolded.llmUsed,
+      quota: demoQuota.status(),
+    });
+  } catch (err) {
+    console.error('[demo/deploy]', err);
+    res.status(500).json({
+      error: err.message || 'Deploy failed',
+      fallback: 'simulate',
+      quota: demoQuota.status(),
+    });
+  }
+});
+
+// ─── UI routes ───
+// Always expose product HTML for demo/studio (works even when web/dist SPA exists).
+app.get('/demo', (req, res) => {
+  res.sendFile(path.join(publicDir, 'demo.html'));
+});
+app.get('/studio', (req, res) => {
+  res.sendFile(path.join(publicDir, 'studio.html'));
+});
+app.get('/login', (req, res) => {
+  // Prefer public login when present (session cookie same-origin)
+  const legacy = path.join(publicDir, 'login.html');
+  if (fs.existsSync(legacy)) return res.sendFile(legacy);
+  if (useReactUi) return res.sendFile(path.join(webDistDir, 'index.html'));
+  res.status(404).send('Login not found');
+});
+
+// Static assets from public/ (design system, studio.css, demo.js, …)
+app.use(express.static(publicDir, { index: false }));
+
 if (useReactUi) {
   app.use(express.static(webDistDir, { index: false }));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/ws')) return next();
+    // Already handled: /demo /studio /login
+    if (req.path === '/demo' || req.path === '/studio' || req.path === '/login') return next();
     res.sendFile(path.join(webDistDir, 'index.html'));
   });
-  console.log('[UI] Serving React app from web/dist');
+  console.log('[UI] React web/dist + public/demo + public/studio');
 } else {
   app.get('/', (req, res) => {
     res.sendFile(path.join(publicDir, 'landing.html'));
-  });
-  app.get('/login', (req, res) => {
-    res.sendFile(path.join(publicDir, 'login.html'));
-  });
-  app.get('/studio', (req, res) => {
-    res.sendFile(path.join(publicDir, 'studio.html'));
   });
   app.get('/preview', (req, res) => {
     res.sendFile(path.join(publicDir, 'preview', 'index.html'));
@@ -219,8 +439,7 @@ if (useReactUi) {
     if (!fs.existsSync(file)) return res.status(404).send('Page not found');
     res.sendFile(file);
   });
-  app.use(express.static(publicDir, { index: false }));
-  console.log('[UI] Serving legacy public/ HTML (run: npm run build:web)');
+  console.log('[UI] Serving legacy public/ HTML');
 }
 
 // ─── WEBSOCKET ───

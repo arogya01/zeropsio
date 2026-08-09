@@ -20,7 +20,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const wbPanes = document.querySelectorAll('.wb-pane');
 
   const onboarding = document.getElementById('onboarding');
+  const openaiOnboarding = document.getElementById('openai-onboarding');
   const userNameEl = document.getElementById('user-name');
+  const topbarKeys = document.getElementById('topbar-keys');
+
+  let hasOpenAIKey = false;
+  let hasZeropsToken = false;
 
   const steps = {
     synth: document.getElementById('feed-step-synth'),
@@ -69,16 +74,82 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function refreshKeyChrome() {
+    if (topbarKeys) {
+      const o = hasOpenAIKey ? 'openai✓' : 'openai·';
+      const z = hasZeropsToken || zeropsToken ? 'pat✓' : 'pat·';
+      topbarKeys.textContent = o + ' · ' + z + ' · zcli';
+    }
+  }
+
+  function openOpenAIModal() {
+    if (openaiOnboarding) openaiOnboarding.classList.remove('hidden');
+  }
+  window.openOpenAIModal = openOpenAIModal;
+
+  async function saveOpenAIKey() {
+    const input = document.getElementById('openai-key-input');
+    const errEl = document.getElementById('openai-error');
+    const key = input ? input.value.trim() : '';
+    if (errEl) errEl.style.display = 'none';
+    try {
+      const res = await fetch('/api/auth/openai-key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: key }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (errEl) {
+          errEl.textContent = data.error || 'Invalid key';
+          errEl.style.display = 'block';
+        }
+        return;
+      }
+      hasOpenAIKey = true;
+      sessionStorage.setItem('has_openai', '1');
+      if (openaiOnboarding) openaiOnboarding.classList.add('hidden');
+      refreshKeyChrome();
+      // Stage 2: PAT if missing
+      if (!hasZeropsToken && !zeropsToken && onboarding) {
+        onboarding.classList.remove('hidden');
+      }
+    } catch (e) {
+      if (errEl) {
+        errEl.textContent = e.message || 'Failed to save key';
+        errEl.style.display = 'block';
+      }
+    }
+  }
+  window.saveOpenAIKey = saveOpenAIKey;
+
+  function skipPatForNow() {
+    if (onboarding) onboarding.classList.add('hidden');
+  }
+  window.skipPatForNow = skipPatForNow;
+
   // ─── Auth Check ───
   async function checkAuth() {
     try {
       const res = await fetch('/api/auth/me');
-      if (!res.ok) return;
+      if (!res.ok) {
+        // Unauthenticated: still allow studio for local demo; no force login
+        return;
+      }
       const data = await res.json();
       if (data && data.user) {
         currentUser = data.user;
+        currentUser.hasToken = !!data.hasToken;
         if (userNameEl) userNameEl.textContent = currentUser.name;
-        if (!data.hasToken && !zeropsToken && onboarding) {
+        hasOpenAIKey = !!data.hasOpenAIKey || sessionStorage.getItem('has_openai') === '1';
+        hasZeropsToken = !!data.hasToken;
+        if (data.hasToken) zeropsToken = zeropsToken || sessionStorage.getItem('zerops_pat');
+        refreshKeyChrome();
+
+        // Staged gates: OpenAI first, then PAT (PAT can skip for synth-only)
+        if (!hasOpenAIKey && openaiOnboarding) {
+          openaiOnboarding.classList.remove('hidden');
+        } else if (!hasZeropsToken && !zeropsToken && onboarding) {
           onboarding.classList.remove('hidden');
         }
       }
@@ -259,13 +330,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!prompt) return;
 
       const activeToken = zeropsToken || sessionStorage.getItem('zerops_pat');
-      if (!activeToken && currentUser && !currentUser.hasToken) {
-        if (onboarding) onboarding.classList.remove('hidden');
-        const errEl = document.getElementById('token-error');
-        if (errEl) {
-          errEl.textContent = 'Please connect your Zerops PAT token before deploying';
-          errEl.style.display = 'block';
-        }
+      hasZeropsToken = !!(activeToken || hasZeropsToken || (currentUser && currentUser.hasToken));
+
+      // OpenAI first when logged in (staged onboarding) — PAT no longer blocks synth
+      if (currentUser && !hasOpenAIKey) {
+        if (openaiOnboarding) openaiOnboarding.classList.remove('hidden');
         return;
       }
 
@@ -277,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (deployBtn) {
         deployBtn.disabled = true;
-        deployBtn.textContent = 'Deploying…';
+        deployBtn.textContent = hasZeropsToken || activeToken ? 'Deploying…' : 'Synthesizing…';
       }
       if (preTerminal) preTerminal.textContent = '';
       if (term) term.clear();
@@ -302,15 +371,45 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/synthesize', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({ prompt, templateId: selectedTemplateId, useLlm: true })
         });
         const result = await res.json();
         if (result.success) {
           if (yamlView) yamlView.textContent = result.zeropsYml;
           renderCodeFiles(result.codeFiles);
+          if (result.plan && feedUserMsg) {
+            // keep user prompt; append plan lightly via terminal
+            appendLogMessage({ text: '[plan] ' + String(result.plan).slice(0, 400) });
+          }
+          if (result.topology) {
+            result.topology.forEach((s) => {
+              const node = getNode(s.id);
+              if (node && s.privateHost) {
+                const ipEl = node.querySelector('.topo-chip__ip');
+                if (ipEl) ipEl.textContent = s.privateHost;
+              }
+            });
+          }
         }
       } catch (err) {
         console.error('Synthesis error:', err);
+      }
+
+      // Deploy only when PAT present — otherwise synth-only success path
+      const canDeploy = !!(activeToken || hasZeropsToken);
+      if (!canDeploy) {
+        if (deployBtn) {
+          deployBtn.disabled = false;
+          deployBtn.innerHTML = 'Deploy <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        }
+        appendLogMessage({ text: '[studio] Synthesized without deploy (add Zerops PAT to go live).' });
+        Object.values(nodes).forEach((n) => {
+          if (!n) return;
+          const isDb = n.classList.contains('topo-chip--db');
+          n.className = 'topo-chip idle';
+          if (isDb) n.classList.add('topo-chip--db');
+        });
+        return;
       }
 
       if (socket && socket.readyState === WebSocket.OPEN) {
@@ -412,7 +511,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.success) {
         zeropsToken = token;
         sessionStorage.setItem('zerops_pat', token);
+        hasZeropsToken = true;
         if (currentUser) currentUser.hasToken = true;
+        refreshKeyChrome();
 
         // Register token with server for WebSockets
         await fetch('/api/ws-token', { method: 'POST' }).catch(() => {});

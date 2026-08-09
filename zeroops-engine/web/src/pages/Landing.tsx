@@ -11,6 +11,9 @@ export function Landing() {
           ZeroOps
         </Link>
         <div className="flex items-center gap-2">
+          <a href="/demo" className="px-2 font-mono text-xs text-zo-run no-underline hover:text-zo-text">
+            Demo
+          </a>
           <Link to="/login" className="px-2 text-[13px] text-zo-muted no-underline hover:text-zo-text">
             Log in
           </Link>
@@ -31,7 +34,10 @@ export function Landing() {
         </p>
 
         <div className="mb-10 flex flex-wrap gap-2.5">
-          <Link to="/login" className="zo-btn zo-btn-primary">
+          <a href="/demo" className="zo-btn zo-btn-primary">
+            Try demo
+          </a>
+          <Link to="/login" className="zo-btn">
             Enter Studio
           </Link>
           <a className="zo-btn" href={LIVE} target="_blank" rel="noopener noreferrer">

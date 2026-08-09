@@ -11,12 +11,31 @@
   <link rel="stylesheet" href="studio.css" />
 </head>
 <body>
-  <!-- PAT onboarding -->
+  <!-- Staged onboarding: OpenAI key (synth) → Zerops PAT (deploy) -->
+  <div class="onboarding-overlay hidden" id="openai-onboarding">
+    <div class="onboarding-card">
+      <h2>OpenAI API key</h2>
+      <p>
+        Step 1 of 2 — powers code/plan synthesis (OpenAI only for now). Stored in this session only.
+        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener">Get a key</a>
+      </p>
+      <div class="onboarding-error" id="openai-error">Invalid key</div>
+      <form id="openai-form" onsubmit="event.preventDefault(); saveOpenAIKey();">
+        <label class="zo-label" for="openai-key-input">API key</label>
+        <input type="password" id="openai-key-input" class="zo-input" placeholder="sk-..." autocomplete="off" />
+        <button type="submit" class="zo-btn zo-btn--primary" style="width:100%;margin-top:12px">Save key</button>
+      </form>
+      <p class="onboarding-hint mono" style="margin-top:12px;color:var(--text-3);font-size:11px">
+        You can synthesize without a Zerops PAT. Deploy unlocks after step 2.
+      </p>
+    </div>
+  </div>
+
   <div class="onboarding-overlay hidden" id="onboarding">
     <div class="onboarding-card">
       <h2>Zerops PAT required</h2>
       <p>
-        Deploys run <code>zcli</code> as your account. Token stays in this session only.
+        Step 2 of 2 — deploys run <code>zcli</code> as your account. Token stays in this session only.
         <a href="https://app.zerops.io/settings/token-management" target="_blank" rel="noopener">Create token</a>
       </p>
       <div class="onboarding-error" id="token-error">Invalid token</div>
@@ -24,6 +43,7 @@
         <label class="zo-label" for="zerops-token-input">Personal access token</label>
         <input type="password" id="zerops-token-input" class="zo-input" placeholder="Paste token" autocomplete="off" />
         <button type="submit" class="zo-btn zo-btn--primary" style="width:100%;margin-top:12px">Connect</button>
+        <button type="button" class="zo-btn zo-btn--ghost" style="width:100%;margin-top:8px" onclick="skipPatForNow()">Skip — synth only</button>
       </form>
     </div>
   </div>
@@ -41,12 +61,13 @@
       <span class="status-dot" id="status-dot"></span>
       <span class="topbar__status-text" id="status-text">ready</span>
       <span class="topbar__divider">·</span>
-      <span class="topbar__net mono">BYO PAT · zcli</span>
+      <span class="topbar__net mono" id="topbar-keys">BYO keys · zcli</span>
     </div>
     <div class="topbar__right">
       <div class="topbar__user">
         <span id="user-name" class="mono"></span>
-        <button type="button" class="topbar__logout" onclick="openTokenModal()">Token</button>
+        <button type="button" class="topbar__logout" onclick="openOpenAIModal()">OpenAI</button>
+        <button type="button" class="topbar__logout" onclick="openTokenModal()">Zerops</button>
         <button type="button" class="topbar__logout" onclick="logout()">Logout</button>
       </div>
     </div>

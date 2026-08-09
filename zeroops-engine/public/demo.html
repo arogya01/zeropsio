@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ZeroOps Demo — prompt → Zerops stack</title>
+  <meta name="description" content="Judge-day demo: pick a template or describe an app, scaffold a 5-service Zerops stack, watch services go live." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/design/system.css" />
+  <link rel="stylesheet" href="/design/voltage.css" />
+  <link rel="stylesheet" href="/demo.css" />
+</head>
+<body data-stage="idle">
+  <header class="demo-bar">
+    <a class="demo-bar__brand" href="/">
+      <span class="zo-mark">Z</span>
+      <span>ZeroOps</span>
+    </a>
+    <span class="v-pill v-pill--mono demo-bar__badge">DEMO · limited templates · 1 day</span>
+    <div class="demo-bar__actions">
+      <a href="/login" class="zo-btn zo-btn--ghost">Log in</a>
+      <a href="/studio" class="zo-btn zo-btn--primary">Full studio</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- ── stage 1: the prompt is the hero object ─────────────────────────── -->
+    <section class="hero">
+      <p class="v-eyebrow">Prompt → multi-service Zerops</p>
+      <h1 class="hero__title">Build a 5-service stack in one shot</h1>
+      <p class="hero__sub">
+        One prompt becomes real containers on Zerops — frontend, API gateway, AI worker,
+        managed Postgres and Valkey, wired on a private network, with a live URL at the end.
+      </p>
+
+      <div class="promptbox" id="promptbox">
+        <label class="zo-label" for="demo-prompt">Describe your app</label>
+        <textarea
+          id="demo-prompt"
+          class="demo-prompt"
+          rows="3"
+          placeholder="e.g. AI video clipper with Whisper transcription and a job queue"></textarea>
+
+        <div class="promptbox__foot">
+          <div class="template-row" id="template-grid">
+            <button type="button" class="template-card v-pill" data-id="ai-video-clipper">
+              <span class="template-card__id mono">01</span>
+              <span class="template-card__label">AI Video Clipper</span>
+            </button>
+            <button type="button" class="template-card v-pill" data-id="ecommerce-platform">
+              <span class="template-card__id mono">02</span>
+              <span class="template-card__label">E-Commerce</span>
+            </button>
+            <button type="button" class="template-card v-pill" data-id="rag-search-engine">
+              <span class="template-card__id mono">03</span>
+              <span class="template-card__label">RAG Search</span>
+            </button>
+          </div>
+          <button type="button" class="zo-btn zo-btn--primary" id="btn-scaffold">
+            Scaffold
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="hero__meta">
+        <p class="demo-quota mono" id="quota-line">Checking demo quota…</p>
+        <div class="hero__alt">
+          <button type="button" class="zo-btn zo-btn--ghost" id="btn-simulate">Run canvas theater</button>
+          <button type="button" class="zo-btn zo-btn--ghost" id="btn-deploy" title="Uses operator PAT; max 10 slots">Deploy for real</button>
+        </div>
+      </div>
+
+      <div class="demo-error" id="error-box" hidden></div>
+
+      <ol class="hero__steps">
+        <li>
+          <span class="hero__steps-n mono">01</span>
+          <span class="hero__steps-t">Map the prompt</span>
+          <span class="hero__steps-d">Free text resolves to a template with a confidence score. OpenAI flavors the plan.</span>
+        </li>
+        <li>
+          <span class="hero__steps-n mono">02</span>
+          <span class="hero__steps-t">Generate the manifest</span>
+          <span class="hero__steps-d">A real <code class="v-chip-code">zerops-import.yml</code> plus per-service code files.</span>
+        </li>
+        <li>
+          <span class="hero__steps-n mono">03</span>
+          <span class="hero__steps-t">Provision on Zerops</span>
+          <span class="hero__steps-d"><code class="v-chip-code">zcli project-import</code> builds five containers on a private VXLAN network.</span>
+        </li>
+        <li>
+          <span class="hero__steps-n mono">04</span>
+          <span class="hero__steps-t">Verify it's live</span>
+          <span class="hero__steps-d">Health checks run against every private host before the public URL is handed back.</span>
+        </li>
+      </ol>
+    </section>
+
+    <hr class="v-divider" />
+
+    <!-- ── stage 2: the workbench, revealed on first run ──────────────────── -->
+    <section class="workbench" id="workbench" hidden>
+      <div class="wb-canvas">
+        <div class="canvas-head">
+          <p class="v-eyebrow">Topology canvas</p>
+          <span class="v-pill v-pill--mono" id="canvas-mode">idle</span>
+        </div>
+
+        <div class="topo" id="topo">
+          <div class="topo-node">
+            <div class="topo-chip idle" id="node-web-frontend" data-id="web-frontend">
+              <span class="topo-chip__dot" aria-hidden="true"></span>
+              <span class="topo-chip__name">webapp</span>
+              <span class="topo-chip__role">frontend</span>
+              <span class="topo-chip__ip mono">webapp:3000</span>
+            </div>
+          </div>
+          <div class="topo-arrow"></div>
+          <div class="topo-node">
+            <div class="topo-chip idle" id="node-api-gateway" data-id="api-gateway">
+              <span class="topo-chip__dot" aria-hidden="true"></span>
+              <span class="topo-chip__name">apigateway</span>
+              <span class="topo-chip__role">api</span>
+              <span class="topo-chip__ip mono">apigateway:8080</span>
+            </div>
+          </div>
+          <div class="topo-arrow"></div>
+          <div class="topo-node">
+            <div class="topo-chip idle" id="node-ai-worker" data-id="ai-worker">
+              <span class="topo-chip__dot" aria-hidden="true"></span>
+              <span class="topo-chip__name">aiworker</span>
+              <span class="topo-chip__role">worker</span>
+              <span class="topo-chip__ip mono">aiworker:5000</span>
+            </div>
+          </div>
+          <div class="topo-arrow"></div>
+          <div class="topo-node">
+            <div class="topo-chip idle topo-chip--db" id="node-db-postgres" data-id="db-postgres">
+              <span class="topo-chip__dot" aria-hidden="true"></span>
+              <span class="topo-chip__name">dbpostgres</span>
+              <span class="topo-chip__role">managed</span>
+              <span class="topo-chip__ip mono">dbpostgres:5432</span>
+            </div>
+          </div>
+          <div class="topo-arrow"></div>
+          <div class="topo-node">
+            <div class="topo-chip idle topo-chip--db" id="node-cache-valkey" data-id="cache-valkey">
+              <span class="topo-chip__dot" aria-hidden="true"></span>
+              <span class="topo-chip__name">cachevalkey</span>
+              <span class="topo-chip__role">managed</span>
+              <span class="topo-chip__ip mono">cachevalkey:6379</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wb-grid">
+      <div class="wb-left">
+        <div class="wb-meta" id="wb-meta">
+          <span class="v-pill v-pill--mono" id="template-pill" hidden></span>
+          <span class="v-pill v-pill--mono" id="confidence-pill" hidden></span>
+          <span class="v-pill v-pill--mono" id="llm-pill" hidden></span>
+        </div>
+
+        <div class="v-card wb-card" id="plan-card" hidden>
+          <div class="v-card__head">
+            <p class="v-eyebrow">Build plan</p>
+          </div>
+          <div class="demo-plan" id="plan-box"></div>
+        </div>
+
+        <div class="v-card wb-card" id="files-box" hidden>
+          <div class="v-card__head">
+            <p class="v-eyebrow">Generated files</p>
+            <span class="mono wb-count" id="files-count"></span>
+          </div>
+          <ul class="files-list" id="files-list"></ul>
+        </div>
+
+        <div class="v-code wb-card" id="yaml-box" hidden>
+          <div class="v-code__head">
+            <span>zerops-import.yml</span>
+            <button type="button" class="v-copy" id="btn-copy-yaml">copy</button>
+          </div>
+          <pre class="v-code__body" id="yaml-code"></pre>
+        </div>
+      </div>
+
+      <div class="wb-right">
+        <div class="v-card wb-card wb-card--flush">
+          <div class="v-card__head">
+            <p class="v-eyebrow">Deploy log</p>
+          </div>
+          <div class="demo-log mono" id="log-box"></div>
+        </div>
+
+        <div class="demo-success v-card v-card--emph" id="success-box" hidden>
+          <p class="v-eyebrow v-eyebrow--accent">Verified live</p>
+          <a id="live-link" class="demo-success__url mono" href="#" target="_blank" rel="noopener">—</a>
+          <ul class="demo-success__hosts mono" id="live-hosts"></ul>
+        </div>
+      </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="v-band-green demo-band">
+    <p>
+      Want your own keys and deploys?
+      <a href="/login">Log in</a> → OpenAI key → Zerops PAT → Studio.
+    </p>
+  </div>
+
+  <script src="/demo.js"></script>
+</body>
+</html>

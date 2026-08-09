@@ -1,0 +1,652 @@
+/* ZeroOps /demo — layout.
+ * Colour, type and shape all come from design/voltage.css. Nothing here
+ * declares a hex value except the two focus rings, which need alpha.
+ */
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+/* ── top bar ─────────────────────────────────────────────────────────────── */
+
+.demo-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 0 var(--s-7);
+  border-bottom: 1px solid var(--line-2);
+  background: var(--bg);
+}
+
+.demo-bar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.demo-bar__badge {
+  color: var(--text-3);
+}
+
+.demo-bar__actions {
+  margin-left: auto;
+  display: flex;
+  gap: var(--s-2);
+}
+
+.demo-bar .zo-btn {
+  height: 34px;
+  font-size: 14px;
+  padding: 0 var(--s-3);
+}
+
+/* ── hero ────────────────────────────────────────────────────────────────── */
+
+.hero {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: var(--s-10) var(--s-7) var(--s-9);
+  text-align: center;
+}
+
+.hero__title {
+  /* design.md: display-xl is weight 400. Deliberately not a billboard. */
+  margin: var(--s-4) 0 var(--s-4);
+  font-size: clamp(32px, 5.2vw, 60px);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.65px;
+  color: var(--text-strong);
+}
+
+.hero__sub {
+  margin: 0 auto var(--s-8);
+  max-width: 40em;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+
+/* ── the prompt box: the hero object ─────────────────────────────────────── */
+
+.promptbox {
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.promptbox:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 217, 146, 0.12);
+}
+
+.promptbox .zo-label {
+  margin-bottom: var(--s-2);
+}
+
+.demo-prompt {
+  display: block;
+  width: 100%;
+  min-height: 92px;
+  resize: vertical;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.demo-prompt::placeholder {
+  color: var(--text-3);
+}
+
+.demo-prompt:focus {
+  outline: none;
+}
+
+.promptbox__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line-2);
+}
+
+.template-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Selection is neutral, not green — green is reserved for CTA fill and
+ * healthy hairlines, and a picked template is neither. */
+.template-card {
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.template-card:hover {
+  border-color: var(--text-3);
+  color: var(--text);
+}
+
+.template-card.is-selected {
+  border-color: var(--text);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.template-card__id {
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+.template-card.is-selected .template-card__id {
+  color: var(--text-2);
+}
+
+#btn-scaffold {
+  flex-shrink: 0;
+  gap: var(--s-2);
+}
+
+/* ── hero meta + secondary actions ───────────────────────────────────────── */
+
+.hero__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+
+.demo-quota {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.hero__alt {
+  display: flex;
+  gap: var(--s-2);
+}
+
+.hero__alt .zo-btn {
+  height: 34px;
+  font-size: 13px;
+  padding: 0 var(--s-3);
+}
+
+.demo-error {
+  margin-top: var(--s-4);
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--fail);
+  border-radius: var(--r);
+  color: var(--fail);
+  font-size: 14px;
+  text-align: left;
+}
+
+/* ── 01–04 step strip ────────────────────────────────────────────────────── */
+
+.hero__steps {
+  list-style: none;
+  margin: var(--s-10) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-6);
+  text-align: left;
+}
+
+.hero__steps li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--line);
+}
+
+.hero__steps-n {
+  font-size: 12px;
+  color: var(--primary);
+}
+
+.hero__steps-t {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.hero__steps-d {
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-3);
+}
+
+/* ── workbench ───────────────────────────────────────────────────────────── */
+
+.workbench {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: var(--s-9) var(--s-7);
+  /* clears the 56px sticky bar when scrollIntoView() lands here */
+  scroll-margin-top: 72px;
+  animation: stage-in 240ms ease-out both;
+}
+
+@keyframes stage-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.canvas-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-4);
+}
+
+.wb-canvas {
+  margin-bottom: var(--s-8);
+}
+
+.wb-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--s-6);
+  align-items: start;
+}
+
+.wb-left,
+.wb-right {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+}
+
+.wb-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+.wb-card {
+  min-width: 0;
+}
+
+.wb-card--flush {
+  padding-bottom: var(--s-4);
+}
+
+.wb-count {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* ── topology ────────────────────────────────────────────────────────────── */
+
+.topo {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.topo-node {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.topo-arrow {
+  flex: 0 0 var(--s-5);
+  align-self: center;
+  height: 1px;
+  background: var(--line);
+}
+
+/* setChip() rewrites the chip's status class on every update, so no layout
+ * class may live on #node-* itself — .topo-node above owns the geometry. */
+.topo-chip {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "dot  name"
+    ".    role"
+    ".    ip";
+  align-items: center;
+  column-gap: var(--s-2);
+  row-gap: 2px;
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  transition: border-color 200ms ease;
+}
+
+.topo-chip__dot {
+  grid-area: dot;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--idle);
+  transition: background-color 200ms ease;
+}
+
+.topo-chip__name {
+  grid-area: name;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topo-chip__role {
+  grid-area: role;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.topo-chip__ip {
+  grid-area: ip;
+  font-size: 11px;
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Healthy = green hairline + green dot + green host. Never a green fill:
+ * solid green is the CTA's alone. */
+.topo-chip.healthy {
+  border-color: var(--primary);
+}
+
+.topo-chip.healthy .topo-chip__dot {
+  background: var(--primary);
+}
+
+.topo-chip.healthy .topo-chip__ip {
+  color: var(--primary);
+}
+
+.topo-chip.building,
+.topo-chip.deploying {
+  border-color: var(--running);
+  animation: chip-pulse 1.2s ease-in-out infinite;
+}
+
+.topo-chip.building .topo-chip__dot,
+.topo-chip.deploying .topo-chip__dot {
+  background: var(--running);
+}
+
+.topo-chip.failed {
+  border-color: var(--fail);
+}
+
+.topo-chip.failed .topo-chip__dot {
+  background: var(--fail);
+}
+
+@keyframes chip-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ── plan / files / yaml ─────────────────────────────────────────────────── */
+
+.demo-plan {
+  white-space: pre-wrap;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-2);
+  max-height: 260px;
+  overflow: auto;
+}
+
+.files-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.files-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line-2);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.files-list li:first-child {
+  border-top: 0;
+}
+
+.files-list__path {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.files-list__size {
+  color: var(--text-3);
+  flex-shrink: 0;
+}
+
+/* ── log ─────────────────────────────────────────────────────────────────── */
+
+.demo-log {
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-2);
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  padding: var(--s-3);
+  min-height: 180px;
+  max-height: 300px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.log-tag {
+  color: var(--text-3);
+}
+
+.log-tag--ok { color: var(--primary); }
+.log-tag--run { color: var(--running); }
+.log-tag--fail { color: var(--fail); }
+
+/* ── verification panel ──────────────────────────────────────────────────── */
+
+.demo-success {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.demo-success__url {
+  color: var(--primary);
+  font-size: 15px;
+  word-break: break-all;
+}
+
+.demo-success__hosts {
+  list-style: none;
+  margin: 0;
+  padding: var(--s-3) 0 0;
+  border-top: 1px solid var(--line-2);
+  display: grid;
+  gap: var(--s-1);
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.demo-success__hosts li {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.demo-success__hosts li::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ── closing band ────────────────────────────────────────────────────────── */
+
+.demo-band {
+  margin-top: var(--s-10);
+  padding: var(--s-8) var(--s-7);
+  text-align: center;
+}
+
+.demo-band p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-2);
+}
+
+.demo-band a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.demo-band a:hover {
+  text-decoration: underline;
+}
+
+/* ── responsive ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .topo {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--s-3);
+  }
+
+  .topo-arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .wb-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero__steps {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--s-5);
+  }
+}
+
+@media (max-width: 720px) {
+  .demo-bar {
+    padding: 0 var(--s-4);
+  }
+
+  .demo-bar__badge {
+    display: none;
+  }
+
+  .demo-bar .zo-btn {
+    height: 32px;
+    font-size: 13px;
+    padding: 0 var(--s-2);
+  }
+
+  .hero {
+    padding: var(--s-8) var(--s-4) var(--s-7);
+  }
+
+  .workbench {
+    padding: var(--s-7) var(--s-4);
+  }
+
+  .promptbox__foot {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #btn-scaffold {
+    width: 100%;
+  }
+
+  .hero__meta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero__alt .zo-btn {
+    flex: 1;
+  }
+
+  .topo {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero__steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .topo {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workbench {
+    animation: none;
+  }
+
+  .topo-chip.building,
+  .topo-chip.deploying {
+    animation: none;
+  }
+}

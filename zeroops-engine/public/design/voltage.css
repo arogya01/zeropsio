@@ -1,0 +1,270 @@
+/* ZeroOps /demo — theme layer.
+ *
+ * Loaded AFTER design/system.css; equal specificity + later source order means
+ * these :root values win, so every existing .zo-* primitive upgrades for free.
+ *
+ * SCOPED TO /demo ONLY. Do not link this from studio.html / landing.html /
+ * login.html — those routes are governed by design/system.css, which is mirrored
+ * hex-for-hex in web/src/index.css for the React landing.
+ *
+ * Green rule: solid green FILL means "primary action" (max 1-2 per view).
+ * Green HAIRLINE + green text/dot means "healthy". Same hue, different
+ * treatment, so the CTA and the deploy payoff never read as the same thing.
+ */
+
+:root {
+  --bg: #101010;
+  --surface: #1a1a1a;
+  --surface-2: #202020;
+  --line: #3d3a39;
+  --line-2: #262424;
+
+  --text: #f2f2f2;
+  --text-strong: #ffffff;
+  --text-2: #bdbdbd;
+  --text-3: #8b949e;
+
+  --primary: #00d992;
+  --primary-soft: #2fd6a1;
+  --primary-deep: #10b981;
+  --on-primary: #101010;
+
+  /* Brand mark and primary button both become the accent */
+  --mark: #00d992;
+  --mark-ink: #101010;
+
+  /* State — ok shares the accent hue, separated by treatment not colour */
+  --idle: #8b949e;
+  --running: #d4a017;
+  --ok: #00d992;
+  --fail: #e85d5d;
+  --info: #7aa2d4;
+
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --r-xs: 4px;
+  --r: 6px;
+  --r-card: 8px;
+  --r-pill: 9999px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-7: 32px;
+  --s-8: 40px;
+  --s-9: 48px;
+  --s-10: 64px;
+
+  --dashed: 1px dashed rgba(79, 93, 117, 0.4);
+  --glow: 0 0 15px rgba(92, 88, 85, 0.2);
+}
+
+body {
+  font-family: var(--font);
+  font-feature-settings: "calt", "rlig";
+}
+
+/* system.css has no [hidden] rule, so any author `display` beats the UA
+ * stylesheet and the hidden attribute silently stops working. */
+[hidden] {
+  display: none !important;
+}
+
+/* ---- buttons ------------------------------------------------------------ */
+
+.zo-btn {
+  height: 40px;
+  padding: 0 var(--s-4);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: var(--r);
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.zo-btn--primary {
+  border-color: var(--primary);
+}
+
+.zo-btn--primary:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary-soft);
+}
+
+/* Used three times in demo.html and defined nowhere in the repo until now. */
+.zo-btn--ghost {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.zo-btn--ghost:hover {
+  background: var(--surface);
+  border-color: var(--text-3);
+  color: var(--text);
+}
+
+.zo-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---- typographic primitives --------------------------------------------- */
+
+.v-eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+  letter-spacing: 2.16px;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.v-eyebrow--accent {
+  color: var(--primary);
+}
+
+/* ---- cards -------------------------------------------------------------- */
+
+.v-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  padding: var(--s-6);
+}
+
+.v-card--emph {
+  border: 2px solid var(--primary);
+}
+
+.v-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+
+/* ---- code mockup -------------------------------------------------------- */
+
+.v-code {
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.v-code__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.v-code__body {
+  margin: 0;
+  padding: var(--s-4);
+  background: var(--surface);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 18px;
+  color: #f5f6f7;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 300px;
+}
+
+.v-copy {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px var(--s-2);
+  border-radius: var(--r-xs);
+  cursor: pointer;
+}
+
+.v-copy:hover {
+  border-color: var(--text-3);
+  color: var(--text);
+}
+
+.v-copy.is-copied {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.v-chip-code {
+  background: var(--surface);
+  color: #f5f6f7;
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 2px var(--s-2);
+  border-radius: var(--r);
+}
+
+/* ---- pills -------------------------------------------------------------- */
+
+.v-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: var(--s-1) var(--s-3);
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+  background: transparent;
+}
+
+.v-pill--ok {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.v-pill--run {
+  border-color: var(--running);
+  color: var(--running);
+}
+
+.v-pill--fail {
+  border-color: var(--fail);
+  color: var(--fail);
+}
+
+.v-pill--mono {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* ---- rhythm ------------------------------------------------------------- */
+
+.v-divider {
+  border: 0;
+  border-top: var(--dashed);
+  margin: 0;
+}
+
+.v-band-green {
+  border-top: 2px solid var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+
+/* ---- dots --------------------------------------------------------------- */
+
+.zo-dot--ok {
+  background: var(--primary);
+}
