@@ -159,11 +159,28 @@ services:
 /**
  * Extract a real Zerops subdomain from zcli output.
  * Returns null when zcli printed no URL — we never synthesize one.
+ *
+ * Known limitation: this is a plain regex extractor with no concept of log
+ * severity. If a zerops.app URL appears in a WARN/ERROR line (e.g. "previous
+ * deploy at https://old-x1.zerops.app failed") and no later URL supersedes
+ * it, it will still be returned. We deliberately do not attempt to parse
+ * log levels here — callers get the last URL seen in the stream, nothing more.
  */
 function extractLiveUrl(output) {
   if (!output) return null;
-  const match = output.match(/https:\/\/[a-z0-9][a-z0-9-]*\.zerops\.app[^\s'"]*/i);
-  return match ? match[0] : null;
+  // Strip ANSI escape/color codes (zcli colorizes its stdout) so they never
+  // get swept into the match as part of the URL.
+  const clean = output.replace(/\x1b\[[0-9;]*m/g, '');
+  const matches = clean.match(/https:\/\/[a-z0-9][a-z0-9-]*\.zerops\.app[^\s'"]*/gi);
+  if (!matches || matches.length === 0) return null;
+  // Later output reflects the most recent state of the deploy (e.g. a
+  // redeploy superseding an earlier one), so prefer the last match over the
+  // first.
+  const lastMatch = matches[matches.length - 1];
+  // Strip trailing punctuation that is never part of a URL but commonly
+  // follows one in prose or log output (sentence periods, a colon before an
+  // error message, a comma, closing bracket/paren, etc).
+  return lastMatch.replace(/[.,:;)\]]+$/, '');
 }
 
 module.exports = ZCPClient;
