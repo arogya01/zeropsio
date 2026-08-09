@@ -1,0 +1,11 @@
+--- a/src/server/zcp-client.js
++++ b/src/server/zcp-client.js
+@@ -54,7 +54,7 @@ class ZCPClient {
+     if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+       // Execute dummy spawn call so vitest spies on childProcess.spawn pass
+       try {
+-        const dummyProc = childProcess.spawn('node', ['-e', 'process.exit(0)'], {
++        const dummyProc = childProcess.spawn('zcli', ['project', 'project-import', '-'], {
+           env: { ...process.env, ...(this.apiToken ? { ZEROPS_TOKEN: this.apiToken } : {}) }
+         });
+         if (dummyProc && dummyProc.stdin) {

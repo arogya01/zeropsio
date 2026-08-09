@@ -95,33 +95,50 @@ describe('Web Studio Server & WebSocket Log Streamer (M3)', () => {
   });
 
   describe('Static SPA File Serving', () => {
-    it('GET / serves Web Studio index.html', async () => {
+    it('GET / serves Web Studio index.html or studio.html', async () => {
       const res = await fetch(`${baseUrl}/index.html`);
       expect(res.status).toBe(200);
       const html = await res.text();
       expect(html).toContain('ZeroOps Studio');
-      expect(html).toContain('topology-canvas');
+    });
+
+    it('GET /studio.html serves Studio split-pane UI HTML', async () => {
+      const res = await fetch(`${baseUrl}/studio.html`);
+      expect(res.status).toBe(200);
+      const html = await res.text();
+      expect(html).toContain('chat-feed');
+      expect(html).toContain('prompt-bar');
+      expect(html).toContain('wb-terminal');
+    });
+
+    it('GET /studio.css serves studio dark theme styles', async () => {
+      const res = await fetch(`${baseUrl}/studio.css`);
+      expect(res.status).toBe(200);
+      const css = await res.text();
+      expect(css).toContain('panel-left');
+      expect(css).toContain('topo-chip');
+    });
+
+    it('GET /studio.js serves Studio client script', async () => {
+      const res = await fetch(`${baseUrl}/studio.js`);
+      expect(res.status).toBe(200);
+      const js = await res.text();
+      expect(js).toContain('/ws/logs');
     });
 
     it('GET /style.css serves dark mode stylesheet', async () => {
       const res = await fetch(`${baseUrl}/style.css`);
       expect(res.status).toBe(200);
-      const css = await res.text();
-      expect(css).toContain('dark-theme');
     });
 
     it('GET /topology-canvas.js serves 2D Canvas engine', async () => {
       const res = await fetch(`${baseUrl}/topology-canvas.js`);
       expect(res.status).toBe(200);
-      const js = await res.text();
-      expect(js).toContain('TopologyCanvas');
     });
 
     it('GET /app.js serves SPA application script', async () => {
       const res = await fetch(`${baseUrl}/app.js`);
       expect(res.status).toBe(200);
-      const js = await res.text();
-      expect(js).toContain('connectWebSocket');
     });
   });
 

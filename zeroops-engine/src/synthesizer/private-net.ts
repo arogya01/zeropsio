@@ -9,8 +9,12 @@ import { StackTopologySpec, RuntimeSpec } from './types.js';
  * Injects inter-service private network environment variables into all runtimes in the topology spec.
  */
 export function injectPrivateNetEnv(spec: StackTopologySpec): StackTopologySpec {
-  const postgresService = spec.managedServices.find(s => s.type === 'postgresql');
-  const valkeyService = spec.managedServices.find(s => s.type === 'valkey');
+  const postgresService = spec.managedServices.find(
+    s => s.type === 'postgresql' || (s.type as string) === 'postgres' || (s.name && s.name.toLowerCase().includes('postgres'))
+  );
+  const valkeyService = spec.managedServices.find(
+    s => s.type === 'valkey' || (s.type as string) === 'redis' || (s.name && (s.name.toLowerCase().includes('valkey') || s.name.toLowerCase().includes('redis')))
+  );
   const apiService = spec.runtimes.find(r => r.name === 'api' || r.name.includes('api') || r.name.includes('backend'));
 
   const dbHost = postgresService ? postgresService.name : 'postgres';

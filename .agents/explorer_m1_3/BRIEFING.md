@@ -1,36 +1,43 @@
-# BRIEFING — 2026-08-08T17:30:00Z
+# BRIEFING — 2026-08-09T00:13:51Z
 
 ## Mission
-Design ZCP Client & CLI orchestration bridge (`src/zcp/zcp-client.ts`, `src/index.ts`) and comprehensive unit & integration test design for Milestone M1.
+Investigate Workbench UI & WebSocket streamer backend endpoints in zeroops-engine/ and TEST_READY.md structure to prepare detailed plan for tests/workbench-ui.test.ts and updated TEST_READY.md.
 
 ## 🔒 My Identity
-- Archetype: Explorer
-- Roles: Explorer 3 for Milestone M1
+- Archetype: Teamwork explorer
+- Roles: Investigator, Synthesizer
 - Working directory: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3
-- Original parent: 91c92a6e-774f-4450-85f3-cf1df67cb49b
-- Milestone: M1 (ZCP Stack Synthesizer & Engine Core)
+- Original parent: 996ddfdf-f753-485c-8d88-d3edc079f499
+- Milestone: M1 - Test Suite Unification & Coverage Setup
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement src/ production code, write analysis and handoff report in working directory.
-- Create files only in /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3
+- Read-only investigation — do NOT implement production/test code directly, produce structured reports & plan
+- Scope: Workbench UI endpoints, WS log streamer (/ws/logs), topology state updates, workbench-ui.test.ts design, TEST_READY.md documentation updates
 
 ## Current Parent
-- Conversation ID: 91c92a6e-774f-4450-85f3-cf1df67cb49b
-- Updated: 2026-08-08T17:30:00Z
+- Conversation ID: 996ddfdf-f753-485c-8d88-d3edc079f499
+- Updated: 2026-08-09T00:13:51Z
 
 ## Investigation State
-- **Explored paths**: `ORIGINAL_REQUEST.md`, `PROJECT.md`, `sub_orch_m1/SCOPE.md`, `spec_miner_survey_3/handoff.md`, `explorer_survey_1/handoff.md`
-- **Key findings**: Designed ZCP Client dual mode (`real`/`mock`), synthetic IP mapping (`10.0.0.10` - `10.0.0.14`), CLI entry point (`synthesize`, `deploy`, `import`), and 22-case unit/integration test suite.
-- **Unexplored areas**: None for M1 Explorer 3 scope.
+- **Explored paths**:
+  - `zeroops-engine/src/studio/server.ts`
+  - `zeroops-engine/src/studio/ws-logger.ts`
+  - `zeroops-engine/src/studio/public/app.js`
+  - `zeroops-engine/tests/` (all existing test files: 72 Vitest + 197 Node native tests = 269 baseline)
+  - `TEST_READY.md`
+- **Key findings**:
+  - Endpoint contracts & WebSocket protocol mapped.
+  - Ephemeral port testing pattern (`studio.listen(0)`) confirmed.
+  - 15 test cases designed for `tests/workbench-ui.test.ts`.
+  - Full breakdown of 269 baseline + 27+ new M1 tests = 296+ total test cases mapped for `TEST_READY.md` update.
+- **Unexplored areas**: None within scope.
 
 ## Key Decisions Made
-- `ZcpClient` supports auto-fallback from `real` to `mock` mode if `ZEROPS_TOKEN` is missing.
-- CLI provides `--mock`, `--output`, and `--json` flags across all commands.
-- Comprehensive test design created across 5 test suites.
+- Produced detailed analysis report (`analysis_workbench_and_test_ready.md`) and 5-component handoff report (`handoff.md`).
 
 ## Artifact Index
-- DISPATCH.md — Dispatch log
-- BRIEFING.md — Persistent memory
-- progress.md — Heartbeat & progress log
-- analysis.md — Technical implementation design report
-- handoff.md — 5-component handoff report
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3/DISPATCH.md — record of dispatch instructions
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3/BRIEFING.md — working memory and context index
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3/progress.md — liveness heartbeat
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3/analysis_workbench_and_test_ready.md — deep-dive analysis report
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3/handoff.md — 5-component handoff report

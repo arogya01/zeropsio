@@ -1,49 +1,38 @@
-## 2026-08-08T17:30:28Z
-You are Worker 1 for Milestone M1 (ZCP Stack Synthesizer & Engine Core).
-Your working directory is `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/worker_m1_1`. Please create agent metadata files only in your working directory.
-Code implementation must be created directly in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine/`.
-
-MANDATORY INPUTS TO READ BEFORE STARTING:
-1. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/ORIGINAL_REQUEST.md`
-2. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/PROJECT.md`
-3. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1/SCOPE.md`
-4. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/analysis.md`
-5. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/analysis.md`
-6. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3/analysis.md`
+## 2026-08-08T18:47:12Z
+<USER_REQUEST>
+You are Worker 1 for Milestone M1: Test Suite Unification & Coverage Setup for ZeroOps Studio Multi-Tenant Cloud Engine.
+Your working directory is /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/worker_m1_1.
+Please create your working directory if needed and write your BRIEFING.md and progress.md there.
 
 MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-Your Task:
-Implement the complete, genuine, zero-stub codebase for Milestone M1 in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine`:
+Context & Inputs:
+- Original Request: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/ORIGINAL_REQUEST.md
+- Scope Document: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/SCOPE.md
+- Explorer 1 Report: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/handoff.md
+- Explorer 2 Report: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/handoff.md
+- Explorer 3 Report: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_3/handoff.md
 
-1. **Workspace & Build Scaffolding**:
-   - Create `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine` workspace directory.
-   - Write `package.json` (ESM `"type": "module"`, `"bin": { "zeroops": "./dist/index.js" }`, dependencies `commander`, `js-yaml`, `picocolors`, `zod`, devDependencies `typescript`, `@types/node`, `@types/js-yaml`, `tsup`, `vitest`, `tsx`).
-   - Write `tsconfig.json` (Target ES2022, `moduleResolution: NodeNext`, strict mode).
-   - Write `tsup.config.ts` and `vitest.config.ts`.
+Your Responsibilities:
+1. Update `zeroops-engine/package.json`:
+   - Add `"tsx": "^4.19.2"` to `devDependencies`.
+   - Update scripts:
+     - `"test:unit": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest run"`
+     - `"test:tier": "tsx --test tests/tier*.test.ts"`
+     - `"test:all": "npm run test:unit && npm run test:tier"`
+     - `"test": "npm run test:all"`
+2. If necessary for clean test isolation, update `zeroops-engine/src/server/index.js` to ensure module exports `{ app, server, wss, users }` and `server.listen` is guarded by `if (require.main === module)`.
+3. Create dedicated test files in `zeroops-engine/tests/`:
+   - `tests/auth-onboarding.test.ts`: Test session signup/login endpoints (/api/auth/signup, /api/auth/login), PAT overlay storage per session (/api/auth/token), PAT token passing to ZCP client wrapper, ws token generation, /api/auth/me, /api/auth/logout, and error handling.
+   - `tests/template-library.test.ts`: Test template catalog retrieval (/api/templates), template details (/api/templates/:id), zerops-import.yml synthesis for all 3 pre-built stacks (AI Video Clipper, Multi-Service E-Commerce, RAG Search Engine with pgvector/Whisper), and zero-stub AST validator (`validateZeroStubs`) on template source files.
+   - `tests/workbench-ui.test.ts`: Test Studio API endpoints (/api/synthesize, /api/deploy, /api/health, /api/status, /api/topology), WebSocket log streamer message broadcasting (/ws/logs), topology state updates, log history replay, completion frames, service filtering, and WsLogger class functions.
+4. Update `TEST_READY.md` at `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/TEST_READY.md` with:
+   - Unified test runner setup and commands (`npm test`, `npm run test:unit`, `npm run test:tier`, `npm run test:all`).
+   - Breakdown of all test suites and total test counts (269 baseline + 27+ M1 new tests = 296+ total test cases).
+   - Updated feature coverage matrix (F1-F17).
+5. Run the full unified test suite (`npm test`) in `zeroops-engine/` and verify 100% pass across all unit, integration, tier, and new M1 tests.
 
-2. **Synthesizer Core Module**:
-   - `src/synthesizer/types.ts`: Standard interface definitions (`StackTopologySpec`, `GeneratedConfigs`, `RuntimeSpec`, `ManagedServiceSpec`, `SupportedRuntime`, `SupportedManagedService`, `ZeropsProjectImportSpec`, `ZeropsYamlSpec`) adhering strictly to `PROJECT.md` § Interface Contracts.
-   - `src/synthesizer/stack-synthesizer.ts`: Natural language prompt parser to stack topology specification. Parses prompts and enforces standard fallbacks guaranteeing at least 3 runtimes (e.g. nodejs frontend, go api, python worker) + 2 managed DBs (postgresql HA, valkey HA).
-   - `src/synthesizer/private-net.ts`: Inter-service private network IP environment variable injector (`DB_HOST=postgres`, `DB_PORT=5432`, `DATABASE_URL=...`, `VALKEY_HOST=valkey`, `REDIS_URL=...`, `API_URL=...`, `PORT=...`).
-   - `src/synthesizer/yaml-generator.ts`: Dual generator producing spec-compliant `zerops-project-import.yml` and `zerops.yml` using `js-yaml` or structured string serialization.
-
-3. **ZCP Bridge & Engine CLI Entry Point**:
-   - `src/zcp/zcp-client.ts`: `ZcpClient` class supporting dual execution modes (`real` REST API / zcli call vs `mock` simulation). Mock mode allocates synthetic private IPs (`10.0.0.10` - `10.0.0.14`) and mock URLs (`https://${serviceName}-${hash}.zerops.app`), deployment status polling, log streaming callbacks, auto-fallback when token missing.
-   - `src/index.ts`: Executable CLI entry point with `commander` (`synthesize <prompt>`, `deploy <project-name>`, `import <yaml-path>`, flags `--mock`, `--output`, `--json`, `--verbose`) + re-exported programmatic API functions (`runSynthesis`, `runDeployment`, `runImport`).
-
-4. **Comprehensive Unit & Integration Test Suite**:
-   - Write tests under `zeroops-engine/tests/`:
-     - `tests/synthesizer.test.ts`
-     - `tests/yaml-generator.test.ts`
-     - `tests/private-net.test.ts`
-     - `tests/zcp-client.test.ts`
-     - `tests/cli.test.ts`
-
-5. **Build, Typecheck & Verification**:
-   - Execute build command (`npm run build` or `npx tsup`) inside `zeroops-engine/` and verify clean build.
-   - Execute typecheck command (`npm run typecheck` or `npx tsc --noEmit`) inside `zeroops-engine/` and verify 0 errors.
-   - Execute test command (`npm test` or `npx vitest run`) inside `zeroops-engine/` and verify all tests pass with exit code 0.
-
-Write your implementation report to `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/worker_m1_1/changes.md` and deliver your handoff in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/worker_m1_1/handoff.md` with exact build and test command outputs. Send a message back to parent when complete.
+Deliverable:
+Write a comprehensive handoff report at `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/worker_m1_1/handoff.md` detailing all implemented files, diffs, execution commands, and exact test output results. Send a message to parent when complete.
+</USER_REQUEST>

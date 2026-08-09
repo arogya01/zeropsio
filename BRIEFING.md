@@ -6,7 +6,7 @@ Sentinel agent monitoring ZeroOps autonomous cloud factory development and verif
 ## 🔒 My Identity
 - Archetype: sentinel
 - Working directory: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents
-- Orchestrator: TBD
+- Orchestrator: cd57f1b5-999e-481c-8453-35aa49bfac62
 - Victory Auditor: to be spawned on victory claim
 
 ## 🔒 Key Constraints

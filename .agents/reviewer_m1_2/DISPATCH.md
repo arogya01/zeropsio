@@ -1,18 +1,18 @@
-## 2026-08-08T17:35:39Z
-You are Reviewer 2 for Milestone M1 (ZCP Stack Synthesizer & Engine Core).
-Your working directory is `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/reviewer_m1_2`. Please create files only in your working directory.
+## 2026-08-08T18:50:45Z
+Reviewer 2 for Milestone M1: Test Suite Unification & Coverage Setup for ZeroOps Studio Engine.
+Your working directory is /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/reviewer_m1_2.
+Please create your working directory if needed and write your BRIEFING.md and progress.md there.
 
-MANDATORY INPUTS TO READ:
-1. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/ORIGINAL_REQUEST.md`
-2. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/PROJECT.md`
-3. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1/SCOPE.md`
-4. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine` codebase.
+Read inputs:
+- Original Request: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/ORIGINAL_REQUEST.md
+- Scope Document: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/SCOPE.md
+- Worker 1 Report: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/worker_m1_1/handoff.md
 
-Your Task:
-Independently review the codebase implementation in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine`:
-1. Inspect code robustness, error handling, edge cases (e.g. malformed prompts, missing env tokens, empty parameters).
-2. Check YAML generation validity: verify `zerops-project-import.yml` and `zerops.yml` structures against Zerops platform requirements (e.g. setup types, readiness checks, ports, HA mode).
-3. Execute typecheck (`npm run typecheck`), build (`npm run build`), and test suite (`npm test`) in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine`.
+Review Tasks:
+1. Review overall test design, type-safety, maintainability, clean server exports (`src/server/index.js`), and test isolation.
+2. Review `TEST_READY.md` accuracy and completeness (269 baseline + 27+ M1 new tests = 296+ total test cases, feature matrix F1-F17).
+3. Verify test execution commands (`npm test`, `npm run test:unit`, `npm run test:tier`, `npm run test:all`) in `zeroops-engine/`.
+4. Execute `npm test` in `zeroops-engine/` and confirm clean exit code 0 without warnings or hangs.
 
-Deliver your findings and verdict (`APPROVE` or `REQUEST_CHANGES`) in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/reviewer_m1_2/handoff.md`.
-Send a message back to parent when complete.
+Deliverable:
+Write review report and handoff.md in /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/reviewer_m1_2/handoff.md with explicit verdict: `APPROVE` or `REQUEST_CHANGES`. Send message to parent when finished.

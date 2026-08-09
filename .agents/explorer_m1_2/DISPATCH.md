@@ -1,18 +1,16 @@
-## 2026-08-08T17:29:36Z
-You are Explorer 2 for Milestone M1 (ZCP Stack Synthesizer & Engine Core).
-Your working directory is `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2`. Please create files only in your working directory.
+## 2026-08-09T00:12:51Z
+You are Explorer 2 for Milestone M1: Test Suite Unification & Coverage Setup for ZeroOps Studio Multi-Tenant Cloud Engine.
+Your working directory is /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2.
+Please create your working directory if needed and write your BRIEFING.md and progress.md there.
 
-MANDATORY INPUTS TO READ:
-1. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/ORIGINAL_REQUEST.md`
-2. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/PROJECT.md`
-3. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1/SCOPE.md`
+Read the original request at /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/ORIGINAL_REQUEST.md and scope document at /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/SCOPE.md.
 
-Your Task:
-Investigate specifications and design implementation for the Stack Synthesizer module:
-- `src/synthesizer/types.ts`: Define `StackTopologySpec`, `RuntimeSpec`, `ManagedServiceSpec`, `GeneratedConfigs`, and related types adhering strictly to `PROJECT.md` § Interface Contracts.
-- `src/synthesizer/stack-synthesizer.ts`: Natural language prompt parser. Convert prompts (e.g. "Build a Node frontend with Go API, Python worker, Postgres DB, and Valkey cache") into `StackTopologySpec`. Support prompt keyword analysis, default fallbacks, multi-container detection (Node, Go, Python, Rust runtimes; PostgreSQL HA, Valkey Cache managed services).
-- `src/synthesizer/yaml-generator.ts`: Generate valid `zerops-project-import.yml` (project name, service topologies with setup types, high-availability mode for Postgres) and `zerops.yml` (service build and run configurations, ports, env variables) for at least 4 runtimes (nodejs, go, python, rust) and 2 managed services (postgresql, valkey).
-- `src/synthesizer/private-net.ts`: Inject inter-service private network IP environment variables (`DB_HOST=postgres`, `VALKEY_HOST=valkey`, `PORT=...`, DB connection strings) automatically into service environment specs.
+Task Scope & Focus:
+Investigate Auth & Template Library backend implementation in zeroops-engine/ (/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine).
+- Check auth endpoints (/api/auth/signup, /api/auth/login), PAT overlay storage (/api/auth/token), and token passing to ZCP client wrapper.
+- Check template catalog retrieval (/api/templates), zerops-import.yml synthesis for all 3 pre-built stacks (AI Video Clipper, Multi-Service E-Commerce, RAG Search Engine with pgvector/Whisper), and zero-stub AST validator / template validation logic.
+- Inspect how existing server/API tests are structured and imported.
+- Plan concrete implementation details for `tests/auth-onboarding.test.ts` and `tests/template-library.test.ts`.
 
-Write your findings and technical implementation design to `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/analysis.md` and deliver your handoff in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/handoff.md`.
-Send a message back to parent when complete.
+Deliverable:
+Write a comprehensive exploration report and handoff.md in /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/ handoff.md detailing exact findings, imports, route definitions, test helpers, and assertion structures. Send a message to parent when finished.

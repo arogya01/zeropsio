@@ -1,43 +1,45 @@
-# BRIEFING — 2026-08-08T17:30:00Z
+# BRIEFING — 2026-08-09T00:16:50Z
 
 ## Mission
-Investigate specifications and design technical implementation for the Stack Synthesizer module (src/synthesizer/types.ts, stack-synthesizer.ts, yaml-generator.ts, private-net.ts).
+Investigate Auth & Template Library backend implementation in zeroops-engine/ and plan concrete implementation details for `tests/auth-onboarding.test.ts` and `tests/template-library.test.ts`.
 
 ## 🔒 My Identity
-- Archetype: explorer
-- Roles: Explorer 2 for M1 (ZCP Stack Synthesizer & Engine Core)
+- Archetype: Teamwork explorer
+- Roles: Read-only investigation: analyze problems, synthesize findings, produce structured reports
 - Working directory: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2
-- Original parent: 91c92a6e-774f-4450-85f3-cf1df67cb49b
-- Milestone: M1
+- Original parent: 996ddfdf-f753-485c-8d88-d3edc079f499
+- Milestone: M1 - Test Suite Unification & Coverage Setup
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement src/ files directly (write proposals/designs/analysis into explorer folder)
-- Files only created in /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2
+- Read-only investigation — do NOT implement code changes in zeroops-engine
+- Investigate Auth endpoints (/api/auth/*), PAT overlay storage, token passing to ZCP client wrapper
+- Investigate Template catalog (/api/templates), zerops-import.yml synthesis, 3 pre-built stacks, zero-stub AST validator/template validation logic
+- Inspect existing server/API tests structure
+- Plan concrete implementation details for `tests/auth-onboarding.test.ts` and `tests/template-library.test.ts`
 
 ## Current Parent
-- Conversation ID: 91c92a6e-774f-4450-85f3-cf1df67cb49b
-- Updated: 2026-08-08T17:30:00Z
+- Conversation ID: 996ddfdf-f753-485c-8d88-d3edc079f499
+- Updated: 2026-08-09T00:16:50Z
 
 ## Investigation State
 - **Explored paths**:
-  - `ORIGINAL_REQUEST.md` (R1 requirements & acceptance criteria)
-  - `PROJECT.md` (Interface contracts & layout)
-  - `.agents/sub_orch_m1/SCOPE.md` (M1 module breakdown)
-  - `.agents/explorer_survey_2/handoff.md` & `exa-results/zerops-challenge-idea-research-2026-08-06.md` (Zerops project import and zerops.yml specs)
+  - `zeroops-engine/src/server/index.js` (Express REST API, session auth, PAT token, templates endpoints)
+  - `zeroops-engine/src/server/zcp-client.js` & `src/zcp/zcp-client.ts` (ZCP client token wrapper)
+  - `zeroops-engine/src/templates/` (`ai-video-clipper`, `ecommerce-platform`, `rag-search-engine`)
+  - `zeroops-engine/src/code-gen/stub-validator.ts` (AST zero-stub validator)
+  - `zeroops-engine/tests/` (Vitest & tsx node test runners)
 - **Key findings**:
-  - `types.ts`: Must implement `StackTopologySpec` and `GeneratedConfigs` contracts.
-  - `stack-synthesizer.ts`: Multi-container parser supporting Node, Go, Python, Rust runtimes + Postgres HA, Valkey HA managed services, with guaranteed 3 runtime + 2 DB default fallback.
-  - `private-net.ts`: Inter-service private network IP/host injector for `DB_HOST`, `VALKEY_HOST`, `DATABASE_URL`, `REDIS_URL`, `API_URL`.
-  - `yaml-generator.ts`: Dual generator producing valid `zerops-project-import.yml` and `zerops.yml`.
-- **Unexplored areas**: None.
+  - Auth endpoints `/api/auth/signup`, `/api/auth/login`, `/api/auth/logout`, `/api/auth/me`, `/api/auth/token`, `/api/ws-token` identified with line numbers.
+  - Template catalog endpoints `/api/templates` & `/api/templates/:id` identified.
+  - All 3 pre-built stacks examined: `ai-video-clipper`, `ecommerce-platform`, `rag-search-engine`.
+  - Detailed plan for `tests/auth-onboarding.test.ts` (~20 test cases) and `tests/template-library.test.ts` (~15-20 test cases) formulated in `handoff.md`.
+- **Unexplored areas**: None for M1 Explorer 2 scope.
 
 ## Key Decisions Made
-- Designed complete zero-stub code for `types.ts`, `stack-synthesizer.ts`, `private-net.ts`, and `yaml-generator.ts` in `analysis.md`.
-- Wrote 5-component handoff report in `handoff.md`.
+- Prepared detailed test structure, route expectations, assertions, and verification commands in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/handoff.md`.
 
 ## Artifact Index
-- DISPATCH.md — Dispatch log
-- BRIEFING.md — Working memory index
-- progress.md — Heartbeat & progress log
-- analysis.md — Technical investigation & module designs
-- handoff.md — 5-component handoff report
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/DISPATCH.md — Dispatch log
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/BRIEFING.md — Working briefing index
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/progress.md — Liveness heartbeat & progress tracker
+- /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_2/handoff.md — Comprehensive Exploration & Handoff Report

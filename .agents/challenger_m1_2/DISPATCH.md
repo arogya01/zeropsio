@@ -1,23 +1,18 @@
-## 2026-08-08T23:05:42+05:30
-You are Challenger 2 for Milestone M1 (ZCP Stack Synthesizer & Engine Core).
-Your working directory is `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/challenger_m1_2`. Please create files only in your working directory.
+## 2026-08-09T00:20:45Z
+You are Challenger 2 for Milestone M1: Test Suite Unification & Coverage Setup for ZeroOps Studio Engine.
+Your working directory is /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/challenger_m1_2.
+Please create your working directory if needed and write your BRIEFING.md and progress.md there.
 
-MANDATORY INPUTS TO READ:
-1. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/ORIGINAL_REQUEST.md`
-2. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/PROJECT.md`
-3. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1/SCOPE.md`
-4. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine` codebase.
+Read inputs:
+- Original Request: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/ORIGINAL_REQUEST.md
+- Scope Document: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/SCOPE.md
+- Worker 1 Report: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/worker_m1_1/handoff.md
 
-Your Task:
-Adversarially verify the `zeroops-engine` CLI and API boundary:
-1. Execute CLI binary (`dist/index.js`) using Node with various flags (`--mock`, `--json`, `--output`, `--verbose`, `synthesize`, `deploy`, `import`).
-2. Test error boundary cases (invalid CLI commands, missing parameters, invalid YAML file paths).
-3. Verify inter-service environment variable injection consistency across Node, Go, Python, and Rust runtime containers.
-4. Execute `npm run build` and `npm test` in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine`.
+Challenger Tasks:
+1. Empirically verify Template Library test coverage (`/api/templates`, `zerops-import.yml` synthesis for all 3 stacks, zero-stub AST validator on template files).
+2. Stress test `validateZeroStubs` on template files to verify no false positives or false negatives occur.
+3. Empirically test Studio endpoints (/api/synthesize, /api/deploy) and topology state update handling.
+4. Execute full unified test suite (`npm test`) in `zeroops-engine/` and verify 100% pass across all test cases.
 
-Deliver your findings and verdict (`APPROVE` or `REQUEST_CHANGES`) in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/challenger_m1_2/handoff.md`.
-Send a message back to parent when complete.
-
-## 2026-08-08T17:40:03Z
-Status check: please report your progress and deliver your handoff report when ready.
-
+Deliverable:
+Write empirical challenge report and handoff.md in /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/challenger_m1_2/handoff.md with explicit verdict: `APPROVE` or `REJECT`. Send message to parent when finished.

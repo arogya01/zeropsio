@@ -46,14 +46,15 @@ export function createStudioServer(options: StudioServerOptions = {}): StudioSer
   // Locate static public directory dynamically
   const currentDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
   const candidateDirs = [
+    path.resolve(process.cwd(), 'public'),
+    path.resolve(process.cwd(), 'zeroops-engine/public'),
     path.resolve(currentDir, 'public'),
     path.resolve(process.cwd(), 'src/studio/public'),
     path.resolve(process.cwd(), 'zeroops-engine/src/studio/public'),
     path.resolve(currentDir, '../../src/studio/public')
   ];
 
-  const staticDir = candidateDirs.find((d) => fs.existsSync(d)) || candidateDirs[0];
-  app.use(express.static(staticDir));
+  candidateDirs.filter((d) => fs.existsSync(d)).forEach((d) => app.use(express.static(d)));
 
   // --- REST API Endpoints ---
 
@@ -149,14 +150,23 @@ export function createStudioServer(options: StudioServerOptions = {}): StudioSer
     }
   });
 
-  // Fallback route serving SPA index.html for non-API requests
+  // Fallback route serving SPA studio.html or index.html for non-API requests
   app.get('*', (req: Request, res: Response, next: NextFunction) => {
     if (req.path.startsWith('/api/') || req.path.startsWith('/ws/')) {
       return next();
     }
-    const indexPath = path.join(staticDir, 'index.html');
-    if (fs.existsSync(indexPath)) {
-      res.sendFile(indexPath);
+    let targetPath = '';
+    for (const d of candidateDirs) {
+      if (fs.existsSync(path.join(d, 'studio.html'))) {
+        targetPath = path.join(d, 'studio.html');
+        break;
+      } else if (fs.existsSync(path.join(d, 'index.html'))) {
+        targetPath = path.join(d, 'index.html');
+        break;
+      }
+    }
+    if (targetPath && fs.existsSync(targetPath)) {
+      res.sendFile(targetPath);
     } else {
       res.status(404).send('Web Studio index.html not found');
     }

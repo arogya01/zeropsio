@@ -30,13 +30,14 @@ function createStudioServer(options = {}) {
     // Locate static public directory dynamically
     const currentDir = typeof __dirname !== 'undefined' ? __dirname : process.cwd();
     const candidateDirs = [
+        path_1.default.resolve(process.cwd(), 'public'),
+        path_1.default.resolve(process.cwd(), 'zeroops-engine/public'),
         path_1.default.resolve(currentDir, 'public'),
         path_1.default.resolve(process.cwd(), 'src/studio/public'),
         path_1.default.resolve(process.cwd(), 'zeroops-engine/src/studio/public'),
         path_1.default.resolve(currentDir, '../../src/studio/public')
     ];
-    const staticDir = candidateDirs.find((d) => fs_1.default.existsSync(d)) || candidateDirs[0];
-    app.use(express_1.default.static(staticDir));
+    candidateDirs.filter((d) => fs_1.default.existsSync(d)).forEach((d) => app.use(express_1.default.static(d)));
     // --- REST API Endpoints ---
     // Health check
     app.get('/api/health', (_req, res) => {
@@ -122,14 +123,24 @@ function createStudioServer(options = {}) {
             return res.status(500).json({ error: err.message || 'Deployment failed' });
         }
     });
-    // Fallback route serving SPA index.html for non-API requests
+    // Fallback route serving SPA studio.html or index.html for non-API requests
     app.get('*', (req, res, next) => {
         if (req.path.startsWith('/api/') || req.path.startsWith('/ws/')) {
             return next();
         }
-        const indexPath = path_1.default.join(staticDir, 'index.html');
-        if (fs_1.default.existsSync(indexPath)) {
-            res.sendFile(indexPath);
+        let targetPath = '';
+        for (const d of candidateDirs) {
+            if (fs_1.default.existsSync(path_1.default.join(d, 'studio.html'))) {
+                targetPath = path_1.default.join(d, 'studio.html');
+                break;
+            }
+            else if (fs_1.default.existsSync(path_1.default.join(d, 'index.html'))) {
+                targetPath = path_1.default.join(d, 'index.html');
+                break;
+            }
+        }
+        if (targetPath && fs_1.default.existsSync(targetPath)) {
+            res.sendFile(targetPath);
         }
         else {
             res.status(404).send('Web Studio index.html not found');

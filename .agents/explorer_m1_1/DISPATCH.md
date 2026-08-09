@@ -1,21 +1,16 @@
-## 2026-08-08T22:59:36Z
+## 2026-08-09T00:12:51Z
+You are Explorer 1 for Milestone M1: Test Suite Unification & Coverage Setup for ZeroOps Studio Multi-Tenant Cloud Engine.
+Your working directory is /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1.
+Please create your working directory if needed and write your BRIEFING.md and progress.md there.
 
-You are Explorer 1 for Milestone M1 (ZCP Stack Synthesizer & Engine Core).
-Your working directory is `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1`. Please create files only in your working directory.
+Read the original request at /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/ORIGINAL_REQUEST.md and scope document at /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1_r2/SCOPE.md.
 
-MANDATORY INPUTS TO READ:
-1. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/ORIGINAL_REQUEST.md`
-2. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/PROJECT.md`
-3. `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1/SCOPE.md`
+Task Scope & Focus:
+Investigate package.json scripts and test runner setup in zeroops-engine/ (/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine).
+- Check current package.json test scripts, vitest config, tsx version, dependencies, and existing tier tests (e.g. tests/tier*.test.ts).
+- Plan exact updates to package.json scripts so `npm test` executes both Vitest unit/integration tests and Node native Tier E2E tests (e.g., `npx vitest run && npx tsx --test tests/tier*.test.ts`).
+- Plan script targets: `test:unit`, `test:tier`, `test:all`, `test`.
+- Analyze how test commands should be executed without hangs or missing environment flags.
 
-Your Task:
-Investigate existing workspace at `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine` (or check if it exists).
-Design the Node.js/TypeScript project setup for `zeroops-engine`:
-- `package.json`: package name, dependencies (e.g., `js-yaml`, `commander`, etc., devDependencies like `typescript`, `@types/node`, `@types/js-yaml`, test runner like `vitest` or `jest`, build tools like `tsup` or `tsc`).
-- `tsconfig.json`: target ES2022/Node18+, module resolution, strict mode.
-- Directory layout matching `PROJECT.md` & `SCOPE.md`.
-- Exported entry point design for `src/index.ts` CLI.
-- Formulate recommended test setup and build commands (`npm run build`, `npm test`).
-
-Write your findings and technical implementation design to `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/analysis.md` and deliver your handoff in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/handoff.md`.
-Send a message back to parent when complete.
+Deliverable:
+Write a comprehensive exploration report and handoff.md in /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/ handoff.md detailing exact findings, existing code patterns, and concrete implementation recommendations. Send a message to parent when finished.

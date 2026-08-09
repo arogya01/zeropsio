@@ -1,64 +1,158 @@
-# Handoff Report: `zeroops-engine` Project Setup & Design (Milestone M1)
-
-**Agent**: Explorer 1 (M1)  
-**Target Path**: `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1`  
-**Date**: 2026-08-08  
-
----
+# Handoff Report: Test Suite Unification & Coverage Setup Analysis (Milestone M1)
 
 ## 1. Observation
 
-1. **Workspace Directory Absence**:
-   - Tool Command: `list_dir` on `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine`.
-   - Result Output: `Encountered error in step execution: directory /Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine does not exist`.
-   - Confirmed `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine` is not yet created.
+### Codebase & Config State (`zeroops-engine/`)
+- **`package.json` (`/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine/package.json`)**:
+  - Lines 6–12 currently define:
+    ```json
+    "scripts": {
+      "start": "node src/server/index.js",
+      "dev": "node --watch src/server/index.js",
+      "verify": "node src/server/health-checker.js",
+      "build": "npx tsc",
+      "test": "npx vitest run"
+    }
+    ```
+  - Lines 33–40 (`devDependencies`):
+    ```json
+    "devDependencies": {
+      "@types/cors": "2.8.19",
+      "@types/express": "5.0.6",
+      "@types/node": "26.2.0",
+      "@types/ws": "8.18.1",
+      "typescript": "5.9.3",
+      "vitest": "4.1.10"
+    }
+    ```
+  - `tsx` runner is currently missing from `devDependencies` in `package.json`.
 
-2. **Project Specification Requirements**:
-   - File `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/ORIGINAL_REQUEST.md` (lines 7, 12-14, 27-29): Specifies `zeroops-engine` location and autonomous multi-container stack orchestration via ZCP with 3+ runtimes (Frontend, API Gateway, Worker) and 2 managed database services (PostgreSQL HA, Valkey Cache), with private network env vars (`DB_HOST`, `VALKEY_HOST`).
-   - File `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/PROJECT.md` (lines 10-44, 88-109): Specifies `zeroops-engine/` code layout (`package.json`, `tsconfig.json`, `src/index.ts`, `src/synthesizer/*`, `src/zcp/*`, `src/code-gen/*`, `src/studio/*`, `src/verifier/*`, `docs/*`) and `StackTopologySpec` & `GeneratedConfigs` interface contracts.
-   - File `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1/SCOPE.md` (lines 4-20): Assigns ownership of `package.json`, `tsconfig.json`, `src/index.ts`, `src/synthesizer/*`, `src/zcp/*` to Milestone M1.
-   - File `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/TEST_INFRA.md` (lines 35-37): Mandates test runner location at `zeroops-engine/tests` with `npm test` exit code `0`.
+- **`vitest.config.ts` (`/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine/vitest.config.ts`)**:
+  - Lines 1–15:
+    ```typescript
+    import { defineConfig } from 'vitest/config';
+
+    export default defineConfig({
+      test: {
+        globals: true,
+        environment: 'node',
+        include: ['tests/**/*.test.ts', 'src/**/*.test.ts'],
+        exclude: ['tests/tier*.test.ts', 'node_modules', 'dist'],
+        coverage: {
+          provider: 'v8',
+          reporter: ['text', 'json', 'html'],
+        },
+      },
+    });
+    ```
+  - Excludes `tests/tier*.test.ts` from Vitest, so Vitest only runs unit and integration test files.
+
+- **Test Files Breakdown (`zeroops-engine/tests/`)**:
+  - **Vitest Suite (9 files, 72 tests)**:
+    - `tests/cli.test.ts` (3 tests)
+    - `tests/code-gen.test.ts` (23 tests)
+    - `tests/harness.test.ts` (6 tests)
+    - `tests/m3_challenger_stress.test.ts` (10 tests)
+    - `tests/private-net.test.ts` (2 tests)
+    - `tests/studio.test.ts` (15 tests)
+    - `tests/synthesizer.test.ts` (4 tests)
+    - `tests/yaml-generator.test.ts` (3 tests)
+    - `tests/zcp-client.test.ts` (6 tests)
+  - **Node Native Test Runner Suite (4 files, 197 tests)**:
+    - `tests/tier1_feature_coverage.test.ts` (85 tests)
+    - `tests/tier2_boundary_edge.test.ts` (85 tests)
+    - `tests/tier3_pairwise.test.ts` (17 tests)
+    - `tests/tier4_scenarios.test.ts` (10 tests)
+
+- **Test Execution Findings**:
+  - `npx vitest run` output:
+    - 9 passed test files, 72 passed test cases (Duration: ~1.5s).
+    - Outputs Vite warning: `(!) Your Vite config uses features that are unsupported by configLoader: 'native'`.
+  - `npx tsx --test tests/tier*.test.ts` output:
+    - 4 test files passed, 197 passed test cases (Duration: ~0.26s).
+  - Combined `npx vitest run && npx tsx --test tests/tier*.test.ts` output:
+    - 269 passed test cases in 2.8s, zero hangs, zero unhandled rejections.
+  - Setting `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` when running Vitest suppresses the Vite config warning cleanly.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Observation 1** demonstrates that `zeroops-engine` must be bootstrapped from scratch by the M1 Implementer agent.
-2. **Observation 2** dictates the specific dependencies, Node.js runtime target (ES2022 / Node 18+), strict TypeScript configuration, directory structure, CLI entry point (`src/index.ts`), and build/test runners needed.
-3. Choosing **`tsup`** as the build tool fulfills the requirement for quick ESM compilation, TypeScript declaration emission, and automatic `#!/usr/bin/env node` banner injection for the CLI binary (`bin: { "zeroops": "./dist/index.js" }`).
-4. Choosing **`vitest`** as the test runner fulfills the `npm test` requirement in `TEST_INFRA.md` with zero-config ESM + TypeScript execution, high performance, and standard exit code `0` on test completion.
-5. Including `commander` (CLI option parsing), `js-yaml` (YAML parsing/dumping), `zod` (runtime schema validation), and `picocolors` (colored output) satisfies all runtime dependency requirements for M1 stack synthesis and ZCP bridge execution.
-6. Structuring `src/index.ts` to expose both CLI subcommands (`synthesize`, `deploy`) and programmatic API re-exports ensures seamless interoperability with test suites and future milestone modules.
+1. **Current Gap**: Running `npm test` currently calls `npx vitest run`, which skips all 197 Node native tier tests (`tier1_feature_coverage.test.ts` through `tier4_scenarios.test.ts`).
+2. **Framework Separation**: Vitest is configured to run `tests/**/*.test.ts` excluding `tests/tier*.test.ts`. This design is correct because tier tests use Node native imports (`node:test`, `node:assert`).
+3. **Dependency Requirement**: `tsx` is required to run `node:test` TypeScript files (`tsx --test tests/tier*.test.ts`). Although `tsx` v4.23.11 is present in the local system environment, it is absent from `package.json` `devDependencies`. Adding `"tsx": "^4.19.2"` (or `"tsx": "4.23.11"`) to `devDependencies` guarantees reproducibility across all environments.
+4. **Script Target Mapping**:
+   - `test:unit`: `"VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest run"` (or `"vitest run"`)
+   - `test:tier`: `"tsx --test tests/tier*.test.ts"`
+   - `test:all`: `"npm run test:unit && npm run test:tier"`
+   - `test`: `"npm run test:all"`
+5. **Future M1 Expansion**: When Worker adds the three required test files (`tests/auth-onboarding.test.ts`, `tests/template-library.test.ts`, `tests/workbench-ui.test.ts`), `vitest` will automatically discover and run them during `npm run test:unit` / `npm test` because they match `tests/**/*.test.ts` and are not excluded by `tests/tier*.test.ts`.
 
 ---
 
 ## 3. Caveats
 
-1. **Workspace Directory Initialization**: `zeroops-engine/` directory must be created before creating `package.json` or `tsconfig.json`.
-2. **Package Installation**: In environments without active internet access or restricted npm registries, pre-cached or local node_modules may be utilized, but standard package definitions specified in `package.json` remain fully compatible.
-3. **ZCP API Credentials**: ZCP API execution in `src/zcp/zcp-client.ts` supports a `--mock` flag mode to enable deterministic E2E testing without external network side-effects.
+- **Vite Warning**: In Vite 6+, CommonJS projects loading TypeScript config files trigger a warning unless `"type": "module"` is set or `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` is exported. Setting `"type": "module"` in `package.json` could affect `src/server/index.js` which uses `require(...)`. Therefore, suppressing the warning via `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` in `test:unit` or renaming `vitest.config.ts` to `vitest.config.mts` is the cleanest approach.
+- **Async Teardown**: Server integration tests (`tests/studio.test.ts`) properly close HTTP/WebSocket server handles in `afterAll()`, so tests complete deterministically without process hangs.
 
 ---
 
 ## 4. Conclusion
 
-The Node.js/TypeScript setup for `zeroops-engine` has been fully designed and documented in `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/analysis.md`.
-The recommended architecture consists of:
-- **`package.json`**: Pure ESM package (`"type": "module"`), Node >=18.0.0, scripts (`build`, `dev`, `test`, `typecheck`, `lint`), dependencies (`commander`, `js-yaml`, `picocolors`, `zod`), devDependencies (`typescript`, `@types/node`, `@types/js-yaml`, `tsup`, `vitest`, `tsx`).
-- **`tsconfig.json`**: Target ES2022, `moduleResolution`: `NodeNext`, `strict`: true.
-- **`tsup.config.ts` & `vitest.config.ts`**: Dedicated build and test runner configurations.
-- **Directory Layout**: Perfectly matching `PROJECT.md` & `SCOPE.md`.
-- **`src/index.ts`**: CLI entry point with `commander` and library exports.
+The test infrastructure in `zeroops-engine/` is fully operational with 269 existing tests passing across two runners (Vitest: 72, Node test runner: 197). 
+
+To complete Task 1 of Milestone M1, the following changes are recommended for implementation by Worker:
+
+### Implementation Plan for Worker:
+1. **Update `zeroops-engine/package.json`**:
+   - Add `"tsx": "^4.19.2"` (or `4.23.11`) to `devDependencies`.
+   - Update `scripts` section:
+     ```json
+     "scripts": {
+       "start": "node src/server/index.js",
+       "dev": "node --watch src/server/index.js",
+       "verify": "node src/server/health-checker.js",
+       "build": "npx tsc",
+       "test": "npm run test:all",
+       "test:unit": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vitest run",
+       "test:tier": "tsx --test tests/tier*.test.ts",
+       "test:all": "npm run test:unit && npm run test:tier"
+     }
+     ```
+2. **New Test File Structure**:
+   - Place `tests/auth-onboarding.test.ts`, `tests/template-library.test.ts`, and `tests/workbench-ui.test.ts` directly in `zeroops-engine/tests/`.
+   - Write these tests using Vitest imports (`import { describe, it, expect } from 'vitest'`) so they are automatically picked up by `test:unit`.
 
 ---
 
 ## 5. Verification Method
 
-1. **Inspect Analysis Report**:
-   - View `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/analysis.md` to verify complete `package.json`, `tsconfig.json`, `tsup.config.ts`, `vitest.config.ts`, `src/index.ts`, and directory layout specifications.
-2. **Implementation Verification (Future Implementer Step)**:
-   - Run `mkdir -p /Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine`.
-   - Write specified configuration files into `zeroops-engine/`.
-   - Execute `npm run build` (or `npx tsup`) inside `zeroops-engine/` to verify clean build emitting `dist/index.js`.
-   - Execute `npm test` (or `npx vitest run`) inside `zeroops-engine/` to verify test suite runner execution.
-   - Execute `npm run typecheck` (or `npx tsc --noEmit`) to verify zero TypeScript errors.
+To verify the updated setup once implemented by Worker:
+
+1. **Verify Unit Tests**:
+   ```bash
+   cd zeroops-engine
+   npm run test:unit
+   ```
+   *Expected*: 9+ Vitest test files pass with 0 failures.
+
+2. **Verify Tier Tests**:
+   ```bash
+   cd zeroops-engine
+   npm run test:tier
+   ```
+   *Expected*: 4 Node test runner tier files pass (197 tests) with 0 failures.
+
+3. **Verify Full Unified Test Suite**:
+   ```bash
+   cd zeroops-engine
+   npm run test:all
+   # OR
+   npm test
+   ```
+   *Expected*: Both unit and tier suites execute sequentially, passing all 269+ test cases cleanly with exit code 0.
+
+4. **Invalidation Conditions**:
+   - `npm test` failing to run tier tests or unit tests.
+   - Any test process hanging after completion.
+   - Non-zero exit code on missing `tsx` binary.

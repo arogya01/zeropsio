@@ -1,72 +1,77 @@
-# Project: ZeroOps — Full-Stack Autonomous Cloud Factory
+# Project: ZeroOps Studio — Multi-Tenant Cloud Engine
 
 ## Architecture
-ZeroOps is a full-stack autonomous cloud factory. It takes natural language prompts and programmatically synthesizes, provisions, wires, builds, deploys, and verifies multi-container cloud applications live on Zerops via ZCP (Zerops Control Plane).
+ZeroOps Studio is a multi-tenant cloud engine allowing developers to log in, onboard their own Zerops Personal Access Token (PAT), and provision/deploy multi-container cloud stacks (3 runtimes + 2 managed DBs) live on Zerops via `zcli` and ZCP APIs.
 
 ### Data & Control Flow
-`User Prompt / Web Studio` -> `ZeroOps Synthesizer Engine` -> `zerops-project-import.yml & zerops.yml` -> `ZCP / Zerops REST API / zcli` -> `Zerops Private VXLAN Cloud Stack` (Frontend + API Gateway + Worker + PostgreSQL HA + Valkey Cache) -> `Real-Time WebSocket Log Streamer & Topology Canvas` -> `Automated Live Verification Suite`
+`User Login / PAT Onboarding` -> `Web Studio UI (Split Pane)` -> `1-Click Template Launcher / Prompt Synthesizer` -> `zerops-import.yml & zerops.yml Generator` -> `zcli project-import (with User PAT)` -> `Zerops Private VXLAN Cloud Stack` (Frontend + API Gateway + Worker + PostgreSQL + Valkey Cache) -> `WebSocket Log Streamer & Topology Canvas` -> `Automated Live Verification Suite` -> `Live Verified URL`
 
 ### Code Layout (`zeroops-engine`)
 ```
 zeroops-engine/
-├── package.json
+├── package.json                     # Test & build scripts
 ├── tsconfig.json
+├── vitest.config.ts
 ├── src/
-│   ├── index.ts                     # Main Engine CLI & Server entry point
-│   ├── synthesizer/                 # ZCP YAML & Stack Synthesizer (R1)
+│   ├── index.ts                     # CLI & library entry point
+│   ├── server/                      # Multi-tenant auth & Studio server
+│   │   ├── index.js                 # Express server & API routes
+│   │   ├── health-checker.js        # Health audit runner
+│   │   └── zcp-client.js            # zcli child process runner
+│   ├── synthesizer/                 # Stack & YAML synthesizer
 │   │   ├── stack-synthesizer.ts
 │   │   ├── yaml-generator.ts
-│   │   └── types.ts
-│   ├── code-gen/                    # Multi-Service Code & Schema Synthesizer (R2)
+│   │   └── private-net.ts
+│   ├── code-gen/                    # Multi-service code synthesizer
 │   │   ├── code-synthesizer.ts
 │   │   ├── template-generator.ts
 │   │   └── stub-validator.ts
-│   ├── zcp/                         # ZCP API & zcli Orchestration Bridge
-│   │   ├── zcp-client.ts
-│   │   ├── runner.ts
-│   │   └── logger.ts
-│   ├── studio/                      # Web Studio UI & WebSocket Log Streamer (R3)
+│   ├── studio/                      # Web Studio & WS log streamer
 │   │   ├── server.ts
-│   │   ├── ws-logger.ts
-│   │   └── public/                  # Dark-mode Web Studio SPA (xterm.js + 3D/2D Topology Canvas)
-│   │       ├── index.html
-│   │       ├── app.js
-│   │       ├── topology-canvas.js
-│   │       └── style.css
-│   └── verifier/                    # Automated Live Verification Suite (R4)
-│       ├── live-auditor.ts
-│       ├── http-checker.ts
-│       ├── db-auditor.ts
-│       └── queue-auditor.ts
-└── docs/                            # Project Documentation & Demo Video Script
-    ├── AI-USAGE.md
-    └── DEMO_STORYBOARD.md
+│   │   └── ws-logger.ts
+│   ├── templates/                   # 3 Pre-built stack templates
+│   │   ├── ai-video-clipper/
+│   │   ├── ecommerce-platform/
+│   │   └── rag-search-engine/
+│   └── verifier/                    # Verification suite
+│       └── live-auditor.ts
+├── public/                          # Studio & Login SPA assets
+│   ├── login.html
+│   ├── studio.html
+│   ├── studio.js
+│   └── studio.css
+└── tests/                           # Unit, Integration & Tier E2E tests
+    ├── auth-onboarding.test.ts
+    ├── template-library.test.ts
+    ├── workbench-ui.test.ts
+    ├── challenger-adversarial.test.ts
+    ├── harness.ts
+    ├── harness.test.ts
+    └── tier1..tier4.test.ts
 ```
 
 ---
 
 ## Feature Inventory
-Every feature extracted during Phase 0 survey is cataloged and assigned to a milestone below.
 
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Natural Language Stack Synthesizer | Parses prompt to construct multi-service stack topology & generates YAMLs | M1 | `ORIGINAL_REQUEST.md:12` |
-| 2 | ZCP Project Provisioner | Calls ZCP API / MCP tools to create isolated Zerops projects | M1 | `ORIGINAL_REQUEST.md:12,27` |
-| 3 | 3+ Container Runtime Deployment | Deploys Frontend, API Gateway, and Worker containers | M1 | `ORIGINAL_REQUEST.md:13,28` |
-| 4 | 2 Managed Service Provisioner | Spins up Managed PostgreSQL HA cluster and Valkey Cache | M1 | `ORIGINAL_REQUEST.md:13,28` |
-| 5 | Private Network IP/Env Injector | Automatically injects `DB_HOST`, `VALKEY_HOST` inter-service IP env vars | M1 | `ORIGINAL_REQUEST.md:14,29` |
-| 6 | Multi-Service Code Synthesizer | Generates complete UI, REST/gRPC API, queue worker, & SQL migrations | M2 | `ORIGINAL_REQUEST.md:15,37` |
-| 7 | Zero-Stub Code Validator | Enforces complete runnable implementations with zero placeholder stubs | M2 | `ORIGINAL_REQUEST.md:16,37` |
-| 8 | Dark-Mode Web Studio UI | Dark-themed Web Studio interface for prompt input, build & monitor | M3 | `ORIGINAL_REQUEST.md:18,31` |
-| 9 | 3D/2D Container Topology Canvas | Interactive topology map showing nodes, packet flow animations, and health | M3 | `ORIGINAL_REQUEST.md:18,33` |
-| 10 | WebSocket xterm.js Log Streamer | Real-time terminal log viewer streaming build/runtime logs via WebSocket | M3 | `ORIGINAL_REQUEST.md:18,32` |
-| 11 | Zero-Downtime Deployment Trigger | One-click instant redeployment and zero-downtime rolling update trigger | M3 | `ORIGINAL_REQUEST.md:19` |
-| 12 | Live HTTP 200 Health Checker | Programmatically pings live provisioned Zerops URLs for HTTP 200 | M4 | `ORIGINAL_REQUEST.md:21,38` |
-| 13 | Private DB & Cache Connectivity Auditor | Verifies PostgreSQL read/write & Valkey ping over internal private network | M4 | `ORIGINAL_REQUEST.md:21,38` |
-| 14 | End-to-End Queue Processing Auditor | Pushes test message API -> Valkey -> Worker -> Postgres and verifies | M4 | `ORIGINAL_REQUEST.md:22,38` |
-| 15 | Verified Live URL Presenter | Generates and displays verified live HTTP URL upon successful health check | M4 | `ORIGINAL_REQUEST.md:22,34` |
-| 16 | AI-Usage & Project Documentation | Generates transparent `AI-USAGE.md`, `README.md`, & architecture docs | M5 | `ORIGINAL_REQUEST.md:39` |
-| 17 | Demo Video Storyboard Generator | Scripts a 30-60s vertical 9:16 video storyboard showing live deployment | M5 | `ORIGINAL_REQUEST.md:39` |
+| 1 | Minimal Session Auth API & UI | Email/password login & signup UI and API routes | M2 | `ORIGINAL_REQUEST.md:50` |
+| 2 | BYO Zerops PAT Onboarding | Modal overlay for user Zerops PAT storage per session | M2 | `ORIGINAL_REQUEST.md:51` |
+| 3 | zcli PAT Token Injection | Injects user PAT into `zcli project-import` operations | M2 | `ORIGINAL_REQUEST.md:51,69` |
+| 4 | AI Video Clipper Template | Next.js + Go REST + Python Whisper + PostgreSQL + Valkey | M3 | `ORIGINAL_REQUEST.md:55` |
+| 5 | E-Commerce Platform Template | Bun + Go Order + Python Rec + PostgreSQL + Valkey | M3 | `ORIGINAL_REQUEST.md:56` |
+| 6 | RAG Search Engine Template | React + FastAPI + Python Embedder + PostgreSQL pgvector + Valkey | M3 | `ORIGINAL_REQUEST.md:57` |
+| 7 | Polyglot Code Synthesizer | Synthesizes full runnable multi-service source files | M3 | `ORIGINAL_REQUEST.md:15,37` |
+| 8 | AST Zero-Stub Validator | Validates JS/TS/Go/Python/SQL code for zero placeholders | M3 | `ORIGINAL_REQUEST.md:16,37` |
+| 9 | Bolt.new Split-Pane Studio UI | Left prompt/feed + Right tabbed Terminal/Yaml/Code Inspector | M4 | `ORIGINAL_REQUEST.md:59` |
+| 10 | WebSocket zcli Log Streamer | Real-time xterm.js terminal log streaming via WebSockets | M4 | `ORIGINAL_REQUEST.md:60` |
+| 11 | Persistent Topology Canvas | 2D node map of 5 services with animated health states | M4 | `ORIGINAL_REQUEST.md:60` |
+| 12 | Live Public HTTP 200 Audit | Programmatic HTTP status 200 health check on provisioned URL | M5 | `ORIGINAL_REQUEST.md:62` |
+| 13 | Private DB Connectivity Audit | Pings Postgres HA over Zerops internal private VXLAN IP | M5 | `ORIGINAL_REQUEST.md:63` |
+| 14 | Private Valkey Queue Audit | Pings Valkey stream over Zerops internal private VXLAN IP | M5 | `ORIGINAL_REQUEST.md:63` |
+| 15 | Live Verified URL Banner | Displays verified live HTTP URL upon 100% audit pass | M5 | `ORIGINAL_REQUEST.md:63,74` |
+| 16 | Test Suite Unification | Unifies Vitest and Node native Tier test suites in `npm test` | M1 | Survey Findings |
 
 ---
 
@@ -74,68 +79,70 @@ Every feature extracted during Phase 0 survey is cataloged and assigned to a mil
 
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | ZCP Stack Synthesizer & Engine Core | `zeroops-engine` scaffold, `zerops.yml` + project import generator, 3+ runtimes, 2 managed DBs, private IP env injector | none | DONE |
-| M2 | Full-Stack Code & Schema Synthesizer | Multi-service code generation (UI, API, Worker, SQL migrations), AST zero-stub validator | M1 | DONE |
-| M3 | Web Studio & WebSocket Log Streamer | Dark-mode Web Studio UI, 3D/2D container topology canvas, WebSocket `xterm.js` log streamer, deploy triggers | M1, M2 | DONE |
-| M4 | Automated Live Verification Suite | Live HTTP 200 checker, private DB/Cache auditor, E2E queue processing auditor, live URL presenter | M1, M2, M3 | PLANNED |
-| M5 | Documentation & Demo Storyboard | `AI-USAGE.md`, `README.md`, architecture documentation, 30-60s 9:16 vertical video storyboard script | M1..M4 | PLANNED |
-| M6 | Final E2E Suite & Adversarial Hardening | Pass 100% of E2E test suite (Tiers 1-4), Tier 5 white-box adversarial coverage hardening | M1..M5 | PLANNED |
+| M1 | Test Suite Unification & Coverage Setup | Unify `npm test` script, add dedicated tests for Auth, Templates, Studio UI, update `TEST_READY.md` | none | DONE |
+| M2 | Session Auth & BYO PAT Onboarding | Verify & harden session auth, PAT overlay, and `zcli` PAT injection | M1 | DONE |
+| M3 | Pre-Built Full-Stack Template Library | Verify 3 multi-container templates, zerops-import.yml generator, AST zero-stub validator | M1 | DONE |
+| M4 | Real-Time Log Streaming & Split-Pane Studio | Verify split-pane UI, WebSocket zcli log streamer, zerops.yml viewer, Code Inspector, topology strip | M1, M2, M3 | DONE |
+| M5 | Automated Live Verification & Health Audit | Verify HTTP 200 checker, private DB/Cache auditor, live URL presenter banner | M1, M2..M4 | IN_PROGRESS |
+| M6 | Final E2E Suite & Adversarial Hardening | Pass 100% of unified test suite (350+ tests), Tier 5 white-box coverage hardening | M1..M5 | PLANNED |
 
 ---
 
 ## Interface Contracts
 
-### 1. Synthesizer ↔ ZCP Provisioner Contract
+### 1. User Session & PAT Contract (`src/server/index.js`)
 ```typescript
-interface StackTopologySpec {
-  projectName: string;
-  runtimes: Array<{
-    name: string; // e.g. 'frontend', 'api', 'worker'
-    runtime: 'nodejs' | 'go' | 'python' | 'rust';
-    ports: number[];
-    envVariables: Record<string, string>;
-  }>;
-  managedServices: Array<{
-    name: string; // e.g. 'postgres', 'valkey'
-    type: 'postgresql' | 'valkey';
-    mode: 'HA' | 'SINGLE';
-  }>;
+interface UserSession {
+  userId: string;
+  email: string;
+  token: string;
+  zeropsPat?: string;
+  createdAt: string;
 }
+```
 
-interface GeneratedConfigs {
+### 2. Stack Template Contract (`src/server/index.js`)
+```typescript
+interface StackTemplate {
+  id: 'ai-video-clipper' | 'ecommerce-platform' | 'rag-search-engine';
+  name: string;
+  description: string;
+  services: Array<{
+    name: string;
+    type: 'webapp' | 'apigateway' | 'aiworker' | 'postgres' | 'valkey';
+    runtime: 'nodejs' | 'go' | 'python' | 'postgresql' | 'valkey';
+    port: number;
+  }>;
   zeropsProjectImportYaml: string;
   zeropsYaml: string;
 }
 ```
 
-### 2. Studio ↔ WebSocket Log Streamer Contract
+### 3. Log Streamer & Topology WebSocket Contract (`src/studio/ws-logger.ts`)
 ```typescript
-interface LogStreamMessage {
-  timestamp: string;
-  service: string;
-  stream: 'stdout' | 'stderr' | 'system';
-  message: string;
-}
-
-interface TopologyNodeState {
-  id: string;
-  name: string;
-  type: 'runtime' | 'database' | 'cache';
-  status: 'HEALTHY' | 'BUILDING' | 'FAILED';
+interface WsLogMessage {
+  type: 'log' | 'topology-update' | 'complete' | 'history' | 'error';
+  service?: string;
+  message?: string;
+  status?: 'BUILDING' | 'DEPLOYING' | 'HEALTHY' | 'FAILED';
   privateIp?: string;
+  liveUrl?: string;
 }
 ```
 
-### 3. Verification Suite Contract
+### 4. Verification & Audit Contract (`src/server/health-checker.js`)
 ```typescript
-interface HealthAuditResult {
-  passed: boolean;
-  httpStatus: number;
+interface AuditResult {
+  success: boolean;
+  auditsPassed: number;
+  auditsTotal: number;
+  score: string;
+  details: {
+    publicHttp: { passed: boolean; statusCode: number };
+    apiGateway: { passed: boolean; statusCode: number };
+    postgresPrivateDb: { passed: boolean; connected: boolean };
+    valkeyPrivateCache: { passed: boolean; connected: boolean };
+  };
   liveUrl: string;
-  privateDbConnected: boolean;
-  privateCacheConnected: boolean;
-  queueE2EPassed: boolean;
-  latencyMs: number;
-  errors: string[];
 }
 ```

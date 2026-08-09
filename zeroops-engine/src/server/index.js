@@ -10,6 +10,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const ZCPClient = require('./zcp-client');
 const Synthesizer = require('./synthesizer');
 const HealthChecker = require('./health-checker');
@@ -24,12 +25,30 @@ const healthChecker = new HealthChecker();
 // In-memory user store (hackathon-grade; swap for DB in prod)
 const users = {};
 
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, storedPassword) {
+  if (!storedPassword || !storedPassword.includes(':')) return false;
+  const [salt, key] = storedPassword.split(':');
+  const keyBuffer = Buffer.from(key, 'hex');
+  const derivedKey = crypto.scryptSync(password, salt, 64);
+  return crypto.timingSafeEqual(keyBuffer, derivedKey);
+}
+
 app.use(express.json());
 app.use(session({
-  secret: 'zeroops-studio-hackathon-2026',
+  secret: process.env.SESSION_SECRET || 'zeroops-studio-hackathon-2026',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 24 * 60 * 60 * 1000 } // 24h
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 24h
+  }
 }));
 
 // Static files
@@ -44,35 +63,49 @@ function requireAuth(req, res, next) {
 // ─── AUTH ROUTES ───
 app.post('/api/auth/signup', (req, res) => {
   const { email, password, name } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
-  if (users[email]) return res.status(409).json({ error: 'User already exists' });
+  const cleanEmail = email ? email.toLowerCase().trim() : '';
+  if (!cleanEmail || !password) return res.status(400).json({ error: 'Email and password required' });
+  if (users[cleanEmail]) return res.status(409).json({ error: 'User already exists' });
 
-  users[email] = { email, password, name: name || email.split('@')[0], zeropsToken: null };
-  req.session.user = { email, name: users[email].name };
-  res.json({ success: true, user: req.session.user });
+  const hashedPassword = hashPassword(password);
+  const userName = (name && name.trim()) ? name.trim() : cleanEmail.split('@')[0];
+  users[cleanEmail] = { email: cleanEmail, password: hashedPassword, name: userName, zeropsToken: null };
+
+  req.session.regenerate((err) => {
+    if (err) return res.status(500).json({ error: 'Session regeneration failed' });
+    req.session.user = { email: cleanEmail, name: userName };
+    res.json({ success: true, user: req.session.user });
+  });
 });
 
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
+  const cleanEmail = email ? email.toLowerCase().trim() : '';
+  if (!cleanEmail || !password) return res.status(400).json({ error: 'Email and password required' });
 
-  const user = users[email];
-  if (!user || user.password !== password) {
+  const user = users[cleanEmail];
+  if (!user || !verifyPassword(password, user.password)) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  req.session.user = { email, name: user.name };
-  res.json({ success: true, user: req.session.user, hasToken: !!user.zeropsToken });
+  req.session.regenerate((err) => {
+    if (err) return res.status(500).json({ error: 'Session regeneration failed' });
+    req.session.user = { email: cleanEmail, name: user.name };
+    res.json({ success: true, user: req.session.user, hasToken: !!user.zeropsToken });
+  });
 });
 
 app.post('/api/auth/logout', (req, res) => {
-  req.session.destroy();
-  res.json({ success: true });
+  req.session.destroy(() => {
+    res.clearCookie('connect.sid');
+    res.json({ success: true });
+  });
 });
 
 app.get('/api/auth/me', (req, res) => {
   if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
-  const user = users[req.session.user.email];
+  const cleanEmail = req.session.user.email ? req.session.user.email.toLowerCase().trim() : '';
+  const user = users[cleanEmail];
   res.json({
     user: req.session.user,
     hasToken: !!(user && user.zeropsToken)
@@ -82,11 +115,13 @@ app.get('/api/auth/me', (req, res) => {
 // ─── ZEROPS TOKEN ───
 app.post('/api/auth/token', requireAuth, (req, res) => {
   const { token } = req.body;
-  if (!token) return res.status(400).json({ error: 'Token required' });
+  const cleanToken = token ? token.trim() : '';
+  if (!cleanToken) return res.status(400).json({ error: 'Token required' });
 
-  const user = users[req.session.user.email];
+  const cleanEmail = req.session.user.email ? req.session.user.email.toLowerCase().trim() : '';
+  const user = users[cleanEmail];
   if (user) {
-    user.zeropsToken = token;
+    user.zeropsToken = cleanToken;
     res.json({ success: true });
   } else {
     res.status(404).json({ error: 'User not found' });
@@ -161,7 +196,8 @@ app.get('/studio', (req, res) => {
 const wsTokenMap = new Map();
 
 app.post('/api/ws-token', requireAuth, (req, res) => {
-  const user = users[req.session.user.email];
+  const cleanEmail = req.session.user.email ? req.session.user.email.toLowerCase().trim() : '';
+  const user = users[cleanEmail];
   if (user && user.zeropsToken) {
     wsTokenMap.set(req.sessionID, user.zeropsToken);
     res.json({ success: true });
@@ -180,8 +216,27 @@ wss.on('connection', (ws, req) => {
       if (data.action === 'deploy') {
         const { prompt, templateId, zeropsToken } = data;
 
-        // Use the token sent by the client (from their session)
-        const token = zeropsToken || null;
+        // Use the token sent by the client (from their session), or fallback to session user / wsTokenMap
+        let token = zeropsToken || null;
+        if (!token && req.session && req.session.user && req.session.user.email) {
+          const cleanEmail = req.session.user.email.toLowerCase().trim();
+          if (users[cleanEmail] && users[cleanEmail].zeropsToken) {
+            token = users[cleanEmail].zeropsToken;
+          }
+        }
+        if (!token && req.sessionID && wsTokenMap.has(req.sessionID)) {
+          token = wsTokenMap.get(req.sessionID);
+        }
+        if (!token && req.headers && req.headers.cookie) {
+          const match = req.headers.cookie.match(/connect\.sid=s%3A([^.]+)/);
+          if (match) {
+            const rawSessionId = decodeURIComponent(match[1]);
+            if (wsTokenMap.has(rawSessionId)) {
+              token = wsTokenMap.get(rawSessionId);
+            }
+          }
+        }
+
         const zcpClient = new ZCPClient(token);
 
         let synthResult;
@@ -252,13 +307,20 @@ wss.on('connection', (ws, req) => {
       }
     } catch (err) {
       console.error('[WS ERROR]', err);
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'error', error: err.message || String(err) }));
+      }
     }
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`\n==================================================`);
-  console.log(`🚀 ZeroOps Engine Studio running on http://localhost:${PORT}`);
-  console.log(`==================================================\n`);
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`\n==================================================`);
+    console.log(`🚀 ZeroOps Engine Studio running on http://localhost:${PORT}`);
+    console.log(`==================================================\n`);
+  });
+}
+
+module.exports = { app, server, wss, users };

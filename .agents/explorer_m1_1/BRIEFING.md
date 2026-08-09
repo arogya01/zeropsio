@@ -1,43 +1,39 @@
-# BRIEFING — 2026-08-08T23:00:08Z
+# BRIEFING — 2026-08-09T00:13:45Z
 
 ## Mission
-Investigate workspace and design Node.js/TypeScript project setup for `zeroops-engine` for Milestone M1 (ZCP Stack Synthesizer & Engine Core).
+Investigate package.json scripts, Vitest config, tsx version, dependencies, and tier test setup in zeroops-engine/ to unify test execution (`test:unit`, `test:tier`, `test:all`, `test`) without hangs or missing environment flags.
 
 ## 🔒 My Identity
-- Archetype: explorer
-- Roles: Explorer 1 for Milestone M1
+- Archetype: Teamwork explorer
+- Roles: Read-only investigator / analyst
 - Working directory: /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1
-- Original parent: 91c92a6e-774f-4450-85f3-cf1df67cb49b
-- Milestone: M1 (ZCP Stack Synthesizer & Engine Core)
+- Original parent: 996ddfdf-f753-485c-8d88-d3edc079f499
+- Milestone: M1 (Test Suite Unification & Coverage Setup)
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement or modify project source code (write only to working directory)
-- Create files only in /Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1
+- Read-only investigation — do NOT implement code changes in zeroops-engine/
+- Deliver findings, analysis, and concrete recommendations in handoff.md
 
 ## Current Parent
-- Conversation ID: 91c92a6e-774f-4450-85f3-cf1df67cb49b
-- Updated: 2026-08-08T23:00:08Z
+- Conversation ID: 996ddfdf-f753-485c-8d88-d3edc079f499
+- Updated: 2026-08-09T00:13:45Z
 
 ## Investigation State
-- **Explored paths**:
-  - `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/zeroops-engine` (confirmed does not exist yet)
-  - `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/ORIGINAL_REQUEST.md`
-  - `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/PROJECT.md`
-  - `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/TEST_INFRA.md`
-  - `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/sub_orch_m1/SCOPE.md`
+- **Explored paths**: `zeroops-engine/package.json`, `zeroops-engine/vitest.config.ts`, `zeroops-engine/tests/` (15 files), `zeroops-engine/src/server/`
 - **Key findings**:
-  - `zeroops-engine/` directory needs to be created from scratch by Implementer.
-  - Complete specifications for `package.json`, `tsconfig.json`, `tsup.config.ts`, `vitest.config.ts`, directory layout, and `src/index.ts` CLI entry point designed and written.
-- **Unexplored areas**: None (task completed).
+  1. `package.json` currently has `"test": "npx vitest run"`. Missing `test:unit`, `test:tier`, `test:all`.
+  2. `tsx` is available on system (v4.23.11) but missing from `package.json` `devDependencies`.
+  3. `vitest.config.ts` explicitly excludes `tests/tier*.test.ts`. Vitest runs 9 files (72 tests). Node native test runner via `npx tsx --test tests/tier*.test.ts` runs 4 tier files (197 tests).
+  4. Unified run (`npm run test:unit && npm run test:tier`) passes 269/269 tests in under 3 seconds with zero hangs.
+  5. Vite outputs a non-fatal warning due to CommonJS package loading `vitest.config.ts`, which can be suppressed via `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` or renaming to `vitest.config.mts`.
+  6. New M1 test files (`auth-onboarding.test.ts`, `template-library.test.ts`, `workbench-ui.test.ts`) match `tests/**/*.test.ts` in `vitest.config.ts` and will automatically be executed by `test:unit`.
+- **Unexplored areas**: None, full scope investigated.
 
 ## Key Decisions Made
-- Selected `tsup` as build tool (fast ESM bundling, auto CLI shebang injection, `.d.ts` generation).
-- Selected `vitest` as test runner (native ESM & TypeScript, Jest compatibility, standard exit codes).
-- Selected `commander`, `js-yaml`, `zod`, `picocolors` as runtime dependencies.
+- Recommended package.json script updates, devDependencies update (`tsx`), and warning mitigation strategy.
 
 ## Artifact Index
-- `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/DISPATCH.md` — Initial dispatch message
-- `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/BRIEFING.md` — Agent briefing memory
-- `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/progress.md` — Progress log / heartbeat
-- `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/analysis.md` — Complete technical setup and architecture design report
-- `/Users/arogyabichpuria/Documents/side-quests/zerops-hack/.agents/explorer_m1_1/handoff.md` — 5-component handoff report
+- DISPATCH.md — Initial dispatch message log
+- BRIEFING.md — Context and mission tracker
+- progress.md — Heartbeat progress log
+- handoff.md — Comprehensive handoff report

@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="studio.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
   <style>
     /* Token Onboarding Overlay */
     .onboarding-overlay {
@@ -60,8 +63,10 @@
       <h2>Connect your Zerops account</h2>
       <p>Paste your Personal Access Token to deploy containers to your own Zerops infrastructure. <a href="https://app.zerops.io/settings/token-management" target="_blank">Get token →</a></p>
       <div class="onboarding-error" id="token-error">Invalid token</div>
-      <input type="password" id="zerops-token-input" placeholder="Paste your Zerops token here…">
-      <button onclick="saveToken()">Connect &amp; Continue</button>
+      <form id="onboarding-form" onsubmit="event.preventDefault(); saveToken();">
+        <input type="password" id="zerops-token-input" placeholder="Paste your Zerops token here…">
+        <button type="submit">Connect &amp; Continue</button>
+      </form>
     </div>
   </div>
 
@@ -80,6 +85,7 @@
     <div class="topbar__right">
       <div class="topbar__user">
         <span id="user-name"></span>
+        <button class="topbar__logout" onclick="openTokenModal()">Change Token</button>
         <button class="topbar__logout" onclick="logout()">Logout</button>
       </div>
     </div>
@@ -114,7 +120,7 @@
         </div>
 
         <!-- Pipeline Feed (shown after deploy) -->
-        <div class="pipeline-feed hidden" id="pipeline-feed">
+        <div class="pipeline-feed hidden" id="chat-feed">
           <div class="feed-msg feed-msg--user" id="feed-user-msg"></div>
 
           <div class="feed-msg feed-msg--system" id="feed-step-synth">
@@ -154,7 +160,7 @@
           </div>
 
           <!-- Success Card -->
-          <div class="feed-msg feed-msg--success hidden" id="feed-success">
+          <div class="feed-msg feed-msg--success hidden" id="success-banner">
             <div class="success-card">
               <div class="success-card__check">✓</div>
               <div class="success-card__body">
@@ -168,7 +174,7 @@
       </div>
 
       <!-- Bottom Prompt Input (always visible, pinned to bottom) -->
-      <div class="prompt-bar">
+      <div class="prompt-bar" id="prompt-bar">
         <form id="prompt-form" class="prompt-bar__form">
           <textarea
             id="prompt-input"
@@ -213,9 +219,19 @@ Waiting for deployment…</pre>
 
       <!-- Code Pane -->
       <div class="wb-pane" id="wb-code">
-        <div class="code-tree" id="code-tree">
-          <p class="code-tree__empty">Generated code files will appear here after synthesis.</p>
+        <div class="code-inspector">
+          <aside class="code-inspector__sidebar" id="code-sidebar">
+            <div class="code-inspector__title">FILES</div>
+            <ul class="code-inspector__file-list" id="code-file-list">
+              <li class="code-inspector__empty">No files generated yet</li>
+            </ul>
+          </aside>
+          <main class="code-inspector__viewer">
+            <div class="code-inspector__header" id="code-active-filename">zerops.yml</div>
+            <pre class="code-inspector__content" id="code-active-content">Select a file from the sidebar to inspect code.</pre>
+          </main>
         </div>
+        <div class="code-tree hidden" id="code-tree" style="display:none;"></div>
       </div>
 
       <!-- Topology Strip (inside workbench, bottom) -->
