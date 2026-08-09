@@ -1,0 +1,1329 @@
+{
+  "ok": true,
+  "prompt": "A clean personal habit tracker with daily checkboxes, streaks, and a calm minimal UI",
+  "base": "http://127.0.0.1:3000",
+  "buildJobId": "vibe-mslzq7j3-1",
+  "workspaceId": "dcacb086bdd46ddeadb8c078",
+  "previewPath": "/api/vibe/preview/dcacb086bdd46ddeadb8c078/",
+  "previewHttp": 200,
+  "previewHasApp": true,
+  "shipJobId": "ship-mslzql33-1",
+  "liveUrl": "https://webapp-2e26-3000.prg1.zerops.app",
+  "verified": true,
+  "httpStatus": 200,
+  "error": null,
+  "stages": [
+    {
+      "stage": "status",
+      "detail": "checking demo status",
+      "at": "2026-08-09T16:01:54.570Z"
+    },
+    {
+      "stage": "status",
+      "detail": "{\"hasDemoOpenAI\":true,\"hasDemoPat\":true,\"vibeRoutes\":true}",
+      "at": "2026-08-09T16:01:54.585Z"
+    },
+    {
+      "stage": "build",
+      "detail": "POST /api/vibe/build prompt=A clean personal habit tracker with daily checkboxes, streak…",
+      "at": "2026-08-09T16:01:54.585Z"
+    },
+    {
+      "stage": "build",
+      "detail": "job vibe-mslzq7j3-1",
+      "at": "2026-08-09T16:01:54.592Z"
+    },
+    {
+      "stage": "build",
+      "detail": "queued: Build job created",
+      "at": "2026-08-09T16:01:54.617Z"
+    },
+    {
+      "stage": "build",
+      "detail": "generate: Generating app from prompt…",
+      "at": "2026-08-09T16:01:54.617Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=generating",
+      "at": "2026-08-09T16:01:54.617Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=generating",
+      "at": "2026-08-09T16:01:57.122Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=generating",
+      "at": "2026-08-09T16:01:59.626Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=generating",
+      "at": "2026-08-09T16:02:02.133Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=generating",
+      "at": "2026-08-09T16:02:04.637Z"
+    },
+    {
+      "stage": "build",
+      "detail": "generate: Wrote 2 file(s)",
+      "at": "2026-08-09T16:02:07.141Z"
+    },
+    {
+      "stage": "build",
+      "detail": "install: Installing dependencies…",
+      "at": "2026-08-09T16:02:07.141Z"
+    },
+    {
+      "stage": "build",
+      "detail": "install: npm install (scaffold deps)…",
+      "at": "2026-08-09T16:02:07.141Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=installing",
+      "at": "2026-08-09T16:02:07.141Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=installing",
+      "at": "2026-08-09T16:02:09.644Z"
+    },
+    {
+      "stage": "build",
+      "detail": "install: added 140 packages in 3s",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "install: Dependencies ready",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "preview: Starting Vite preview…",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "preview: starting vite on 127.0.0.1:5101 base=/api/vibe/preview/dcacb086bdd46ddeadb8c078/",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "preview:   VITE v5.4.21  ready in 218 ms",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "preview:   ➜  Local:   http://127.0.0.1:5101/api/vibe/preview/dcacb086bdd46ddeadb8c078/",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "preview: Preview ready on port 5101",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "status=ready",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "build",
+      "detail": "ready workspace=dcacb086bdd46ddeadb8c078",
+      "at": "2026-08-09T16:02:12.149Z"
+    },
+    {
+      "stage": "preview",
+      "detail": "html=200 appOk=true",
+      "at": "2026-08-09T16:02:12.157Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "POST /api/vibe/ship workspaceId=dcacb086bdd46ddeadb8c078",
+      "at": "2026-08-09T16:02:12.157Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "job ship-mslzql33-1",
+      "at": "2026-08-09T16:02:12.159Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "queued: Ship job created",
+      "at": "2026-08-09T16:02:12.161Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: Building SPA and packaging for Zerops…",
+      "at": "2026-08-09T16:02:12.161Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: [ship] running npm run build",
+      "at": "2026-08-09T16:02:12.161Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=packaging",
+      "at": "2026-08-09T16:02:12.161Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: > zeroops-vibe-app@0.0.0 build",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: > vite build",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: vite v5.4.21 building for production...",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: transforming...",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: ✓ 43 modules transformed.",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: rendering chunks...",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: computing gzip size...",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: dist/index.html                   0.40 kB │ gzip:  0.27 kB",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: dist/assets/index-CnygBMEX.css    9.42 kB │ gzip:  2.68 kB",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: dist/assets/index-YfMcNabO.js   233.14 kB │ gzip: 73.98 kB",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: ✓ built in 552ms",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: [ship] generating package-lock.json for npm ci",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=packaging",
+      "at": "2026-08-09T16:02:14.665Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: up to date, audited 69 packages in 2s",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: 15 packages are looking for funding",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package:   run `npm fund` for details",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: found 0 vulnerabilities",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: [ship] packaged deploy root /var/folders/15/t5jkp4c93xz1t_l_gl6mtl9m0000gn/T/zeroops-ship-x7bEZ3 (8 files mapped)",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "package: Packaged 8 files",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "import: Deploying project 'a-clean-personal-8e1d' (static SPA, single service)",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "auth: authenticating zcli",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "auth: authenticated",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "import: creating project 'a-clean-personal-8e1d' (1 service)",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:17.176Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:19.687Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "import: org cydeTCagQTayIC5j5CzRKA",
+      "at": "2026-08-09T16:02:22.193Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] Using config file: /Users/arogyabichpuria/Library/Application Support/zerops/.zcli.yml",
+      "at": "2026-08-09T16:02:22.193Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:32:19+05:30\" level=info msg=\"➤ INFO Yaml file was checked\"",
+      "at": "2026-08-09T16:02:22.193Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:22.193Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:32:23+05:30\" level=info msg=\"➤ INFO Number of services to be added: 1\"",
+      "at": "2026-08-09T16:02:24.704Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:32:23+05:30\" level=info msg=\"➤ INFO Queued processes: 1\"",
+      "at": "2026-08-09T16:02:24.704Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:32:23+05:30\" level=info msg=\"➤ INFO Core services activation started\"",
+      "at": "2026-08-09T16:02:24.704Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:24.704Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:27.212Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:29.722Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:32.232Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:34.743Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:37.253Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:39.760Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:42.268Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:44.773Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:47.284Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:49.791Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:52.302Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:54.809Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:57.319Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:02:59.826Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:02.337Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:04.845Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:07.356Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:09.864Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:12.371Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:14.879Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:17.391Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:19.898Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:22.407Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:24.918Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:27.430Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:29.942Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:32.452Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:34.959Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:37.471Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:39.976Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:42.488Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:33:42+05:30\" level=info msg=\"➤ INFO webapp: stack.create\"",
+      "at": "2026-08-09T16:03:44.999Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:33:42+05:30\" level=info msg=\"➤ INFO project imported\"",
+      "at": "2026-08-09T16:03:44.999Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "import: project imported",
+      "at": "2026-08-09T16:03:44.999Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:44.999Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:47.510Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "resolve: project id I4AnRt8iRWKA86jtwdylKA",
+      "at": "2026-08-09T16:03:50.023Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "activate: waiting for service to finish activating",
+      "at": "2026-08-09T16:03:50.023Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=import",
+      "at": "2026-08-09T16:03:50.023Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [deploy] webapp=READY_TO_DEPLOY",
+      "at": "2026-08-09T16:03:52.532Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "activate: services ready to deploy",
+      "at": "2026-08-09T16:03:52.533Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "materialize: using prebuilt dir /var/folders/15/t5jkp4c93xz1t_l_gl6mtl9m0000gn/T/zeroops-ship-x7bEZ3/webapp",
+      "at": "2026-08-09T16:03:52.533Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "push: building webapp on Zerops — this is the slow part",
+      "at": "2026-08-09T16:03:52.533Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] Using config file: /Users/arogyabichpuria/Library/Application Support/zerops/.zcli.yml",
+      "at": "2026-08-09T16:03:52.533Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:03:52.533Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:33:54+05:30\" level=info msg=\"➤ INFO Selected project: a-clean-personal-8e1d\"",
+      "at": "2026-08-09T16:03:55.045Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:03:55.045Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:03:57.555Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:00.064Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:00+05:30\" level=info msg=\"➤ INFO Selected service: webapp\"",
+      "at": "2026-08-09T16:04:02.574Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:00+05:30\" level=info msg=\"➤ INFO File zerops.yml found. Path: /private/var/folders/15/t5jkp4c93xz1t_l_gl6mtl9m0000gn/T/zeroops-ship-x7bEZ3/webapp/zerops.yml.\"",
+      "at": "2026-08-09T16:04:02.574Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:00+05:30\" level=info msg=\"➤ INFO Selected setup: webapp\"",
+      "at": "2026-08-09T16:04:02.574Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:01+05:30\" level=info msg=\"➤ INFO Creating package\"",
+      "at": "2026-08-09T16:04:02.574Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:02.574Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:02+05:30\" level=info msg=\"➤ INFO working directory: /private/var/folders/15/t5jkp4c93xz1t_l_gl6mtl9m0000gn/T/zeroops-ship-x7bEZ3/webapp\"",
+      "at": "2026-08-09T16:04:05.085Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:02+05:30\" level=info msg=\"➤ INFO packing directory: /private/var/folders/15/t5jkp4c93xz1t_l_gl6mtl9m0000gn/T/zeroops-ship-x7bEZ3/webapp/\"",
+      "at": "2026-08-09T16:04:05.085Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:03+05:30\" level=info msg=\"➤ INFO Uploading package\"",
+      "at": "2026-08-09T16:04:05.085Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:34:03+05:30\" level=info msg=\"➤ INFO Deploying service\"",
+      "at": "2026-08-09T16:04:05.085Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:05.085Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:07.595Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:10.107Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:12.615Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:15.124Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:17.636Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:20.147Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:22.656Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:25.164Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:27.707Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:30.215Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:32.725Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:35.231Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:37.737Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:40.243Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:42.748Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:45.255Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:47.764Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:50.271Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] BUILD appVersionId: BBi19OEKRA2QrhqQHN5vJw",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┃   ZEROPS BUILD CONTAINER STARTED   ┃",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] Zerops will now prepare the container",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] and run your build commands based on",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] the zerops.yml instructions.",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.775Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@             @@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@                           @@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@                                     @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@            @@@@@@@@@@@@@            @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@       @@@@@@@@@@@@@@@@@@@@@@        @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@       @@@@@@@@@@@@@@@@@             @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@       @@@@@@@@@@@@@              @@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@       @@@@@@@@@              @@@@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@    @@@@@@@              @@@@@@@@    @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@@@              @@@@@@@@@       @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@              @@@@@@@@@@@@@       @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@            @@@@@@@@@@@@@@@@@@       @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@        @@@@@@@@@@@@@@@@@@@@@@       @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@            @@@@@@@@@@@@@            @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@                                     @@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@                           @@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@             @@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┃   DOWNLOADING APPLICATION SOURCE CODE   ┃",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] Zerops is now downloading your application,",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] source, and unpacking it on the container.",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] [BUILD INFO] Application source code downloaded in 0s. Downloaded size 84.5 KiB. Extracted size 267.4 KiB.",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ✅ APPLICATION SOURCE CODE READY",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┃   RUNNING BUILD.BUILDCOMMANDS    ┃",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] Zerops will now build your application",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] by running commands listed in the",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] `build.buildCommands` part of your zerops.yml",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ━━━━  🙏 npm ci --omit=dev  ━━━━",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:52.776Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] added 68 packages, and audited 69 packages in 4s",
+      "at": "2026-08-09T16:04:55.282Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] 15 packages are looking for funding",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] run `npm fund` for details",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] found 0 vulnerabilities",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] npm notice",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] npm notice New major version of npm available! 10.9.8 -> 12.0.2",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] npm notice To update run: npm install -g npm@12.0.2",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] npm notice",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ━━━━  ✅ npm ci --omit=dev  ━━━━",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ✅ ALL BUILD COMMANDS FINISHED",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒ ▒",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┃   PREPARING BUILD.DEPLOY FILES AND FOLDERS   ┃",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] Zerops will now archive the build artefacts",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] and prepare them for deployment on your runtime",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] service.",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] [BUILD INFO] Application deploy artefact size 2.5 MiB.",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] [BUILD INFO] Application artefact uploaded in 1s. Uploaded size 750.4 KiB.",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] ✅ BUILD ARTEFACTS READY TO DEPLOY",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:55.283Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:04:57.789Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:00.296Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:02.802Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:05.309Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:07.816Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:10.322Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:12.826Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:15.335Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:17.844Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:20.347Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:22.852Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:25.363Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:27.870Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:30.377Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:32.883Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:35.388Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:37.894Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:40.398Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:42.908Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:45.414Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:47.921Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:50.426Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:52.933Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:55.439Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:05:57.948Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:00.454Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:02.960Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:05.466Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:07.972Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:10.477Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:12.984Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:15.490Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:17.995Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:20.501Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:23.007Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:25.519Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:28.026Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:30.540Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:33.048Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "log: [zcli] time=\"2026-08-09T21:36:35+05:30\" level=info msg=\"➤ INFO Application is deploying\"",
+      "at": "2026-08-09T16:06:35.557Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "push: build finished, service deployed",
+      "at": "2026-08-09T16:06:35.557Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:35.557Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:38.069Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:40.577Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:43.091Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=push",
+      "at": "2026-08-09T16:06:45.601Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "subdomain: public subdomain enabled",
+      "at": "2026-08-09T16:06:48.113Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "url: https://webapp-2e26-3000.prg1.zerops.app",
+      "at": "2026-08-09T16:06:48.113Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "verify: waiting for the app to answer",
+      "at": "2026-08-09T16:06:48.113Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=verify",
+      "at": "2026-08-09T16:06:48.113Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "verify: HTTP 200 — live",
+      "at": "2026-08-09T16:06:50.620Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "status=ready",
+      "at": "2026-08-09T16:06:50.620Z"
+    },
+    {
+      "stage": "ship",
+      "detail": "liveUrl=https://webapp-2e26-3000.prg1.zerops.app verified=true",
+      "at": "2026-08-09T16:06:50.620Z"
+    },
+    {
+      "stage": "verify",
+      "detail": "GET liveUrl → 200",
+      "at": "2026-08-09T16:06:51.230Z"
+    }
+  ],
+  "startedAt": "2026-08-09T16:01:54.569Z",
+  "finishedAt": "2026-08-09T16:06:51.231Z"
+}

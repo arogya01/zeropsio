@@ -5,9 +5,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('prompt-form');
   const promptInput = document.getElementById('prompt-input');
   const deployBtn = document.getElementById('deploy-btn');
+  const shipBtn = document.getElementById('ship-btn');
   const terminal = document.getElementById('terminal');
   const yamlView = document.getElementById('yaml-view');
   const codeTree = document.getElementById('code-tree');
+  const previewFrame = document.getElementById('preview-frame');
+  const previewPlaceholder = document.getElementById('preview-placeholder');
+
+  let lastWorkspaceId = null;
+  let lastBuildJobId = null;
+  let previewReady = false;
+  let busy = false;
 
   const chatWelcome = document.getElementById('chat-welcome');
   const pipelineFeed = document.getElementById('chat-feed') || document.getElementById('pipeline-feed');
@@ -110,10 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
       sessionStorage.setItem('has_openai', '1');
       if (openaiOnboarding) openaiOnboarding.classList.add('hidden');
       refreshKeyChrome();
-      // Stage 2: PAT if missing
-      if (!hasZeropsToken && !zeropsToken && onboarding) {
-        onboarding.classList.remove('hidden');
-      }
+      // PAT only required for Ship — do not block Build
     } catch (e) {
       if (errEl) {
         errEl.textContent = e.message || 'Failed to save key';
@@ -146,11 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.hasToken) zeropsToken = zeropsToken || sessionStorage.getItem('zerops_pat');
         refreshKeyChrome();
 
-        // Staged gates: OpenAI first, then PAT (PAT can skip for synth-only)
+        // OpenAI helps Build; PAT is only for Ship (prompted when shipping)
         if (!hasOpenAIKey && openaiOnboarding) {
           openaiOnboarding.classList.remove('hidden');
-        } else if (!hasZeropsToken && !zeropsToken && onboarding) {
-          onboarding.classList.remove('hidden');
         }
       }
     } catch (e) {
@@ -322,36 +325,152 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   connectWS();
 
-  // ─── Form Submit ───
+  // ─── Vibe Build + Ship ───
+  const POLL_INTERVAL_MS = 1500;
+  const POLL_MAX_MISSES = 8;
+
+  function sleep(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  function updateShipEnabled() {
+    if (!shipBtn) return;
+    shipBtn.disabled = busy || !previewReady || !lastWorkspaceId;
+  }
+
+  function clearPreview() {
+    previewReady = false;
+    lastWorkspaceId = null;
+    if (previewFrame) {
+      previewFrame.removeAttribute('src');
+      previewFrame.style.display = 'none';
+    }
+    if (previewPlaceholder) previewPlaceholder.style.display = 'flex';
+    updateShipEnabled();
+  }
+
+  function showPreview(path) {
+    if (!path) return;
+    if (previewPlaceholder) previewPlaceholder.style.display = 'none';
+    if (previewFrame) {
+      previewFrame.style.display = 'block';
+      previewFrame.src = path;
+    }
+    previewReady = true;
+    updateShipEnabled();
+    // Switch to preview tab
+    const previewTab = document.querySelector('.wb-tab[data-tab="wb-preview"]');
+    if (previewTab) previewTab.click();
+  }
+
+  function setBusy(state) {
+    busy = state;
+    if (deployBtn) deployBtn.disabled = state;
+    updateShipEnabled();
+  }
+
+  function applyBuildStatus(status) {
+    // Map vibe statuses onto feed steps: synth=generate, net=install, lxd=preview, health=ship
+    const order = ['synth', 'net', 'lxd'];
+    const map = {
+      queued: 'synth',
+      generating: 'synth',
+      installing: 'net',
+      preview: 'lxd',
+      ready: 'lxd',
+      failed: null,
+    };
+    if (status === 'ready') {
+      order.forEach((k) => setStep(k, 'done'));
+      const node = getNode('web-frontend');
+      if (node) {
+        node.className = 'topo-chip healthy';
+        const ip = node.querySelector('.topo-chip__ip');
+        if (ip) ip.textContent = 'preview ready';
+      }
+      return;
+    }
+    if (status === 'failed') {
+      const running = order.find((k) => {
+        const el = steps[k];
+        const st = el && el.querySelector('.feed-step-status');
+        return st && st.dataset.status === 'running';
+      });
+      if (running) setStep(running, 'active');
+      const node = getNode('web-frontend');
+      if (node) node.className = 'topo-chip failed';
+      return;
+    }
+    const active = map[status];
+    const aidx = active ? order.indexOf(active) : -1;
+    order.forEach((k, i) => {
+      if (aidx < 0) {
+        /* leave */
+      } else if (i < aidx) setStep(k, 'done');
+      else if (i === aidx) setStep(k, 'active');
+    });
+    const node = getNode('web-frontend');
+    if (node) node.className = 'topo-chip building';
+  }
+
+  async function pollVibeJob(url, onEvent, onSnap) {
+    let from = 0;
+    let misses = 0;
+    for (;;) {
+      let snapshot;
+      try {
+        const res = await fetch(url + (url.includes('?') ? '&' : '?') + 'from=' + from, {
+          headers: { Accept: 'application/json' },
+          credentials: 'include',
+        });
+        if (res.status === 404) {
+          throw Object.assign(new Error('the job expired on the server'), { fatal: true });
+        }
+        if (!res.ok) throw new Error('poll failed — HTTP ' + res.status);
+        snapshot = await res.json();
+        misses = 0;
+      } catch (err) {
+        if (err.fatal) throw err;
+        misses += 1;
+        if (misses >= POLL_MAX_MISSES) throw err;
+        appendLogMessage({ text: '[build] lost contact, retrying (' + misses + ')' });
+        await sleep(POLL_INTERVAL_MS);
+        continue;
+      }
+      if (onSnap) onSnap(snapshot);
+      (snapshot.events || []).forEach(onEvent);
+      from = typeof snapshot.next === 'number' ? snapshot.next : from;
+      if (snapshot.done || snapshot.status === 'ready' || snapshot.status === 'failed') {
+        return snapshot;
+      }
+      await sleep(POLL_INTERVAL_MS);
+    }
+  }
+
   if (form) {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const prompt = promptInput ? promptInput.value.trim() : '';
-      if (!prompt) return;
+      if (!prompt || busy) return;
 
-      const activeToken = zeropsToken || sessionStorage.getItem('zerops_pat');
-      hasZeropsToken = !!(activeToken || hasZeropsToken || (currentUser && currentUser.hasToken));
-
-      // OpenAI first when logged in (staged onboarding) — PAT no longer blocks synth
-      if (currentUser && !hasOpenAIKey) {
-        if (openaiOnboarding) openaiOnboarding.classList.remove('hidden');
-        return;
+      // OpenAI required for Build when logged in; server may still have DEMO key
+      if (currentUser && !hasOpenAIKey && openaiOnboarding) {
+        openaiOnboarding.classList.remove('hidden');
+        // still attempt — server may use OPENAI_API_KEY / demo key
       }
 
-      // Transition to pipeline view
       if (chatWelcome) chatWelcome.classList.add('hidden');
       if (pipelineFeed) pipelineFeed.classList.remove('hidden');
       if (feedUserMsg) feedUserMsg.textContent = prompt;
       if (feedSuccess) feedSuccess.classList.add('hidden');
 
-      if (deployBtn) {
-        deployBtn.disabled = true;
-        deployBtn.textContent = hasZeropsToken || activeToken ? 'Deploying…' : 'Synthesizing…';
-      }
+      setBusy(true);
+      clearPreview();
+      lastBuildJobId = null;
+      if (deployBtn) deployBtn.textContent = 'Building…';
       if (preTerminal) preTerminal.textContent = '';
       if (term) term.clear();
 
-      // Reset pipeline steps
       Object.values(steps).forEach(s => {
         if (!s) return;
         s.className = 'feed-msg feed-msg--system';
@@ -359,74 +478,174 @@ document.addEventListener('DOMContentLoaded', () => {
         if (st) { st.textContent = 'waiting'; st.dataset.status = 'waiting'; }
       });
 
-      // Set all nodes to building
-      Object.values(nodes).forEach(n => {
-        if (!n) return;
-        const isDb = n.classList.contains('topo-chip--db');
-        n.className = 'topo-chip building';
-        if (isDb) n.classList.add('topo-chip--db');
-      });
+      const node = getNode('web-frontend');
+      if (node) node.className = 'topo-chip building';
+
+      appendLogMessage({ text: '[build] starting vibe generate → install → preview (no deploy)' });
 
       try {
-        const res = await fetch('/api/synthesize', {
+        const res = await fetch('/api/vibe/build', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt, templateId: selectedTemplateId, useLlm: true })
+          credentials: 'include',
+          body: JSON.stringify({ prompt }),
         });
-        const result = await res.json();
-        if (result.success) {
-          if (yamlView) yamlView.textContent = result.zeropsYml;
-          renderCodeFiles(result.codeFiles);
-          if (result.plan && feedUserMsg) {
-            // keep user prompt; append plan lightly via terminal
-            appendLogMessage({ text: '[plan] ' + String(result.plan).slice(0, 400) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.jobId) {
+          const msg =
+            data.message ||
+            data.error ||
+            (res.status === 503
+              ? 'Add OpenAI API key (or set server OPENAI_API_KEY) to Build.'
+              : 'Build failed to start');
+          appendLogMessage({ text: '[error] ' + msg });
+          if (data.code === 'OPENAI_API_KEY_REQUIRED' || res.status === 503) {
+            if (openaiOnboarding) openaiOnboarding.classList.remove('hidden');
           }
-          if (result.topology) {
-            result.topology.forEach((s) => {
-              const node = getNode(s.id);
-              if (node && s.privateHost) {
-                const ipEl = node.querySelector('.topo-chip__ip');
-                if (ipEl) ipEl.textContent = s.privateHost;
-              }
-            });
-          }
+          applyBuildStatus('failed');
+          setBusy(false);
+          if (deployBtn) deployBtn.textContent = 'Build';
+          return;
+        }
+
+        lastBuildJobId = data.jobId;
+        appendLogMessage({ text: '[build] job ' + data.jobId });
+
+        const finalSnap = await pollVibeJob(
+          '/api/vibe/build/' + encodeURIComponent(data.jobId),
+          (msg) => {
+            if (msg.type === 'log') appendLogMessage({ text: msg.text || msg.message || '' });
+            else if (msg.type === 'stage') {
+              appendLogMessage({ text: '[build] ' + (msg.stage || '') + ': ' + (msg.message || '') });
+            } else if (msg.type === 'error') {
+              appendLogMessage({ text: '[error] ' + (msg.error || 'build failed') });
+            } else if (msg.type === 'plan' && msg.plan && yamlView) {
+              yamlView.textContent = msg.plan;
+            }
+          },
+          (snap) => {
+            applyBuildStatus(snap.status);
+            if (snap.plan && yamlView) yamlView.textContent = snap.plan;
+            if (snap.codeFiles) renderCodeFiles(snap.codeFiles);
+            if (snap.workspaceId) lastWorkspaceId = snap.workspaceId;
+          },
+        );
+
+        if (finalSnap.status === 'ready') {
+          lastWorkspaceId = finalSnap.workspaceId || lastWorkspaceId;
+          const path =
+            finalSnap.previewPath ||
+            finalSnap.previewUrl ||
+            (lastWorkspaceId ? '/api/vibe/preview/' + lastWorkspaceId + '/' : null);
+          if (finalSnap.plan && yamlView) yamlView.textContent = finalSnap.plan;
+          if (finalSnap.codeFiles) renderCodeFiles(finalSnap.codeFiles);
+          applyBuildStatus('ready');
+          if (path) showPreview(path);
+          appendLogMessage({ text: '[build] preview ready — click Ship to deploy' });
+        } else {
+          applyBuildStatus('failed');
+          appendLogMessage({ text: '[error] ' + (finalSnap.error || 'Build failed') });
+          clearPreview();
         }
       } catch (err) {
-        console.error('Synthesis error:', err);
+        appendLogMessage({ text: '[error] ' + (err.message || String(err)) });
+        applyBuildStatus('failed');
+        clearPreview();
       }
 
-      // Deploy only when PAT present — otherwise synth-only success path
-      const canDeploy = !!(activeToken || hasZeropsToken);
-      if (!canDeploy) {
-        if (deployBtn) {
-          deployBtn.disabled = false;
-          deployBtn.innerHTML = 'Deploy <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-        }
-        appendLogMessage({ text: '[studio] Synthesized without deploy (add Zerops PAT to go live).' });
-        Object.values(nodes).forEach((n) => {
-          if (!n) return;
-          const isDb = n.classList.contains('topo-chip--db');
-          n.className = 'topo-chip idle';
-          if (isDb) n.classList.add('topo-chip--db');
-        });
-        return;
-      }
-
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-          action: 'deploy',
-          prompt,
-          templateId: selectedTemplateId,
-          zeropsToken: activeToken
-        }));
-      }
-
+      setBusy(false);
+      if (deployBtn) deployBtn.textContent = 'Build';
       if (promptInput) promptInput.value = '';
       selectedTemplateId = null;
     });
   }
 
+  if (shipBtn) {
+    shipBtn.addEventListener('click', async () => {
+      if (busy || !previewReady || !lastWorkspaceId) return;
+
+      const activeToken = zeropsToken || sessionStorage.getItem('zerops_pat');
+      hasZeropsToken = !!(activeToken || hasZeropsToken || (currentUser && currentUser.hasToken));
+      if (!hasZeropsToken && onboarding) {
+        // Server may have DEMO_PAT — still try; show modal on 503
+      }
+
+      setBusy(true);
+      if (feedSuccess) feedSuccess.classList.add('hidden');
+      setStep('health', 'active');
+      appendLogMessage({ text: '[ship] packaging static SPA and deploying to Zerops…' });
+
+      try {
+        const body = { workspaceId: lastWorkspaceId };
+        if (lastBuildJobId) body.buildJobId = lastBuildJobId;
+        const res = await fetch('/api/vibe/ship', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.jobId) {
+          const msg =
+            data.message ||
+            data.error ||
+            (res.status === 503
+              ? 'Add a Zerops PAT (or set DEMO_PAT on the server) to Ship.'
+              : 'Ship failed to start');
+          appendLogMessage({ text: '[error] ' + msg });
+          if (data.code === 'ZEROPS_TOKEN_REQUIRED' || res.status === 503) {
+            if (onboarding) onboarding.classList.remove('hidden');
+          }
+          setBusy(false);
+          return;
+        }
+
+        appendLogMessage({ text: '[ship] job ' + data.jobId });
+        const finalSnap = await pollVibeJob(
+          '/api/vibe/ship/' + encodeURIComponent(data.jobId),
+          (msg) => {
+            if (msg.type === 'log') appendLogMessage({ text: msg.text || msg.message || '' });
+            else if (msg.type === 'stage') {
+              appendLogMessage({ text: '[ship] ' + (msg.stage || '') + ': ' + (msg.message || '') });
+            } else if (msg.type === 'error') {
+              appendLogMessage({ text: '[error] ' + (msg.error || 'ship failed') });
+            }
+          },
+        );
+
+        if (finalSnap.liveUrl) {
+          setStep('health', 'done');
+          if (successLink) {
+            successLink.href = finalSnap.liveUrl;
+            successLink.textContent = finalSnap.liveUrl;
+          }
+          if (feedSuccess) feedSuccess.classList.remove('hidden');
+          appendLogMessage({
+            text:
+              '[live] ' +
+              finalSnap.liveUrl +
+              (finalSnap.httpStatus != null ? ' → HTTP ' + finalSnap.httpStatus : ''),
+          });
+          const node = getNode('web-frontend');
+          if (node) {
+            node.className = 'topo-chip healthy';
+            const ip = node.querySelector('.topo-chip__ip');
+            if (ip) ip.textContent = 'live';
+          }
+        } else {
+          appendLogMessage({ text: '[error] ' + (finalSnap.error || 'Ship finished without a live URL') });
+        }
+      } catch (err) {
+        appendLogMessage({ text: '[error] ' + (err.message || String(err)) });
+      }
+      setBusy(false);
+    });
+  }
+
+  updateShipEnabled();
+
   function setStep(key, state) {
+
     const el = steps[key];
     if (!el) return;
     el.className = `feed-msg feed-msg--system ${state}`;

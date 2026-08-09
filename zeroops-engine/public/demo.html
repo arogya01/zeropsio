@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ZeroOps Demo — prompt → Zerops stack</title>
-  <meta name="description" content="Judge-day demo: pick a template or describe an app, scaffold a 5-service Zerops stack, watch services go live." />
+  <title>zeroperable — describe an app, get it running</title>
+  <meta name="description" content="Describe an app, generate a React + Vite SPA, preview it live, then ship it to Zerops." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-mono@5.3.0/400.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/geist-mono@5.3.0/500.css" />
   <link rel="stylesheet" href="/design/system.css" />
   <link rel="stylesheet" href="/design/voltage.css" />
   <link rel="stylesheet" href="/demo.css" />
@@ -16,177 +18,297 @@
   <header class="demo-bar">
     <a class="demo-bar__brand" href="/">
       <span class="zo-mark">Z</span>
-      <span>ZeroOps</span>
+      <span class="demo-bar__name">zeroperable</span>
     </a>
-    <span class="v-pill v-pill--mono demo-bar__badge">DEMO · node + postgres · 10 slots</span>
+
     <div class="demo-bar__actions">
-      <a href="/login" class="zo-btn zo-btn--ghost">Log in</a>
-      <a href="/studio" class="zo-btn zo-btn--primary">Full studio</a>
+      <span class="demo-bar__status mono" id="quota-line">checking…</span>
+      <button type="button" class="demo-bar__reset" id="btn-new" hidden>New app</button>
     </div>
   </header>
 
-  <main>
-    <!-- ── stage 1: the prompt is the hero object ─────────────────────────── -->
-    <section class="hero">
-      <p class="v-eyebrow">Prompt → running app on Zerops</p>
-      <h1 class="hero__title">Describe an app. Get it running.</h1>
-      <p class="hero__sub">
-        One prompt becomes two real Zerops services — a Node.js web app and a managed
-        PostgreSQL database on a private network — imported, built, deployed and
-        health-checked, ending in a URL you can open.
-      </p>
-
-      <div class="promptbox" id="promptbox">
-        <label class="zo-label" for="demo-prompt">Describe your app</label>
-        <textarea
-          id="demo-prompt"
-          class="demo-prompt"
-          rows="3"
-          placeholder="e.g. AI video clipper with Whisper transcription and a job queue"></textarea>
-
-        <div class="promptbox__foot">
-          <!-- Example prompts, not templates. There is one stack; the prompt
-               shapes the app's content, so these just fill the box. -->
-          <div class="template-row" id="template-grid">
-            <button type="button" class="template-card v-pill"
-                    data-prompt="Task board for a bakery's daily prep">
-              <span class="template-card__label">Bakery task board</span>
-            </button>
-            <button type="button" class="template-card v-pill"
-                    data-prompt="Reading list where I save books and notes">
-              <span class="template-card__label">Reading list</span>
-            </button>
-            <button type="button" class="template-card v-pill"
-                    data-prompt="Bug tracker for a small engineering team">
-              <span class="template-card__label">Bug tracker</span>
-            </button>
+  <div class="demo-shell" id="demo-shell">
+    <!-- LEFT: composer — centered while idle, becomes the left rail once building -->
+    <aside class="demo-composer" id="demo-composer">
+      <div class="composer-scroll">
+        <div class="composer-inner">
+          <div class="composer-intro">
+            <p class="v-eyebrow composer-eyebrow">prompt → preview → ship</p>
+            <h1 class="hero__title">Describe an app.<br />Get it running.</h1>
+            <p class="hero__sub">
+              <strong>Build</strong> writes a React&nbsp;+&nbsp;Vite SPA and streams it into a live preview.
+              <strong>Ship</strong> deploys it to Zerops — only when you click.
+            </p>
           </div>
-          <button type="button" class="zo-btn zo-btn--primary" id="btn-build"
-                  title="Generates the files, then imports, builds and health-checks a real Zerops project">
-            Build
-            <span aria-hidden="true">→</span>
-          </button>
+
+          <section class="workbench" id="workbench" hidden>
+            <div class="wb-canvas">
+              <div class="canvas-head">
+                <p class="v-eyebrow">Stack</p>
+              </div>
+
+              <div class="topo topo--pair" id="topo">
+                <div class="topo-node">
+                  <div class="topo-chip idle" id="node-webapp" data-id="webapp">
+                    <span class="topo-chip__dot" aria-hidden="true"></span>
+                    <span class="topo-chip__name">webapp</span>
+                    <span class="topo-chip__role">react+vite · static SPA</span>
+                    <span class="topo-chip__ip mono">preview</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="build-stages" id="build-stages" aria-label="Build stages">
+                <div class="build-stage" data-stage="generate" id="stage-generate">
+                  <span class="build-stage__n mono">01</span>
+                  <span class="build-stage__t">Generate</span>
+                  <span class="build-stage__s mono" data-state="wait">wait</span>
+                </div>
+                <div class="build-stage" data-stage="install" id="stage-install">
+                  <span class="build-stage__n mono">02</span>
+                  <span class="build-stage__t">Install</span>
+                  <span class="build-stage__s mono" data-state="wait">wait</span>
+                </div>
+                <div class="build-stage" data-stage="preview" id="stage-preview">
+                  <span class="build-stage__n mono">03</span>
+                  <span class="build-stage__t">Preview</span>
+                  <span class="build-stage__s mono" data-state="wait">wait</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="wb-meta" id="wb-meta">
+              <span class="v-pill v-pill--mono" id="template-pill" hidden></span>
+              <span class="v-pill v-pill--mono" id="understood-pill" hidden></span>
+              <span class="v-pill v-pill--mono" id="llm-pill" hidden></span>
+            </div>
+
+            <div class="v-card wb-card" id="plan-card" hidden>
+              <div class="v-card__head">
+                <p class="v-eyebrow">Build plan</p>
+              </div>
+              <div class="demo-plan" id="plan-box"></div>
+            </div>
+
+            <div class="v-card wb-card" id="files-box" hidden>
+              <div class="v-card__head">
+                <p class="v-eyebrow">Generated files</p>
+                <span class="mono wb-count" id="files-count"></span>
+              </div>
+              <ul class="files-list" id="files-list"></ul>
+            </div>
+
+            <div class="v-code wb-card" id="yaml-box" hidden>
+              <div class="v-code__head">
+                <span>notes</span>
+                <button type="button" class="v-copy" id="btn-copy-yaml">copy</button>
+              </div>
+              <pre class="v-code__body" id="yaml-code"></pre>
+            </div>
+
+            <div class="v-card wb-card wb-card--flush">
+              <div class="v-card__head">
+                <p class="v-eyebrow">Build / Ship log</p>
+              </div>
+              <div class="demo-log mono" id="log-box"></div>
+            </div>
+          </section>
         </div>
       </div>
 
-      <div class="hero__meta">
-        <p class="demo-quota mono" id="quota-line">Checking demo quota…</p>
+      <!-- Prompt dock: centered under the hero while idle, pinned to the bottom once building -->
+      <div class="composer-dock">
+        <div class="composer-inner">
+          <div class="demo-error" id="error-box" hidden></div>
+
+          <div class="demo-openai" id="openai-box" hidden>
+            <label class="zo-label" for="demo-openai-key">OpenAI API key</label>
+            <div class="demo-openai__row">
+              <input
+                type="password"
+                id="demo-openai-key"
+                class="zo-input demo-openai__input"
+                placeholder="sk-…"
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="button" class="zo-btn zo-btn--ghost" id="btn-save-openai">Save</button>
+            </div>
+            <p class="demo-openai__hint">
+              Session only — or set <code>OPENAI_API_KEY</code> in <code>.env</code>.
+            </p>
+          </div>
+
+          <div class="promptbox" id="promptbox">
+            <textarea
+              id="demo-prompt"
+              class="demo-prompt"
+              rows="3"
+              placeholder="Describe the app you want to build…"
+              aria-label="Describe your app"
+            ></textarea>
+
+            <div class="promptbox__row">
+              <div class="promptbox__templates" id="template-grid">
+                <button type="button" class="template-card"
+                        data-prompt="Task board for a bakery's daily prep with checklists and shift notes">
+                  Bakery board
+                </button>
+                <button type="button" class="template-card"
+                        data-prompt="Reading list where I save books, notes, and star ratings">
+                  Reading list
+                </button>
+                <button type="button" class="template-card"
+                        data-prompt="Bug tracker for a small engineering team with status and priority">
+                  Bug tracker
+                </button>
+              </div>
+
+              <div class="promptbox__actions">
+                <kbd class="promptbox__kbd mono">⌘ ↵</kbd>
+                <button type="button" class="zo-btn zo-btn--ghost" id="btn-ship" disabled
+                        title="Enabled after the preview is ready"
+                        data-label="Ship">
+                  Ship
+                </button>
+                <button type="button" class="zo-btn zo-btn--primary" id="btn-build"
+                        title="Generate a React app and preview it">
+                  Build
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <ol class="composer-steps" aria-label="How it works">
+            <li>
+              <span class="composer-steps__n mono">01</span>
+              <span class="composer-steps__t">Generate</span>
+              <span class="composer-steps__d">A multi-file React&nbsp;+&nbsp;Vite SPA, written from your prompt.</span>
+            </li>
+            <li>
+              <span class="composer-steps__n mono">02</span>
+              <span class="composer-steps__t">Install</span>
+              <span class="composer-steps__d"><code class="v-chip-code">npm install</code> for the scaffold packages.</span>
+            </li>
+            <li>
+              <span class="composer-steps__n mono">03</span>
+              <span class="composer-steps__t">Preview</span>
+              <span class="composer-steps__d">A local Vite server, rendered right beside the prompt.</span>
+            </li>
+            <li>
+              <span class="composer-steps__n mono">04</span>
+              <span class="composer-steps__t">Ship</span>
+              <span class="composer-steps__d">Static package + <code class="v-chip-code">zcli</code> — only on Ship.</span>
+            </li>
+          </ol>
+
+          <p class="composer-foot">
+            Build previews locally · Ship deploys to Zerops when you click.
+          </p>
+        </div>
       </div>
+    </aside>
 
-      <div class="demo-error" id="error-box" hidden></div>
-
-      <ol class="hero__steps">
-        <li>
-          <span class="hero__steps-n mono">01</span>
-          <span class="hero__steps-t">Read the prompt</span>
-          <span class="hero__steps-d">OpenAI writes the app's name, copy and starter rows. The topology stays fixed.</span>
-        </li>
-        <li>
-          <span class="hero__steps-n mono">02</span>
-          <span class="hero__steps-t">Generate the files</span>
-          <span class="hero__steps-d">A real <code class="v-chip-code">zerops-import.yml</code>, plus the <code class="v-chip-code">server.js</code> that will actually run.</span>
-        </li>
-        <li>
-          <span class="hero__steps-n mono">03</span>
-          <span class="hero__steps-t">Import, then push</span>
-          <span class="hero__steps-d"><code class="v-chip-code">project-import</code> creates both services; <code class="v-chip-code">zcli push</code> builds the code onto the container.</span>
-        </li>
-        <li>
-          <span class="hero__steps-n mono">04</span>
-          <span class="hero__steps-t">Verify it answers</span>
-          <span class="hero__steps-d">The subdomain is read back from Zerops and polled until it returns HTTP 200 — never invented.</span>
-        </li>
-      </ol>
-    </section>
-
-    <hr class="v-divider" />
-
-    <!-- ── stage 2: the workbench, revealed on first run ──────────────────── -->
-    <section class="workbench" id="workbench" hidden>
-      <div class="wb-canvas">
-        <div class="canvas-head">
-          <p class="v-eyebrow">Topology canvas</p>
+    <!-- RIGHT: preview + deploy — opens once a build starts -->
+    <section class="demo-panel" id="demo-panel" aria-label="Preview and deploy">
+      <div class="panel-strip">
+        <div class="panel-strip__left">
+          <p class="v-eyebrow">Live preview</p>
           <span class="v-pill v-pill--mono" id="canvas-mode">idle</span>
         </div>
-
-        <div class="topo topo--pair" id="topo">
-          <div class="topo-node">
-            <div class="topo-chip idle" id="node-webapp" data-id="webapp">
-              <span class="topo-chip__dot" aria-hidden="true"></span>
-              <span class="topo-chip__name">webapp</span>
-              <span class="topo-chip__role">nodejs@22 · public</span>
-              <span class="topo-chip__ip mono">webapp:3000</span>
-            </div>
-          </div>
-          <div class="topo-arrow"></div>
-          <div class="topo-node">
-            <div class="topo-chip idle topo-chip--db" id="node-db" data-id="db">
-              <span class="topo-chip__dot" aria-hidden="true"></span>
-              <span class="topo-chip__name">db</span>
-              <span class="topo-chip__role">postgresql@16 · private</span>
-              <span class="topo-chip__ip mono">db:5432</span>
-            </div>
-          </div>
+        <div class="panel-strip__right">
+          <a class="zo-btn zo-btn--ghost preview-open-link" id="preview-open" href="#" target="_blank" rel="noopener" hidden>
+            Open ↗
+          </a>
+          <span class="mono wb-count" id="preview-status">—</span>
         </div>
       </div>
 
-      <div class="wb-grid">
-      <div class="wb-left">
-        <div class="wb-meta" id="wb-meta">
-          <span class="v-pill v-pill--mono" id="template-pill" hidden></span>
-          <!-- What the prompt was understood to be about. Replaces the old
-               "confidence" score, which was meaningless with one template. -->
-          <span class="v-pill v-pill--mono" id="understood-pill" hidden></span>
-          <span class="v-pill v-pill--mono" id="llm-pill" hidden></span>
-        </div>
-
-        <div class="v-card wb-card" id="plan-card" hidden>
-          <div class="v-card__head">
-            <p class="v-eyebrow">Build plan</p>
+      <div class="panel-stage">
+        <div class="wb-preview-card" id="preview-card">
+          <div class="preview-chrome" aria-hidden="true">
+            <span class="preview-chrome__dot"></span>
+            <span class="preview-chrome__dot"></span>
+            <span class="preview-chrome__dot"></span>
+            <span class="preview-chrome__url mono" id="preview-chrome-url">preview</span>
           </div>
-          <div class="demo-plan" id="plan-box"></div>
-        </div>
-
-        <div class="v-card wb-card" id="files-box" hidden>
-          <div class="v-card__head">
-            <p class="v-eyebrow">Generated files</p>
-            <span class="mono wb-count" id="files-count"></span>
+          <div class="preview-frame-wrap" data-state="idle">
+            <iframe
+              id="preview-frame"
+              title="App preview"
+              class="preview-frame"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+              hidden
+            ></iframe>
+            <div class="preview-placeholder" id="preview-placeholder">
+              <span class="preview-placeholder__icon" aria-hidden="true"></span>
+              <span class="preview-placeholder__title" id="preview-placeholder-title">Warming up your preview</span>
+              <span class="preview-placeholder__hint" id="preview-placeholder-hint">Generating files, then installing packages…</span>
+            </div>
+            <div class="preview-loading" id="preview-loading" hidden>
+              <span class="preview-loading__spin" aria-hidden="true"></span>
+              Loading preview…
+            </div>
           </div>
-          <ul class="files-list" id="files-list"></ul>
         </div>
 
-        <div class="v-code wb-card" id="yaml-box" hidden>
-          <div class="v-code__head">
-            <span>zerops-import.yml</span>
-            <button type="button" class="v-copy" id="btn-copy-yaml">copy</button>
+        <!-- Shown while Ship is running — explicit that deploy takes time -->
+        <div class="demo-deploy" id="deploy-box" hidden role="status" aria-live="polite">
+          <div class="demo-deploy__head">
+            <span class="demo-deploy__spin" aria-hidden="true"></span>
+            <div class="demo-deploy__copy">
+              <p class="demo-deploy__title" id="deploy-title">Deploying to Zerops…</p>
+              <p class="demo-deploy__hint" id="deploy-hint">
+                Real cloud deploy — usually <strong>1–3 minutes</strong>. Keep this tab open.
+              </p>
+            </div>
           </div>
-          <pre class="v-code__body" id="yaml-code"></pre>
+          <ol class="demo-deploy__stages" id="deploy-stages" aria-label="Deploy stages">
+            <li class="demo-deploy__stage" data-ship-stage="package" data-state="wait">
+              <span class="demo-deploy__stage-dot" aria-hidden="true"></span>
+              <span class="demo-deploy__stage-t">Package</span>
+            </li>
+            <li class="demo-deploy__stage" data-ship-stage="import" data-state="wait">
+              <span class="demo-deploy__stage-dot" aria-hidden="true"></span>
+              <span class="demo-deploy__stage-t">Create project</span>
+            </li>
+            <li class="demo-deploy__stage" data-ship-stage="push" data-state="wait">
+              <span class="demo-deploy__stage-dot" aria-hidden="true"></span>
+              <span class="demo-deploy__stage-t">Build &amp; push</span>
+            </li>
+            <li class="demo-deploy__stage" data-ship-stage="url" data-state="wait">
+              <span class="demo-deploy__stage-dot" aria-hidden="true"></span>
+              <span class="demo-deploy__stage-t">Live URL</span>
+            </li>
+            <li class="demo-deploy__stage" data-ship-stage="verify" data-state="wait">
+              <span class="demo-deploy__stage-dot" aria-hidden="true"></span>
+              <span class="demo-deploy__stage-t">Verify</span>
+            </li>
+          </ol>
+          <p class="demo-deploy__status mono" id="deploy-status">Starting…</p>
         </div>
-      </div>
 
-      <div class="wb-right">
-        <div class="v-card wb-card wb-card--flush">
-          <div class="v-card__head">
-            <p class="v-eyebrow">Deploy log</p>
+        <!-- Shown when Ship finishes with a real live URL -->
+        <div class="demo-success" id="success-box" hidden role="status" aria-live="polite">
+          <div class="demo-success__head">
+            <span class="demo-success__check" aria-hidden="true">✓</span>
+            <div>
+              <p class="v-eyebrow v-eyebrow--accent" id="success-title">Live on Zerops</p>
+              <p class="demo-success__sub" id="success-sub">Your app is public — share this URL.</p>
+            </div>
           </div>
-          <div class="demo-log mono" id="log-box"></div>
-        </div>
-
-        <div class="demo-success v-card v-card--emph" id="success-box" hidden>
-          <p class="v-eyebrow v-eyebrow--accent" id="success-title">Verified live</p>
           <a id="live-link" class="demo-success__url mono" href="#" target="_blank" rel="noopener">—</a>
+          <div class="demo-success__actions">
+            <a id="live-open" class="zo-btn zo-btn--primary" href="#" target="_blank" rel="noopener">
+              Open live app ↗
+            </a>
+            <button type="button" class="zo-btn zo-btn--ghost" id="btn-copy-live">Copy URL</button>
+          </div>
           <ul class="demo-success__hosts mono" id="live-hosts"></ul>
         </div>
       </div>
-      </div>
     </section>
-  </main>
-
-  <div class="v-band-green demo-band">
-    <p>
-      Want your own keys and deploys?
-      <a href="/login">Log in</a> → OpenAI key → Zerops PAT → Studio.
-    </p>
   </div>
 
   <script src="/demo.js"></script>

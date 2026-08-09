@@ -36,21 +36,29 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-full flex-col">
-      <header className="flex h-12 items-center justify-between border-b border-zo-line-2 px-5">
-        <Link to="/" className="flex items-center gap-2.5 text-[13px] font-semibold no-underline">
+    <div className="flex min-h-full flex-col bg-surface-base">
+      <header className="flex h-14 items-center justify-between border-b border-black/[0.08] bg-surface-white/80 px-7 backdrop-blur-[12px]">
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 text-[16px] font-medium leading-6 text-text-primary no-underline"
+        >
           <span className="zo-mark">Z</span>
           ZeroOps
         </Link>
-        <Link to="/" className="text-[13px] text-zo-muted no-underline hover:text-zo-text">
+        <Link
+          to="/"
+          className="text-[16px] font-medium leading-6 text-text-medium no-underline hover:text-text-primary"
+        >
           ← Overview
         </Link>
       </header>
 
-      <div className="flex flex-1 items-center justify-center px-5 py-8">
-        <div className="w-full max-w-[400px] rounded-sm border border-zo-line bg-zo-surface p-6">
-          <h1 className="m-0 mb-2 text-xl font-semibold tracking-tight">Sign in</h1>
-          <p className="mb-5 text-[13px] leading-relaxed text-zo-muted">
+      <div className="flex flex-1 items-center justify-center px-7 py-12">
+        <div className="w-full max-w-[400px] rounded-card border border-black/[0.08] bg-surface-white p-8">
+          <h1 className="m-0 mb-2 text-[20px] font-semibold leading-7 tracking-[-0.125px] text-text-primary">
+            Sign in
+          </h1>
+          <p className="mb-6 text-[16px] leading-6 text-text-medium">
             Session auth only. After login you attach a Zerops PAT; deploys run as that account via{' '}
             <code>zcli</code>.
           </p>
@@ -58,13 +66,13 @@ export function Login() {
           {error ? (
             <div
               role="alert"
-              className="mb-3 border border-zo-fail/40 bg-zo-fail/10 px-2.5 py-2 font-mono text-xs text-zo-fail"
+              className="mb-4 rounded-card border border-accent-red/30 bg-accent-red/10 px-3 py-2.5 text-[14px] font-medium leading-5 text-accent-red"
             >
               {error}
             </div>
           ) : null}
 
-          <form onSubmit={onSubmit} className="space-y-3">
+          <form onSubmit={onSubmit} className="space-y-4">
             {isSignup ? (
               <div>
                 <label className="zo-label" htmlFor="name">
@@ -110,16 +118,16 @@ export function Login() {
                 autoComplete={isSignup ? 'new-password' : 'current-password'}
               />
             </div>
-            <button type="submit" disabled={busy} className="zo-btn zo-btn-primary mt-1 w-full">
+            <button type="submit" disabled={busy} className="zo-btn zo-btn-primary mt-2 w-full">
               {busy ? '…' : isSignup ? 'Create account' : 'Sign in'}
             </button>
           </form>
 
-          <p className="mt-4 text-center text-[13px] text-zo-dim">
+          <p className="mt-6 text-center text-[14px] font-medium leading-5 text-text-muted">
             {isSignup ? 'Have an account?' : 'No account?'}{' '}
             <button
               type="button"
-              className="cursor-pointer border-0 bg-transparent p-0 text-zo-text underline underline-offset-2"
+              className="cursor-pointer border-0 bg-transparent p-0 font-medium text-text-primary underline underline-offset-2 hover:text-brand-blue"
               onClick={() => {
                 setIsSignup((v) => !v);
                 setError('');
@@ -129,7 +137,7 @@ export function Login() {
             </button>
           </p>
 
-          <p className="mt-5 border-t border-zo-line-2 pt-4 font-mono text-[11px] leading-relaxed text-zo-dim">
+          <p className="mt-6 border-t border-black/[0.08] pt-5 font-mono text-[12px] leading-4 text-text-muted">
             Next in Studio: paste PAT from
             <br />
             app.zerops.io → token management

@@ -1,25 +1,52 @@
 @import "tailwindcss";
 
-/* ZeroOps design tokens (Tailwind v4 @theme) */
+/* ZeroOps design tokens — Notion Marketing 2024 (alpha)
+   Existing zo-* names map to Notion values so React classes keep working. */
 @theme {
-  --font-sans: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+  --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
 
-  --color-zo-bg: #0b0c0e;
-  --color-zo-surface: #12141a;
-  --color-zo-surface-2: #181b22;
-  --color-zo-line: #262a33;
-  --color-zo-line-2: #1a1d24;
-  --color-zo-text: #e8eaef;
-  --color-zo-muted: #9aa3b2;
-  --color-zo-dim: #6b7380;
-  --color-zo-mark: #e8e8e8;
-  --color-zo-ink: #0b0c0e;
-  --color-zo-idle: #6b7380;
+  /* zo-* semantic map (light product surface) */
+  --color-zo-bg: #f6f5f4;
+  --color-zo-surface: #ffffff;
+  --color-zo-surface-2: #faf9f8;
+  --color-zo-line: rgb(0 0 0 / 8%);
+  --color-zo-line-2: rgb(0 0 0 / 6%);
+  --color-zo-text: #000000;
+  --color-zo-muted: #615d59;
+  --color-zo-dim: #a39e98;
+  --color-zo-mark: #2537b1;
+  --color-zo-ink: #ffffff;
+  --color-zo-idle: #a39e98;
   --color-zo-run: #d4a017;
   --color-zo-ok: #3ecf8e;
-  --color-zo-fail: #e85d5d;
-  --color-zo-info: #7aa2d4;
+  --color-zo-fail: #f64932;
+  --color-zo-info: #097fe8;
+
+  /* Explicit Notion tokens */
+  --color-brand-blue: #2537b1;
+  --color-accent-blue: #097fe8;
+  --color-accent-red: #f64932;
+  --color-surface-base: #f6f5f4;
+  --color-surface-white: #ffffff;
+  --color-hero-navy: #02093a;
+  --color-hero-dark-navy: #02093a;
+  --color-text-primary: #000000;
+  --color-text-medium: #615d59;
+  --color-text-muted: #a39e98;
+  --color-border-subtle: rgb(0 0 0 / 8%);
+
+  /* Radius scale (Notion soft geometry) */
+  --radius-none: 0;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 5px;
+  --radius-base: 6px;
+  --radius-card: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-pill: 9999px;
 }
 
 @layer base {
@@ -30,7 +57,7 @@
   }
 
   body {
-    @apply m-0 bg-zo-bg font-sans text-sm text-zo-text antialiased;
+    @apply m-0 bg-zo-bg font-sans text-base leading-6 text-zo-text antialiased;
   }
 
   code {
@@ -40,31 +67,31 @@
 
 @layer components {
   .zo-mark {
-    @apply inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-sm bg-zo-mark font-mono text-[11px] font-semibold text-zo-ink;
+    @apply inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-card bg-zo-mark text-[11px] font-semibold text-zo-ink;
   }
 
   .zo-btn {
-    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-sm border border-zo-line bg-zo-surface px-3.5 text-[13px] font-medium text-zo-text no-underline transition-colors hover:border-zo-dim hover:bg-zo-surface-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0;
+    @apply inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-card border border-zo-line bg-zo-surface px-3.5 text-[14px] font-medium leading-5 text-zo-text no-underline transition-colors hover:border-zo-dim hover:bg-zo-surface-2 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-45 disabled:active:translate-y-0;
   }
 
   .zo-btn-primary {
-    @apply border-zo-mark bg-zo-mark text-zo-ink hover:border-white hover:bg-white;
+    @apply border-zo-mark bg-zo-mark text-zo-ink hover:border-brand-blue hover:bg-brand-blue hover:opacity-90;
   }
 
   .zo-input {
-    @apply h-9 w-full rounded-sm border border-zo-line bg-zo-bg px-2.5 font-sans text-[13px] text-zo-text outline-none focus:border-zo-dim;
+    @apply h-9 w-full rounded-card border border-zo-line bg-zo-surface px-2.5 font-sans text-[16px] leading-6 text-zo-text outline-none focus:border-zo-mark focus:outline focus:outline-2 focus:outline-offset-0 focus:outline-zo-mark/30;
   }
 
   .zo-label {
-    @apply mb-1.5 block font-mono text-[10px] tracking-wider text-zo-dim uppercase;
+    @apply mb-1.5 block font-sans text-[14px] font-medium leading-5 text-zo-muted;
   }
 
   .zo-panel {
-    @apply rounded-sm border border-zo-line bg-zo-surface;
+    @apply rounded-card border border-zo-line bg-zo-surface;
   }
 
   .zo-panel-h {
-    @apply flex items-center justify-between gap-3 border-b border-zo-line-2 px-3.5 py-2.5 font-mono text-[11px] text-zo-dim;
+    @apply flex items-center justify-between gap-3 border-b border-zo-line-2 px-3.5 py-2.5 font-sans text-[14px] font-medium leading-5 text-zo-dim;
   }
 
   .zo-panel-b {
@@ -72,7 +99,7 @@
   }
 
   .zo-ghost-btn {
-    @apply cursor-pointer rounded-sm border border-zo-line bg-transparent px-2 py-1 font-mono text-[10px] text-zo-dim hover:border-zo-dim hover:text-zo-text;
+    @apply cursor-pointer rounded-card border border-zo-line bg-transparent px-2 py-1 font-sans text-[12px] font-medium leading-4 text-zo-dim hover:border-zo-dim hover:text-zo-text;
   }
 }
 

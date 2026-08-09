@@ -4,6 +4,14 @@
  * Each user brings their own Zerops token.
  */
 
+// Load .env from engine root when present (OPENAI_API_KEY, DEMO_PAT, …).
+// Safe no-op if dotenv is missing or file absent.
+try {
+  require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+} catch {
+  /* optional */
+}
+
 const express = require('express');
 const session = require('express-session');
 const http = require('http');
@@ -19,6 +27,9 @@ const { listTemplates: listMappedTemplates } = require('./llm/template-mapper');
 const demoQuota = require('./llm/demo-quota');
 const deployJobs = require('./demo-deploy-jobs');
 const { deployApp, zcliInfo } = require('./deploy-pipeline');
+const vibeBuild = require('./vibe/build-pipeline');
+const vibeShip = require('./vibe/ship-pipeline');
+const previewManager = require('./vibe/preview-manager');
 
 const app = express();
 const server = http.createServer(app);
@@ -251,9 +262,22 @@ app.post('/api/synthesize', async (req, res) => {
 
 // ─── DEMO APIs (public, judge-day; server keys only) ───
 app.get('/api/demo/status', (req, res) => {
+  const sessionKey = !!(req.session && req.session.demoOpenAIKey);
+  const userKey =
+    !!(req.session &&
+      req.session.user &&
+      req.session.user.email &&
+      users[req.session.user.email.toLowerCase().trim()] &&
+      users[req.session.user.email.toLowerCase().trim()].openaiApiKey);
+  const envKey = !!demoQuota.getDemoOpenAIKey();
   res.json({
     ok: true,
     ...demoQuota.status(),
+    // True if Build can resolve a key from env, session demo paste, or logged-in BYOK.
+    hasDemoOpenAI: envKey || sessionKey || userKey,
+    hasEnvOpenAI: envKey,
+    hasSessionOpenAI: sessionKey || userKey,
+    vibeRoutes: true,
     zcli: zcliInfo(),
     templates: listMappedTemplates(),
   });
@@ -454,11 +478,289 @@ async function runDemoDeploy({ jobId, prompt, templateId, pat }) {
   }
 }
 
-// ─── UI routes ───
-// Always expose product HTML for demo/studio (works even when web/dist SPA exists).
-app.get('/demo', (req, res) => {
-  res.sendFile(path.join(publicDir, 'demo.html'));
+
+// ─── VIBE BUILD (public like /api/demo/*; hybrid generate → install → preview) ───
+
+/**
+ * Resolve OpenAI key for vibe Build:
+ * 1) authenticated user's stored key
+ * 2) session demo key (paste on /demo)
+ * 3) request body apiKey (one-shot from demo form)
+ * 4) server/demo env (OPENAI_API_KEY / DEMO_OPENAI_API_KEY)
+ */
+function resolveVibeOpenAIKey(req) {
+  let apiKey = null;
+  if (req.session && req.session.user && req.session.user.email) {
+    const u = users[req.session.user.email.toLowerCase().trim()];
+    if (u && u.openaiApiKey) apiKey = u.openaiApiKey;
+  }
+  if (!apiKey && req.session && req.session.demoOpenAIKey) {
+    apiKey = req.session.demoOpenAIKey;
+  }
+  const bodyKey = req.body && (req.body.apiKey || req.body.openaiApiKey);
+  if (!apiKey && bodyKey && String(bodyKey).trim()) {
+    apiKey = String(bodyKey).trim();
+    // Persist for subsequent Build/Ship in this browser session.
+    if (req.session) req.session.demoOpenAIKey = apiKey;
+  }
+  if (!apiKey) apiKey = demoQuota.getDemoOpenAIKey();
+  return apiKey || null;
+}
+
+/**
+ * POST /api/demo/openai-key  body: { apiKey }
+ * Store a demo-page key on the session (no login required).
+ */
+app.post('/api/demo/openai-key', (req, res) => {
+  const key = String((req.body && (req.body.apiKey || req.body.key)) || '').trim();
+  if (!key || key.length < 10) {
+    return res.status(400).json({ success: false, error: 'A valid OpenAI API key is required' });
+  }
+  if (!req.session) {
+    return res.status(500).json({ success: false, error: 'Session unavailable' });
+  }
+  req.session.demoOpenAIKey = key;
+  res.json({ success: true, hasOpenAI: true });
 });
+
+/**
+ * POST /api/vibe/build  body: { prompt, apiKey? }
+ * → 202 { jobId, poll }  or 503 if no OpenAI key.
+ */
+app.post('/api/vibe/build', (req, res) => {
+  const { prompt } = req.body || {};
+  if (!prompt || !String(prompt).trim()) {
+    return res.status(400).json({ error: 'prompt is required' });
+  }
+
+  const apiKey = resolveVibeOpenAIKey(req);
+  if (!apiKey) {
+    return res.status(503).json({
+      error: 'OPENAI_API_KEY required',
+      code: 'OPENAI_API_KEY_REQUIRED',
+      message:
+        'OpenAI API key required. Paste a key in the demo field, log in to save a BYOK key, or set OPENAI_API_KEY in zeroops-engine/.env and restart.',
+    });
+  }
+
+  const sessionKey =
+    (req.session && req.sessionID) ||
+    (req.headers['x-vibe-session'] && String(req.headers['x-vibe-session'])) ||
+    null;
+
+  const { jobId } = vibeBuild.createBuildJob({
+    prompt: String(prompt).trim(),
+    apiKey,
+    sessionKey,
+  });
+
+  res.status(202).json({
+    jobId,
+    poll: `/api/vibe/build/${jobId}`,
+  });
+});
+
+/**
+ * GET /api/vibe/build/:jobId — job snapshot (status, plan, codeFiles, previewPath, error, events).
+ * Optional ?from=N for event-cursor polling like demo deploy jobs.
+ */
+app.get('/api/vibe/build/:jobId', (req, res) => {
+  const fromRaw = req.query.from;
+  const from =
+    fromRaw === undefined || fromRaw === ''
+      ? null
+      : Number.parseInt(String(fromRaw), 10);
+  const snap = Number.isFinite(from)
+    ? vibeBuild.readBuildJob(req.params.jobId, from)
+    : vibeBuild.readBuildJob(req.params.jobId);
+  if (!snap) {
+    return res.status(404).json({ error: 'Unknown or expired build job' });
+  }
+  res.set('Cache-Control', 'no-store');
+  res.json(snap);
+});
+
+/**
+ * GET /api/vibe/files/:workspaceId — codeFiles map for the Studio code panel.
+ */
+app.get('/api/vibe/files/:workspaceId', (req, res) => {
+  const files = vibeBuild.getWorkspaceCodeFiles(req.params.workspaceId);
+  if (!files) {
+    return res.status(404).json({ error: 'Unknown workspace' });
+  }
+  res.set('Cache-Control', 'no-store');
+  res.json({ workspaceId: req.params.workspaceId, codeFiles: files });
+});
+
+/**
+ * Reverse-proxy HTTP to the workspace's Vite process.
+ * WebSocket upgrade skipped for v1 (HMR may not work through the proxy).
+ */
+function proxyVibePreview(req, res) {
+  const workspaceId = req.params.workspaceId;
+  const info = previewManager.getPreview(workspaceId);
+  if (!info || info.port == null || (info.status !== 'running' && info.status !== 'starting')) {
+    return res.status(404).json({
+      error: 'Preview not available',
+      workspaceId,
+      status: info ? info.status : null,
+    });
+  }
+
+  // Forward full original URL so Vite --base /api/vibe/preview/<id>/ resolves.
+  const targetPath = req.originalUrl || req.url;
+
+  const headers = { ...req.headers, host: `127.0.0.1:${info.port}` };
+  // Avoid compressed mismatches when piping; let vite decide.
+  delete headers['content-length'];
+
+  const proxyReq = http.request(
+    {
+      hostname: '127.0.0.1',
+      port: info.port,
+      path: targetPath,
+      method: req.method,
+      headers,
+    },
+    (proxyRes) => {
+      const outHeaders = { ...proxyRes.headers };
+      // Allow iframe embedding from same origin Studio.
+      delete outHeaders['x-frame-options'];
+      delete outHeaders['content-security-policy'];
+      res.writeHead(proxyRes.statusCode || 502, outHeaders);
+      proxyRes.pipe(res, { end: true });
+    },
+  );
+
+  proxyReq.on('error', (err) => {
+    console.error('[vibe/preview proxy]', workspaceId, err.message);
+    if (!res.headersSent) {
+      res.status(502).json({
+        error: 'Preview proxy failed',
+        detail: err.message || String(err),
+      });
+    } else {
+      res.end();
+    }
+  });
+
+  req.pipe(proxyReq, { end: true });
+}
+
+// app.use matches the workspace root and all subpaths (Express 4).
+app.use('/api/vibe/preview/:workspaceId', proxyVibePreview);
+
+// ─── VIBE SHIP (package static SPA → Zerops; separate from Build) ───
+
+/**
+ * Resolve Zerops PAT: session user token, then demo operator PAT.
+ * @returns {string|null}
+ */
+function resolveVibeZeropsPat(req) {
+  if (req.session && req.session.user && req.session.user.email) {
+    const u = users[req.session.user.email.toLowerCase().trim()];
+    if (u && u.zeropsToken) return u.zeropsToken;
+  }
+  return demoQuota.getDemoPat() || null;
+}
+
+/**
+ * POST /api/vibe/ship  body: { workspaceId } or { jobId / buildJobId }
+ * → 202 { jobId, poll }  or 4xx/503 with clear error (never fake success URL).
+ */
+app.post('/api/vibe/ship', (req, res) => {
+  const body = req.body || {};
+  const resolved = vibeShip.resolveShipWorkspace(body);
+  if (resolved.error) {
+    return res.status(resolved.status || 400).json({ error: resolved.error });
+  }
+
+  const pat = resolveVibeZeropsPat(req);
+  if (!pat) {
+    return res.status(503).json({
+      error: 'Zerops token required',
+      code: 'ZEROPS_TOKEN_REQUIRED',
+      message:
+        'Add a Zerops PAT (account settings) or set DEMO_PAT / ZEROPS_TOKEN on the server to Ship.',
+    });
+  }
+
+  // Soft quota when using operator PAT (demo path); user PAT is not capped here.
+  const usingDemoPat = pat === demoQuota.getDemoPat();
+  if (usingDemoPat && demoQuota.isRealDeployEnabled()) {
+    const inFlight = vibeShip.activeCount() + deployJobs.activeCount();
+    const quota = demoQuota.status();
+    if (!demoQuota.canProvision() || quota.activeCount + inFlight >= quota.maxProjects) {
+      return res.status(429).json({
+        error: `Demo ship slots full (${quota.activeCount + inFlight}/${quota.maxProjects}).`,
+        quota,
+      });
+    }
+  } else if (usingDemoPat && !demoQuota.isRealDeployEnabled()) {
+    return res.status(503).json({
+      error: 'Real deploy disabled (DEMO_REAL_DEPLOY=0).',
+      quota: demoQuota.status(),
+    });
+  }
+
+  let projectName = body.projectName ? String(body.projectName).trim() : '';
+  if (!projectName) {
+    // Prefer prompt from a ready build job if provided.
+    const buildJobId = body.buildJobId || body.jobId;
+    if (buildJobId) {
+      const snap = vibeBuild.readBuildJob(String(buildJobId));
+      if (snap && snap.prompt) projectName = vibeShip.makeProjectName(snap.prompt);
+    }
+  }
+  if (!projectName) projectName = vibeShip.makeProjectName('vibe-spa');
+
+  try {
+    const { jobId } = vibeShip.createShipJob({
+      workspaceId: resolved.workspaceId,
+      workspacePath: resolved.workspacePath,
+      pat,
+      projectName,
+    });
+    res.status(202).json({
+      jobId,
+      poll: `/api/vibe/ship/${jobId}`,
+      workspaceId: resolved.workspaceId,
+      projectName,
+    });
+  } catch (err) {
+    console.error('[vibe/ship]', err);
+    res.status(500).json({ error: err.message || 'Ship failed to start' });
+  }
+});
+
+/**
+ * GET /api/vibe/ship/:jobId — poll status, events, liveUrl (only when real).
+ * Optional ?from=N event cursor.
+ */
+app.get('/api/vibe/ship/:jobId', (req, res) => {
+  const fromRaw = req.query.from;
+  const from =
+    fromRaw === undefined || fromRaw === ''
+      ? null
+      : Number.parseInt(String(fromRaw), 10);
+  const snap = vibeShip.readJob(
+    req.params.jobId,
+    Number.isFinite(from) ? from : undefined,
+  );
+  if (!snap) {
+    return res.status(404).json({ error: 'Unknown or expired ship job' });
+  }
+  res.set('Cache-Control', 'no-store');
+  res.json(snap);
+});
+
+// ─── UI routes ───
+// Demo is the primary product surface for now (/, /demo).
+const sendDemo = (req, res) => {
+  res.sendFile(path.join(publicDir, 'demo.html'));
+};
+app.get('/', sendDemo);
+app.get('/demo', sendDemo);
 app.get('/studio', (req, res) => {
   res.sendFile(path.join(publicDir, 'studio.html'));
 });
@@ -477,15 +779,19 @@ if (useReactUi) {
   app.use(express.static(webDistDir, { index: false }));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/ws')) return next();
-    // Already handled: /demo /studio /login
-    if (req.path === '/demo' || req.path === '/studio' || req.path === '/login') return next();
+    // Already handled: / /demo /studio /login
+    if (
+      req.path === '/' ||
+      req.path === '/demo' ||
+      req.path === '/studio' ||
+      req.path === '/login'
+    ) {
+      return next();
+    }
     res.sendFile(path.join(webDistDir, 'index.html'));
   });
-  console.log('[UI] React web/dist + public/demo + public/studio');
+  console.log('[UI] Primary=/demo HTML · public/studio · React web/dist fallback');
 } else {
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(publicDir, 'landing.html'));
-  });
   app.get('/preview', (req, res) => {
     res.sendFile(path.join(publicDir, 'preview', 'index.html'));
   });
@@ -504,7 +810,7 @@ if (useReactUi) {
     if (!fs.existsSync(file)) return res.status(404).send('Page not found');
     res.sendFile(file);
   });
-  console.log('[UI] Serving legacy public/ HTML');
+  console.log('[UI] Primary=/demo HTML · legacy public/');
 }
 
 // ─── WEBSOCKET ───

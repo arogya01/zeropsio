@@ -284,7 +284,12 @@ async function probe(url) {
  * @param {string} opts.pat            Zerops personal access token
  * @param {string} opts.projectName
  * @param {string} opts.importYaml
- * @param {object} opts.codeFiles      { 'webapp/server.js': '...' }
+ * @param {object} [opts.codeFiles]    { 'webapp/server.js': '...' } — used when materializeDir is absent
+ * @param {string} [opts.materializeDir] Prebuilt service directory (hostname webapp layout ready to push).
+ *                                       Must contain zerops.yml at its root. When set, skips codeFiles materialize.
+ * @param {boolean} [opts.cleanupMaterialize=true]  Whether to rm stagingDir in finally (false when caller owns deployRoot)
+ * @param {number} [opts.expectedServiceCount=2]  How many services must be READY before push (1 for vibe SPA)
+ * @param {Array<object>} [opts.servicesMeta]  Optional services list returned on success
  * @param {string} [opts.serviceHost]  service to push + expose (default webapp)
  * @param {number} [opts.servicePort]  public port (default 3000)
  * @param {string} [opts.orgId]
@@ -296,6 +301,10 @@ async function deployApp(opts) {
     projectName,
     importYaml,
     codeFiles,
+    materializeDir,
+    cleanupMaterialize = true,
+    expectedServiceCount = 2,
+    servicesMeta,
     serviceHost = 'webapp',
     servicePort = 3000,
     orgId,
@@ -304,12 +313,17 @@ async function deployApp(opts) {
 
   if (!pat) throw new Error('No Zerops PAT provided');
   if (!importYaml) throw new Error('No import spec to deploy');
+  if (!materializeDir && !codeFiles) {
+    throw new Error('No codeFiles or materializeDir to deploy');
+  }
 
   const env = { ZEROPS_TOKEN: pat };
   const emit = (stage, text, level) => onEvent({ stage, text, level });
   const log = (text) => emit('log', text);
 
   let stagingDir = null;
+  /** When true, stagingDir was created by us and should be cleaned if cleanupMaterialize. */
+  let ownsStaging = false;
 
   try {
     // ── 0. authenticate ────────────────────────────────────────────────────
@@ -330,7 +344,11 @@ async function deployApp(opts) {
     }
 
     // ── 1. import ──────────────────────────────────────────────────────────
-    emit('import', `creating project '${projectName}' (2 services)`, 'run');
+    const svcLabel =
+      expectedServiceCount === 1
+        ? '1 service'
+        : `${expectedServiceCount} services`;
+    emit('import', `creating project '${projectName}' (${svcLabel})`, 'run');
 
     const org = orgId || (await resolveOrgId(env));
     if (org) emit('import', `org ${org}`, 'ok');
@@ -364,21 +382,59 @@ async function deployApp(opts) {
     if (!projectId) throw new Error('project imported but its id could not be resolved');
     emit('resolve', `project id ${projectId}`, 'ok');
 
-    // ── 2a. wait until both services can actually be deployed to ───────────
-    emit('activate', 'waiting for both services to finish activating', 'run');
-    const ready = await waitForServices(projectId, 2, env, emit, log);
+    // ── 2a. wait until services can actually be deployed to ────────────────
+    emit(
+      'activate',
+      expectedServiceCount === 1
+        ? 'waiting for service to finish activating'
+        : 'waiting for both services to finish activating',
+      'run'
+    );
+    const ready = await waitForServices(projectId, expectedServiceCount, env, emit, log);
     if (!ready) {
       throw new Error('services did not finish activating in time — nothing was pushed');
     }
     emit('activate', 'services ready to deploy', 'ok');
 
-    // ── 3. materialize the scaffolded tree ─────────────────────────────────
-    stagingDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zeroops-deploy-'));
-    const files = materialize(codeFiles, stagingDir, serviceHost);
-    if (!files.includes('zerops.yml')) {
+    // ── 3. materialize the scaffolded tree (or use prebuilt dir) ───────────
+    if (materializeDir) {
+      // Prebuilt deploy tree (e.g. vibe ship packager): service files at dir root
+      // including zerops.yml. May be `.../webapp` under a larger deployRoot.
+      const resolved = path.resolve(materializeDir);
+      if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+        throw new Error(`materializeDir missing or not a directory: ${materializeDir}`);
+      }
+      // Accept either direct service dir or deployRoot containing hostname subdir.
+      const nested = path.join(resolved, serviceHost);
+      if (
+        fs.existsSync(path.join(resolved, 'zerops.yml'))
+      ) {
+        stagingDir = resolved;
+      } else if (
+        fs.existsSync(nested) &&
+        fs.existsSync(path.join(nested, 'zerops.yml'))
+      ) {
+        stagingDir = nested;
+      } else {
+        throw new Error(
+          `materializeDir has no zerops.yml (looked in root and ${serviceHost}/)`
+        );
+      }
+      ownsStaging = false;
+      emit('materialize', `using prebuilt dir ${stagingDir}`, 'ok');
+    } else {
+      stagingDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zeroops-deploy-'));
+      ownsStaging = true;
+      const files = materialize(codeFiles, stagingDir, serviceHost);
+      if (!files.includes('zerops.yml')) {
+        throw new Error('scaffold produced no zerops.yml — nothing to push');
+      }
+      emit('materialize', `staged ${files.length} files: ${files.join(', ')}`, 'ok');
+    }
+
+    if (!fs.existsSync(path.join(stagingDir, 'zerops.yml'))) {
       throw new Error('scaffold produced no zerops.yml — nothing to push');
     }
-    emit('materialize', `staged ${files.length} files: ${files.join(', ')}`, 'ok');
 
     // ── 4. push (build + deploy) ───────────────────────────────────────────
     emit('push', `building ${serviceHost} on Zerops — this is the slow part`, 'run');
@@ -441,6 +497,15 @@ async function deployApp(opts) {
       verified ? 'ok' : 'warn'
     );
 
+    const defaultServices = [
+      { id: serviceHost, type: 'nodejs@22', port: servicePort, privateHost: `${serviceHost}:${servicePort}` },
+    ];
+    // Legacy demo path always reported webapp + db; keep that shape when
+    // expectedServiceCount is 2 and caller did not override servicesMeta.
+    if (expectedServiceCount >= 2 && !servicesMeta) {
+      defaultServices.push({ id: 'db', type: 'postgresql@16', port: 5432, privateHost: 'db:5432' });
+    }
+
     return {
       success: true,
       projectId,
@@ -448,13 +513,12 @@ async function deployApp(opts) {
       liveUrl,
       verified,
       httpStatus: status,
-      services: [
-        { id: serviceHost, type: 'nodejs@22', port: servicePort, privateHost: `${serviceHost}:${servicePort}` },
-        { id: 'db', type: 'postgresql@16', port: 5432, privateHost: 'db:5432' },
-      ],
+      services: Array.isArray(servicesMeta) && servicesMeta.length ? servicesMeta : defaultServices,
     };
   } finally {
-    if (stagingDir) {
+    // Only delete dirs we created, and only when cleanup is requested.
+    // Prebuilt materializeDir is owned by the ship packager (deployRoot).
+    if (stagingDir && ownsStaging && cleanupMaterialize !== false) {
       try {
         fs.rmSync(stagingDir, { recursive: true, force: true });
       } catch {}

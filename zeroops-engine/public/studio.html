@@ -6,9 +6,315 @@
   <title>ZeroOps Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/design/system.css" />
   <link rel="stylesheet" href="studio.css" />
+  <style>
+    /* Notion Marketing 2024 — light product chrome overrides (behavior/IDs unchanged) */
+    html,
+    body {
+      background: var(--surface-base, var(--bg));
+      color: var(--text-primary, var(--text));
+      font-family: var(--font);
+      font-size: 16px;
+      line-height: 24px;
+    }
+
+    .topbar {
+      height: 52px;
+      padding: 0 16px 0 20px;
+      border-bottom: 1px solid var(--border-subtle, var(--line-2));
+      background: color-mix(in srgb, var(--surface-white, var(--surface)) 88%, transparent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .topbar__name {
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 600;
+    }
+
+    .topbar__ctx {
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-medium, var(--text-2));
+    }
+
+    .topbar__status-text {
+      font-family: var(--font);
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 500;
+      text-transform: none;
+    }
+
+    .topbar__net {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .topbar__user {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .topbar__user .mono {
+      font-family: var(--font);
+    }
+
+    .topbar__logout {
+      font-family: var(--font);
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 500;
+      border: 1px solid var(--border-subtle, var(--line));
+      border-radius: var(--r-card, var(--r));
+      color: var(--text-medium, var(--text-2));
+      padding: 5px 10px;
+      background: var(--surface-white, var(--surface));
+    }
+
+    .topbar__logout:hover {
+      color: var(--text-primary, var(--text));
+      border-color: var(--text-muted, var(--text-3));
+    }
+
+    .main-layout {
+      height: calc(100vh - 52px);
+    }
+
+    .panel-left {
+      background: var(--surface-base, var(--bg));
+      border-right: 1px solid var(--border-subtle, var(--line-2));
+    }
+
+    .chat-welcome__kicker {
+      font-family: var(--font);
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 500;
+      letter-spacing: 0.125px;
+      text-transform: none;
+      color: var(--text-muted, var(--text-3));
+    }
+
+    .chat-welcome__title {
+      font-size: 22px;
+      line-height: 28px;
+      font-weight: 700;
+      letter-spacing: -0.25px;
+    }
+
+    .chat-welcome__sub {
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--text-medium, var(--text-2));
+    }
+
+    .template-card {
+      border: 1px solid var(--border-subtle, var(--line));
+      border-radius: var(--r-card, var(--r));
+      background: var(--surface-white, var(--surface));
+      padding: 14px;
+    }
+
+    .template-card__id {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .template-card__label {
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 500;
+    }
+
+    .template-card__meta {
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .feed-msg--user {
+      border-radius: var(--r-card, var(--r));
+      border-color: var(--border-subtle, var(--line));
+      font-size: 14px;
+      line-height: 20px;
+    }
+
+    .feed-step-icon {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .feed-step-body strong {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .feed-step-status {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: none;
+    }
+
+    .success-card {
+      border-radius: var(--r-card, var(--r));
+    }
+
+    .success-card__link {
+      color: var(--brand-blue, var(--mark));
+      font-family: var(--font);
+      font-weight: 500;
+    }
+
+    .prompt-bar {
+      border-top: 1px solid var(--border-subtle, var(--line-2));
+      background: var(--surface-white, var(--surface));
+      padding: 14px;
+    }
+
+    .prompt-bar__input {
+      border: 1px solid var(--border-subtle, var(--line));
+      border-radius: var(--r-card, var(--r));
+      background: var(--surface-base, var(--bg));
+      font-size: 16px;
+      line-height: 24px;
+      padding: 12px;
+    }
+
+    .prompt-bar__input:focus {
+      border-color: var(--brand-blue, var(--mark));
+      outline: 2px solid color-mix(in srgb, var(--brand-blue, var(--mark)) 30%, transparent);
+    }
+
+    .prompt-bar__send {
+      height: 36px;
+      padding: 0 16px;
+      border-radius: var(--r-card, var(--r));
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 500;
+      background: var(--brand-blue, var(--mark));
+      border-color: var(--brand-blue, var(--mark));
+      color: var(--mark-ink, #fff);
+    }
+
+    .prompt-bar__send:hover:not(:disabled) {
+      background: var(--brand-blue, var(--mark));
+      opacity: 0.9;
+      color: var(--mark-ink, #fff);
+    }
+
+    .panel-right {
+      background: var(--surface-white, var(--surface));
+    }
+
+    .wb-tabs {
+      background: var(--surface-base, var(--bg));
+      border-bottom: 1px solid var(--border-subtle, var(--line-2));
+      height: 40px;
+    }
+
+    .wb-tab {
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 20px;
+      font-weight: 500;
+    }
+
+    .wb-tab.active {
+      border-bottom-color: var(--brand-blue, var(--mark));
+      color: var(--text-primary, var(--text));
+    }
+
+    .topo-strip {
+      border-top: 1px solid var(--border-subtle, var(--line-2));
+      background: var(--surface-base, var(--bg));
+    }
+
+    .topo-strip__label {
+      font-family: var(--font);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.125px;
+      text-transform: none;
+    }
+
+    .topo-chip {
+      border-radius: var(--r-card, var(--r));
+    }
+
+    .onboarding-overlay {
+      background: color-mix(in srgb, var(--hero-dark-navy, #02093a) 45%, transparent);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .onboarding-card {
+      border: 1px solid var(--border-subtle, var(--line));
+      border-radius: var(--r-card, var(--r));
+      background: var(--surface-white, var(--surface));
+      padding: 28px 24px 24px;
+    }
+
+    .onboarding-card h2 {
+      font-size: 22px;
+      line-height: 28px;
+      font-weight: 700;
+      letter-spacing: -0.25px;
+    }
+
+    .onboarding-card p {
+      font-size: 16px;
+      line-height: 24px;
+      color: var(--text-medium, var(--text-2));
+    }
+
+    .onboarding-card a {
+      color: var(--brand-blue, var(--mark));
+      font-weight: 500;
+    }
+
+    .onboarding-error {
+      font-family: var(--font);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .onboarding-hint {
+      font-family: var(--font) !important;
+      font-size: 12px !important;
+      font-weight: 500;
+      color: var(--text-muted, var(--text-3)) !important;
+    }
+
+    /* Ghost secondary action (system has zo-ghost-btn; studio uses BEM) */
+    .zo-btn--ghost {
+      background: transparent;
+      color: var(--text-medium, var(--text-2));
+      border: 1px solid var(--border-subtle, var(--line));
+    }
+
+    .zo-btn--ghost:hover {
+      background: var(--surface-2, #faf9f8);
+      border-color: var(--text-muted, var(--text-3));
+      color: var(--text-primary, var(--text));
+    }
+
+    /* Terminal / code remain mono dark surfaces for logs only */
+    .terminal,
+    .code-view,
+    .code-inspector__content {
+      font-family: var(--mono);
+    }
+  </style>
 </head>
 <body>
   <!-- Staged onboarding: OpenAI key (synth) → Zerops PAT (deploy) -->
@@ -77,32 +383,32 @@
     <aside class="panel-left">
       <div class="panel-left__scroll">
         <div class="chat-welcome" id="chat-welcome">
-          <p class="chat-welcome__kicker mono">deploy</p>
-          <h2 class="chat-welcome__title">Choose a stack or describe one</h2>
+          <p class="chat-welcome__kicker mono">vibe build</p>
+          <h2 class="chat-welcome__title">Describe an app</h2>
           <p class="chat-welcome__sub">
-            Synthesize services + YAML, import with your PAT, stream <code>zcli</code>, audit health.
+            Build generates a React + Vite SPA and local preview. Ship deploys the static host to Zerops when you are ready.
           </p>
 
           <div class="template-grid">
-            <button type="button" class="template-card" data-prompt="AI Video Clipper SaaS with Next.js, Go API, Python Whisper worker, PostgreSQL, and Valkey">
+            <button type="button" class="template-card" data-prompt="Task board for a bakery's daily prep with checklists and shift notes">
               <span class="template-card__id mono">01</span>
               <span class="template-card__body">
-                <span class="template-card__label">AI Video Clipper</span>
-                <span class="template-card__meta mono">webapp · apigateway · aiworker · db · valkey</span>
+                <span class="template-card__label">Bakery task board</span>
+                <span class="template-card__meta mono">react · vite · spa</span>
               </span>
             </button>
-            <button type="button" class="template-card" data-prompt="E-Commerce platform with Bun frontend, Go backend, PostgreSQL HA, Valkey cache, and Meilisearch">
+            <button type="button" class="template-card" data-prompt="Reading list where I save books, notes, and star ratings">
               <span class="template-card__id mono">02</span>
               <span class="template-card__body">
-                <span class="template-card__label">E-Commerce</span>
-                <span class="template-card__meta mono">webapp · apigateway · worker · db · valkey</span>
+                <span class="template-card__label">Reading list</span>
+                <span class="template-card__meta mono">react · vite · spa</span>
               </span>
             </button>
-            <button type="button" class="template-card" data-prompt="Enterprise RAG Search with React, FastAPI, Typesense, PostgreSQL pgvector, and Valkey">
+            <button type="button" class="template-card" data-prompt="Bug tracker for a small engineering team with status and priority">
               <span class="template-card__id mono">03</span>
               <span class="template-card__body">
-                <span class="template-card__label">RAG Search</span>
-                <span class="template-card__meta mono">webapp · api · embedder · pgvector · valkey</span>
+                <span class="template-card__label">Bug tracker</span>
+                <span class="template-card__meta mono">react · vite · spa</span>
               </span>
             </button>
           </div>
@@ -114,8 +420,8 @@
           <div class="feed-msg feed-msg--system" id="feed-step-synth">
             <span class="feed-step-icon">01</span>
             <div class="feed-step-body">
-              <strong>Synthesize</strong>
-              <span>Code + zerops import YAML</span>
+              <strong>Generate</strong>
+              <span>LLM writes React + Vite files</span>
             </div>
             <span class="feed-step-status" data-status="waiting">wait</span>
           </div>
@@ -123,8 +429,8 @@
           <div class="feed-msg feed-msg--system" id="feed-step-net">
             <span class="feed-step-icon">02</span>
             <div class="feed-step-body">
-              <strong>Import</strong>
-              <span>zcli project project-import</span>
+              <strong>Install</strong>
+              <span>npm install dependencies</span>
             </div>
             <span class="feed-step-status" data-status="waiting">wait</span>
           </div>
@@ -132,8 +438,8 @@
           <div class="feed-msg feed-msg--system" id="feed-step-lxd">
             <span class="feed-step-icon">03</span>
             <div class="feed-step-body">
-              <strong>Provision</strong>
-              <span>Service stacks on Zerops</span>
+              <strong>Preview</strong>
+              <span>Local Vite dev server</span>
             </div>
             <span class="feed-step-status" data-status="waiting">wait</span>
           </div>
@@ -141,8 +447,8 @@
           <div class="feed-msg feed-msg--system" id="feed-step-health">
             <span class="feed-step-icon">04</span>
             <div class="feed-step-body">
-              <strong>Audit</strong>
-              <span>HTTP + reachable service checks</span>
+              <strong>Ship</strong>
+              <span>Static SPA deploy to Zerops (optional)</span>
             </div>
             <span class="feed-step-status" data-status="waiting">wait</span>
           </div>
@@ -151,8 +457,8 @@
             <div class="success-card">
               <div class="success-card__check">OK</div>
               <div class="success-card__body">
-                <strong>Deploy finished</strong>
-                <p>Open the URL only if the audit reported a live host.</p>
+                <strong>Shipped</strong>
+                <p>Live URL from Zerops only when deploy succeeds.</p>
                 <a href="#" id="success-link" class="success-card__link" target="_blank" rel="noopener">Open live URL</a>
               </div>
             </div>
@@ -165,12 +471,13 @@
           <textarea
             id="prompt-input"
             class="prompt-bar__input"
-            placeholder="Describe the stack to deploy…"
+            placeholder="Describe the app to build…"
             rows="2"
             required
           ></textarea>
           <div class="prompt-bar__actions">
-            <button type="submit" id="deploy-btn" class="prompt-bar__send">Deploy</button>
+            <button type="button" id="ship-btn" class="prompt-bar__send" disabled title="Enabled after Build preview is ready">Ship</button>
+            <button type="submit" id="deploy-btn" class="prompt-bar__send">Build</button>
           </div>
         </form>
       </div>
@@ -178,20 +485,30 @@
 
     <main class="panel-right">
       <div class="wb-tabs">
-        <button type="button" class="wb-tab active" data-tab="wb-terminal">
+        <button type="button" class="wb-tab active" data-tab="wb-preview">
           <span class="wb-tab__dot"></span>
+          preview
+        </button>
+        <button type="button" class="wb-tab" data-tab="wb-terminal">
           terminal
         </button>
-        <button type="button" class="wb-tab" data-tab="wb-yaml">zerops.yml</button>
+        <button type="button" class="wb-tab" data-tab="wb-yaml">plan</button>
         <button type="button" class="wb-tab" data-tab="wb-code">code</button>
       </div>
 
-      <div class="wb-pane active" id="wb-terminal">
-        <pre class="terminal" id="terminal">waiting for deploy — zcli output streams here</pre>
+      <div class="wb-pane active" id="wb-preview">
+        <div class="studio-preview-wrap" style="position:relative;height:100%;min-height:320px;background:#0c0c0f">
+          <iframe id="preview-frame" title="App preview" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals" style="display:none;width:100%;height:100%;border:0;background:#fff"></iframe>
+          <div id="preview-placeholder" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-muted,#888);font-size:13px;padding:24px;text-align:center">Build an app to see the live preview here</div>
+        </div>
+      </div>
+
+      <div class="wb-pane" id="wb-terminal">
+        <pre class="terminal" id="terminal">waiting for build — generate → install → preview</pre>
       </div>
 
       <div class="wb-pane" id="wb-yaml">
-        <pre class="code-view" id="yaml-view"># appears after synthesize</pre>
+        <pre class="code-view" id="yaml-view"># plan appears after generate</pre>
       </div>
 
       <div class="wb-pane" id="wb-code">
@@ -215,32 +532,8 @@
         <div class="topo-strip__inner">
           <div class="topo-chip" id="node-web-frontend">
             <span class="topo-chip__dot"></span>
-            <span class="topo-chip__name">web-frontend</span>
-            <span class="topo-chip__ip">webapp</span>
-          </div>
-          <span class="topo-arrow">→</span>
-          <div class="topo-chip" id="node-api-gateway">
-            <span class="topo-chip__dot"></span>
-            <span class="topo-chip__name">api-gateway</span>
-            <span class="topo-chip__ip">apigateway</span>
-          </div>
-          <span class="topo-arrow">→</span>
-          <div class="topo-chip" id="node-ai-worker">
-            <span class="topo-chip__dot"></span>
-            <span class="topo-chip__name">ai-worker</span>
-            <span class="topo-chip__ip">aiworker</span>
-          </div>
-          <span class="topo-arrow">⇄</span>
-          <div class="topo-chip topo-chip--db" id="node-db-postgres">
-            <span class="topo-chip__dot"></span>
-            <span class="topo-chip__name">db-postgres</span>
-            <span class="topo-chip__ip">dbpostgres</span>
-          </div>
-          <span class="topo-arrow">⇄</span>
-          <div class="topo-chip topo-chip--db" id="node-cache-valkey">
-            <span class="topo-chip__dot"></span>
-            <span class="topo-chip__name">cache-valkey</span>
-            <span class="topo-chip__ip">cachevalkey</span>
+            <span class="topo-chip__name">webapp</span>
+            <span class="topo-chip__ip">react+vite · static SPA</span>
           </div>
         </div>
       </div>

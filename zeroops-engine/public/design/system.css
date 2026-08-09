@@ -1,34 +1,59 @@
-/* ZeroOps system — one product surface.
-   Body text: IBM Plex Sans. System artifacts: IBM Plex Mono.
-   Color is state, not decoration. No gradients, no glow kits. */
+/* ZeroOps system — Notion Marketing 2024 (alpha).
+   Body: Inter. Code/logs: Geist Mono.
+   Light product body on surface-base; brand-blue for primary CTA only. */
 
 :root {
-  --bg: #0b0c0e;
-  --surface: #12141a;
-  --surface-2: #181b22;
-  --line: #262a33;
-  --line-2: #1a1d24;
+  /* Semantic surfaces (match React zo-* map) */
+  --bg: #f6f5f4;
+  --surface: #ffffff;
+  --surface-2: #faf9f8;
+  --line: rgba(0, 0, 0, 0.08);
+  --line-2: rgba(0, 0, 0, 0.06);
+  --border-subtle: rgba(0, 0, 0, 0.08);
 
-  --text: #e8eaef;
-  --text-2: #9aa3b2;
-  --text-3: #6b7380;
+  --text: #000000;
+  --text-2: #615d59;
+  --text-3: #a39e98;
 
-  /* Single brand mark — used sparingly for primary action */
-  --mark: #e8e8e8;
-  --mark-ink: #0b0c0e;
+  /* Brand mark — primary CTA + key links */
+  --mark: #2537b1;
+  --mark-ink: #ffffff;
 
   /* State only */
-  --idle: #6b7380;
+  --idle: #a39e98;
   --running: #d4a017;
   --ok: #3ecf8e;
-  --fail: #e85d5d;
-  --info: #7aa2d4;
+  --fail: #f64932;
+  --info: #097fe8;
 
-  --font: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+  /* Explicit Notion tokens */
+  --brand-blue: #2537b1;
+  --accent-blue: #097fe8;
+  --accent-red: #f64932;
+  --surface-base: #f6f5f4;
+  --surface-white: #ffffff;
+  --hero-navy: #02093a;
+  --hero-dark-navy: #02093a;
+  --text-primary: #000000;
+  --text-medium: #615d59;
+  --text-muted: #a39e98;
 
-  --r: 2px;
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Radius: cards/panels use card (8px) */
+  --r: 8px;
+  --r-xs: 2px;
+  --r-sm: 4px;
+  --r-md: 5px;
+  --r-base: 6px;
+  --r-card: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 20px;
+  --r-pill: 9999px;
   --pad: 16px;
+  --gutter: 28px;
 }
 
 *,
@@ -46,8 +71,9 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
 }
 
 a {
@@ -69,10 +95,10 @@ code,
   height: 22px;
   background: var(--mark);
   color: var(--mark-ink);
-  font-family: var(--mono);
+  font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
-  border-radius: var(--r);
+  border-radius: var(--r-card);
   flex-shrink: 0;
 }
 
@@ -87,11 +113,13 @@ code,
   background: var(--surface);
   color: var(--text);
   font-family: var(--font);
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 20px;
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
-  border-radius: var(--r);
+  border-radius: var(--r-card);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .zo-btn:hover {
@@ -103,15 +131,19 @@ code,
   transform: translateY(1px);
 }
 
-.zo-btn--primary {
+/* BEM (public HTML) + React alias */
+.zo-btn--primary,
+.zo-btn-primary {
   background: var(--mark);
   color: var(--mark-ink);
   border-color: var(--mark);
 }
 
-.zo-btn--primary:hover {
-  background: #fff;
-  border-color: #fff;
+.zo-btn--primary:hover,
+.zo-btn-primary:hover {
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
+  opacity: 0.9;
 }
 
 .zo-btn:disabled {
@@ -125,16 +157,18 @@ code,
   height: 36px;
   padding: 0 10px;
   border: 1px solid var(--line);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
   font-family: var(--font);
-  font-size: 13px;
-  border-radius: var(--r);
+  font-size: 16px;
+  line-height: 24px;
+  border-radius: var(--r-card);
 }
 
 .zo-input:focus {
-  outline: none;
-  border-color: var(--text-3);
+  outline: 2px solid color-mix(in srgb, var(--mark) 30%, transparent);
+  outline-offset: 0;
+  border-color: var(--mark);
 }
 
 textarea.zo-input {
@@ -148,17 +182,63 @@ textarea.zo-input {
 .zo-label {
   display: block;
   margin-bottom: 6px;
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-3);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text-2);
 }
 
 .zo-meta {
-  font-family: var(--mono);
-  font-size: 11px;
+  font-family: var(--font);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
   color: var(--text-3);
+}
+
+.zo-panel {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: var(--r-card);
+}
+
+.zo-panel-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line-2);
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.zo-panel-b {
+  padding: 14px;
+}
+
+.zo-ghost-btn {
+  cursor: pointer;
+  border-radius: var(--r-card);
+  border: 1px solid var(--line);
+  background: transparent;
+  padding: 4px 8px;
+  font-family: var(--font);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.zo-ghost-btn:hover {
+  border-color: var(--text-3);
+  color: var(--text);
 }
 
 .zo-dot {
@@ -184,5 +264,9 @@ textarea.zo-input {
 @media (prefers-reduced-motion: reduce) {
   .zo-btn:active {
     transform: none;
+  }
+
+  .zo-btn {
+    transition: none;
   }
 }

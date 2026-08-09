@@ -1,4 +1,5 @@
-/* Shared semantic tokens — themes override --brand-* / --surface-* */
+/* Shared semantic tokens — Notion Marketing 2024 (alpha) fallbacks.
+   Themes may override --brand-* / --surface-* as needed. */
 :root {
   /* Motion */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -10,25 +11,40 @@
   --dur-story: 900ms;
   --stagger: 60ms;
 
-  /* Fallbacks (overridden per theme) */
-  --bg: #070708;
-  --surface: #121214;
-  --surface-2: #1a1a1e;
-  --border: #2a2a30;
-  --text-1: #f4f4f5;
-  --text-2: #a1a1aa;
-  --text-3: #63636e;
-  --brand: #c8f542;
-  --brand-ink: #0a0a0a;
-  --accent: #f5a623;
-  --ok: #34d399;
-  --warn: #fbbf24;
-  --danger: #f87171;
-  --font-display: system-ui, sans-serif;
-  --font-body: system-ui, sans-serif;
-  --font-mono: ui-monospace, monospace;
-  --radius: 10px;
-  --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  /* Notion palette fallbacks */
+  --bg: #f6f5f4;
+  --surface: #ffffff;
+  --surface-2: #faf9f8;
+  --border: #e8e6e3;
+  --text-1: #000000;
+  --text-2: #615d59;
+  --text-3: #a39e98;
+  --brand: #2537b1;
+  --brand-ink: #ffffff;
+  --accent: #097fe8;
+  --ok: #3ecf8e;
+  --warn: #d4a017;
+  --danger: #f64932;
+
+  /* Explicit Notion names */
+  --brand-blue: #2537b1;
+  --accent-blue: #097fe8;
+  --accent-red: #f64932;
+  --surface-base: #f6f5f4;
+  --surface-white: #ffffff;
+  --hero-navy: #02093a;
+  --hero-dark-navy: #02093a;
+  --text-primary: #000000;
+  --text-medium: #615d59;
+  --text-muted: #a39e98;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+
+  --font-display: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-body: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --radius: 8px;
+  --radius-card: 8px;
+  --shadow: none;
 }
 
 *,

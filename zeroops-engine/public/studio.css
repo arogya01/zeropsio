@@ -1,6 +1,6 @@
 /*
  * ZeroOps Studio — factory floor
- * Same system as landing: IBM Plex Sans + Mono, state color only.
+ * Notion Marketing 2024: Inter UI + system mono for logs/code.
  * Motion only for deploy state (building pulse, packet-flow on edges).
  */
 
@@ -520,7 +520,7 @@ body {
   font-size: 12px;
   line-height: 1.65;
   color: var(--text-2);
-  background: #08090b;
+  background: var(--surface-2);
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -536,7 +536,7 @@ body {
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-2);
-  background: #08090b;
+  background: var(--surface-2);
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
@@ -545,7 +545,7 @@ body {
 .code-tree {
   flex: 1;
   padding: 16px;
-  background: #08090b;
+  background: var(--surface-2);
   overflow-y: auto;
 }
 
@@ -635,7 +635,7 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  background: #08090b;
+  background: var(--surface-2);
 }
 
 .code-inspector__header {
@@ -789,7 +789,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(8, 9, 11, 0.88);
+  background: rgba(2, 9, 58, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
