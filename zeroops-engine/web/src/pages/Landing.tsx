@@ -11,7 +11,7 @@ export function Landing() {
           className="flex items-center gap-2.5 text-[16px] font-medium leading-6 text-zo-text no-underline"
         >
           <span className="zo-mark">Z</span>
-          ZeroOps
+          Zeroperable
         </Link>
         <div className="flex items-center gap-1 sm:gap-2">
           <a
@@ -39,7 +39,7 @@ export function Landing() {
             Prompt → multi-service stack on Zerops
           </h1>
           <p className="mb-8 max-w-[52ch] text-[20px] leading-[30px] font-normal text-white/80">
-            ZeroOps synthesizes polyglot services and <code className="font-mono text-[0.9em] text-white/90">zerops.yml</code>, then provisions with{' '}
+            Zeroperable synthesizes polyglot services and <code className="font-mono text-[0.9em] text-white/90">zerops.yml</code>, then provisions with{' '}
             <code className="font-mono text-[0.9em] text-white/90">zcli</code> using{' '}
             <strong className="font-semibold text-white">your</strong> Zerops PAT. Build logs stream
             live. Health is audited. You get a real URL.
@@ -175,7 +175,7 @@ services:
 
       <footer className="border-t border-black/[0.08] bg-zo-surface">
         <div className="mx-auto flex w-full max-w-[880px] flex-wrap items-center justify-between gap-3 px-7 py-5 pb-8 text-[12px] font-medium leading-4 tracking-[0.125px] text-zo-dim">
-          <span className="font-mono">ZeroOps · Zerops Challenge</span>
+          <span className="font-mono">Zeroperable · Zerops Challenge</span>
           <span className="space-x-3 font-sans">
             <Link
               to="/studio"

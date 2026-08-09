@@ -119,25 +119,62 @@ function safeProjectName(prompt, fallback) {
   return `${base}-${suffix}`;
 }
 
+/** Default model for every OpenAI call in the engine. Override with OPENAI_MODEL. */
+const DEFAULT_MODEL = 'gpt-5.6-luna';
+
 /**
- * Call OpenAI Chat Completions (OpenAI-only, model overridable).
+ * gpt-5+ and the o-series speak a different dialect of Chat Completions:
+ * `max_tokens` is rejected outright (`max_completion_tokens` instead) and
+ * `temperature` only accepts its default. Sending the legacy shape is a hard
+ * 400, so pick the body per model rather than per call site.
  */
-async function callOpenAI({ apiKey, model, system, user, maxTokens = 900 }) {
+function isReasoningModel(model) {
+  return /^(gpt-5|o[1-9])/i.test(String(model || ''));
+}
+
+/**
+ * Call OpenAI Chat Completions and return the message plus the metadata a
+ * caller needs to tell "the model finished" from "the model ran out of room" —
+ * on reasoning models the token budget is shared with hidden reasoning, so a
+ * too-small budget comes back as an empty string rather than an error.
+ *
+ * @returns {Promise<{ content: string, finishReason: string, usage: object, model: string }>}
+ */
+async function callOpenAIWithMeta({
+  apiKey,
+  model,
+  system,
+  user,
+  maxTokens = 900,
+  temperature = 0.4,
+  reasoningEffort,
+}) {
+  const resolvedModel = model || process.env.OPENAI_MODEL || DEFAULT_MODEL;
+
+  const body = {
+    model: resolvedModel,
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: user },
+    ],
+  };
+
+  if (isReasoningModel(resolvedModel)) {
+    body.max_completion_tokens = maxTokens;
+    const effort = reasoningEffort || process.env.OPENAI_REASONING_EFFORT;
+    if (effort) body.reasoning_effort = effort;
+  } else {
+    body.max_tokens = maxTokens;
+    body.temperature = temperature;
+  }
+
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      model: model || process.env.OPENAI_MODEL || 'gpt-4o-mini',
-      temperature: 0.4,
-      max_tokens: maxTokens,
-      messages: [
-        { role: 'system', content: system },
-        { role: 'user', content: user },
-      ],
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -146,7 +183,21 @@ async function callOpenAI({ apiKey, model, system, user, maxTokens = 900 }) {
   }
 
   const data = await res.json();
-  return data.choices?.[0]?.message?.content || '';
+  const choice = data.choices?.[0] || {};
+  return {
+    content: choice.message?.content || '',
+    finishReason: choice.finish_reason || '',
+    usage: data.usage || {},
+    model: data.model || resolvedModel,
+  };
+}
+
+/**
+ * Content-only wrapper — the shape most call sites want.
+ */
+async function callOpenAI(opts) {
+  const { content } = await callOpenAIWithMeta(opts);
+  return content;
 }
 
 /**
@@ -264,6 +315,11 @@ async function scaffoldApp(opts = {}) {
         apiKey: opts.apiKey,
         system: DEMO_SYSTEM_PROMPT,
         user: userMsg,
+        // The flavor file is tiny, but on reasoning models this budget is shared
+        // with hidden reasoning tokens — 900 would be spent before a single
+        // visible character, and we'd silently drop to fallbackFlavor().
+        maxTokens: 4000,
+        reasoningEffort: 'low',
       });
 
       const parsed = parseWriteBlocks(raw);
@@ -314,6 +370,9 @@ module.exports = {
   scaffoldApp,
   loadTemplate,
   callOpenAI,
+  callOpenAIWithMeta,
+  isReasoningModel,
+  DEFAULT_MODEL,
   safeProjectName,
   sanitizeFlavor,
   fallbackFlavor,

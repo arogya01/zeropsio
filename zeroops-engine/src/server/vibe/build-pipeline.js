@@ -153,6 +153,24 @@ async function runBuildPipeline(jobId, opts) {
     workspaceId: result.workspaceId,
     fileCount: result.appliedFiles.length,
   });
+  if (result.repairedFiles && result.repairedFiles.length) {
+    jobStore.append(jobId, {
+      type: 'stage',
+      stage: 'generate',
+      message: `Fixed syntax in ${result.repairedFiles.join(', ')}`,
+    });
+  }
+  if (result.syntaxErrors && result.syntaxErrors.length) {
+    // Not fatal — Vite still starts and shows its own overlay — but silence here
+    // reads as success right up until the preview renders an error page.
+    for (const problem of result.syntaxErrors) {
+      jobStore.append(jobId, {
+        type: 'log',
+        stage: 'generate',
+        text: `warn: ${problem.path}:${problem.line} ${problem.message}`,
+      });
+    }
+  }
   jobStore.append(jobId, {
     type: 'plan',
     plan: result.plan,
