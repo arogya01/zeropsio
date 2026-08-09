@@ -292,12 +292,21 @@ async function deployApp(opts) {
     // ── 4. push (build + deploy) ───────────────────────────────────────────
     emit('push', `building ${serviceHost} on Zerops — this is the slow part`, 'run');
 
-    const pushed = await run(ZCLI, ['push', serviceHost, '--project-id', projectId], {
-      cwd: stagingDir,
-      env,
-      onLine: (l) => log(`[zcli] ${l}`),
-      timeout: TIMEOUTS.push,
-    });
+    // `--no-git` is required, not optional. zcli defaults to pushing a git
+    // workspace state and refuses a plain directory with "folder is not
+    // initialized via git init" — and this staging tree is generated per deploy,
+    // so it never has a repo. Without the flag the push always exits 1 and the
+    // service is left sitting at READY_TO_DEPLOY with no code on it.
+    const pushed = await run(
+      ZCLI,
+      ['push', serviceHost, '--project-id', projectId, '--no-git'],
+      {
+        cwd: stagingDir,
+        env,
+        onLine: (l) => log(`[zcli] ${l}`),
+        timeout: TIMEOUTS.push,
+      }
+    );
 
     if (pushed.code !== 0) {
       throw new Error(

@@ -173,7 +173,7 @@ body {
   color: var(--text-2);
 }
 
-#btn-scaffold {
+#btn-build {
   flex-shrink: 0;
   gap: var(--s-2);
 }
@@ -193,17 +193,6 @@ body {
   margin: 0;
   font-size: 12px;
   color: var(--text-3);
-}
-
-.hero__alt {
-  display: flex;
-  gap: var(--s-2);
-}
-
-.hero__alt .zo-btn {
-  height: 34px;
-  font-size: 13px;
-  padding: 0 var(--s-3);
 }
 
 .demo-error {
@@ -619,17 +608,13 @@ body {
     align-items: stretch;
   }
 
-  #btn-scaffold {
+  #btn-build {
     width: 100%;
   }
 
   .hero__meta {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .hero__alt .zo-btn {
-    flex: 1;
   }
 
   .topo {

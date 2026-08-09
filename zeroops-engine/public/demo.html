@@ -61,8 +61,9 @@
               <span class="template-card__label">Bug tracker</span>
             </button>
           </div>
-          <button type="button" class="zo-btn zo-btn--primary" id="btn-scaffold">
-            Scaffold
+          <button type="button" class="zo-btn zo-btn--primary" id="btn-build"
+                  title="Generates the files, then imports, builds and health-checks a real Zerops project">
+            Build
             <span aria-hidden="true">→</span>
           </button>
         </div>
@@ -70,10 +71,6 @@
 
       <div class="hero__meta">
         <p class="demo-quota mono" id="quota-line">Checking demo quota…</p>
-        <div class="hero__alt">
-          <button type="button" class="zo-btn zo-btn--ghost" id="btn-simulate" title="Animates the sequence without provisioning anything">Preview the sequence</button>
-          <button type="button" class="zo-btn zo-btn--ghost" id="btn-deploy" title="Provisions a real Zerops project under the operator PAT; max 10 slots">Deploy for real</button>
-        </div>
       </div>
 
       <div class="demo-error" id="error-box" hidden></div>

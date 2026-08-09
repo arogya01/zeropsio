@@ -91,7 +91,7 @@ in advance. The old hardcoded `https://zeroops-demo.zerops.app` did not resolve.
 - IDs: `demo-prompt`, `plan-box`, `plan-card`, `error-box`, `log-box`, `quota-line`,
   `canvas-mode`, `success-box`, `success-title`, `live-link`, `live-hosts`, `workbench`,
   `template-pill`, `understood-pill`, `llm-pill`, `files-box`, `files-list`, `files-count`,
-  `yaml-box`, `yaml-code`, `btn-copy-yaml`, `btn-scaffold`, `btn-simulate`, `btn-deploy`
+  `yaml-box`, `yaml-code`, `btn-copy-yaml`, `btn-build`
 - Nodes: `node-webapp` and `node-db`, each wrapped in a `.topo-node`. The chip id is
   `'node-' + topology[].id` from `scaffold.js` — the two must move together.
 - Classes: `.template-card[data-prompt]` toggling `.is-selected` (example prompts, **not**

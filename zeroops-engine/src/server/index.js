@@ -17,6 +17,7 @@ const HealthChecker = require('./health-checker');
 const { scaffoldApp } = require('./llm/scaffold');
 const { listTemplates: listMappedTemplates } = require('./llm/template-mapper');
 const demoQuota = require('./llm/demo-quota');
+const deployJobs = require('./demo-deploy-jobs');
 const { deployApp, zcliInfo } = require('./deploy-pipeline');
 
 const app = express();
@@ -323,7 +324,7 @@ app.post('/api/demo/simulate', async (req, res) => {
   }
 });
 
-app.post('/api/demo/deploy', async (req, res) => {
+app.post('/api/demo/deploy', (req, res) => {
   const { prompt, templateId } = req.body || {};
   const quota = demoQuota.status();
 
@@ -333,9 +334,12 @@ app.post('/api/demo/deploy', async (req, res) => {
       quota,
     });
   }
-  if (!demoQuota.canProvision()) {
+  // In-flight deploys hold a slot too — they each become a real project a few
+  // minutes from now, and are not registered against the quota until they do.
+  const inFlight = deployJobs.activeCount();
+  if (!demoQuota.canProvision() || quota.activeCount + inFlight >= quota.maxProjects) {
     return res.status(429).json({
-      error: `Demo deploy slots full (${quota.activeCount}/${quota.maxProjects}). Showing shared stack instead.`,
+      error: `Demo deploy slots full (${quota.activeCount + inFlight}/${quota.maxProjects}). Showing shared stack instead.`,
       quota,
       fallback: 'simulate',
     });
@@ -350,24 +354,33 @@ app.post('/api/demo/deploy', async (req, res) => {
     });
   }
 
-  // A real build takes minutes, so this response streams NDJSON instead of
-  // making the browser wait on a silent request. Every line is one JSON object
-  // with a `type`. Guard failures above still return ordinary JSON, so the
-  // client branches on Content-Type.
-  res.writeHead(200, {
-    'Content-Type': 'application/x-ndjson; charset=utf-8',
-    'Cache-Control': 'no-cache, no-transform',
-    Connection: 'keep-alive',
-    'X-Accel-Buffering': 'no',
-  });
-  const send = (obj) => {
-    if (!res.writableEnded) res.write(`${JSON.stringify(obj)}\n`);
-  };
+  // A real build takes minutes. Streaming it down this response used to get the
+  // connection killed by the L7 balancer during the first long silent stretch,
+  // so the deploy now runs detached and the client polls the job below.
+  const jobId = deployJobs.create();
+  res.status(202).json({ jobId, poll: `/api/demo/deploy/${jobId}`, quota });
 
-  let aborted = false;
-  req.on('aborted', () => {
-    aborted = true;
-  });
+  runDemoDeploy({ jobId, prompt, templateId, pat });
+});
+
+/** Events recorded since `from`. Short request — it cannot idle out. */
+app.get('/api/demo/deploy/:jobId', (req, res) => {
+  const from = Number.parseInt(req.query.from, 10);
+  const snapshot = deployJobs.read(req.params.jobId, Number.isNaN(from) ? 0 : from);
+  if (!snapshot) {
+    return res.status(404).json({ error: 'Unknown or expired deploy job' });
+  }
+  res.set('Cache-Control', 'no-store');
+  res.json(snapshot);
+});
+
+/**
+ * The deploy itself. Deliberately not tied to a request: it records into the job
+ * store and never touches `res`, so nothing it does depends on a client still
+ * being connected.
+ */
+async function runDemoDeploy({ jobId, prompt, templateId, pat }) {
+  const send = (obj) => deployJobs.append(jobId, obj);
 
   try {
     send({ type: 'stage', stage: 'scaffold', text: 'mapping prompt and generating files', level: 'run' });
@@ -402,7 +415,6 @@ app.post('/api/demo/deploy', async (req, res) => {
       importYaml: scaffolded.importYaml,
       codeFiles: scaffolded.codeFiles,
       onEvent: (e) => {
-        if (aborted) return;
         if (e.stage === 'log') send({ type: 'log', text: e.text });
         else send({ type: 'stage', stage: e.stage, text: e.text, level: e.level });
       },
@@ -414,7 +426,7 @@ app.post('/api/demo/deploy', async (req, res) => {
       liveUrl: result.liveUrl || null,
     });
 
-    send({
+    deployJobs.finish(jobId, {
       type: 'done',
       mode: 'real',
       id,
@@ -427,18 +439,16 @@ app.post('/api/demo/deploy', async (req, res) => {
       topology: scaffolded.topology.map((s) => ({ ...s, status: 'healthy' })),
       quota: demoQuota.status(),
     });
-    res.end();
   } catch (err) {
     console.error('[demo/deploy]', err);
-    send({
+    deployJobs.finish(jobId, {
       type: 'error',
       error: err.message || 'Deploy failed',
       fallback: 'simulate',
       quota: demoQuota.status(),
     });
-    res.end();
   }
-});
+}
 
 // ─── UI routes ───
 // Always expose product HTML for demo/studio (works even when web/dist SPA exists).

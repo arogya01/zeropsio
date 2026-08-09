@@ -6,8 +6,9 @@
  * zerops-import.yml, the generated code files, what the prompt was understood
  * to mean — gets rendered, because the artifacts are the proof.
  *
- * `Deploy for real` streams NDJSON: a real import + build takes minutes, so the
- * page reports each stage as it happens rather than sitting on a spinner.
+ * `Build` runs the whole thing — scaffold, import, push, health-check. That takes
+ * minutes, so it starts a server-side job and polls it, reporting each stage as
+ * it happens rather than sitting on a spinner.
  */
 (function () {
   const promptEl = document.getElementById('demo-prompt');
@@ -32,9 +33,7 @@
   const yamlCode = document.getElementById('yaml-code');
   const copyBtn = document.getElementById('btn-copy-yaml');
 
-  const deployBtn = document.getElementById('btn-deploy');
-  const scaffoldBtn = document.getElementById('btn-scaffold');
-  const simulateBtn = document.getElementById('btn-simulate');
+  const buildBtn = document.getElementById('btn-build');
 
   let lastScaffold = null;
   let revealed = false;
@@ -65,9 +64,7 @@
   /** A real deploy holds a Zerops slot; don't let it be started twice. */
   function setBusy(state) {
     busy = state;
-    [scaffoldBtn, simulateBtn, deployBtn].forEach((b) => {
-      if (b) b.disabled = state;
-    });
+    if (buildBtn) buildBtn.disabled = state;
   }
 
   /* ── log ────────────────────────────────────────────────────────────────── */
@@ -298,39 +295,7 @@
     return p;
   }
 
-  async function runScaffold() {
-    if (busy || !requirePrompt()) return;
-    setBusy(true);
-    setError('');
-    revealWorkbench();
-    resetCanvas();
-    setMode('scaffolding', 'run');
-    log('[scaffold] reading the prompt…');
-    try {
-      const res = await fetch('/api/demo/scaffold', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload()),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Scaffold failed');
-      lastScaffold = data;
-      log('[scaffold] project=' + data.projectName + ' · ' + data.services.join(' + '));
-      if (data.llmUsed) log('[llm] OpenAI wrote app.config.json');
-      else log('[llm] deterministic fallback' + (data.llmError ? ': ' + data.llmError : ''));
-      showPlan(data.plan);
-      renderArtifacts(data);
-      (data.topology || []).forEach((s) => setChip(s.id, 'idle', s.privateHost));
-      setMode('scaffolded');
-      log('[scaffold] files ready — press “Deploy for real” to provision them');
-    } catch (err) {
-      setError(err.message || String(err));
-      setMode('error', 'fail');
-    }
-    setBusy(false);
-  }
-
-  /** keepLog is set when this runs as the deploy fallback, so the judge can
+  /** keepLog is set when this runs as the build fallback, so the judge can
    *  still read why the real deploy was refused. */
   async function runSimulate(keepLog) {
     if (busy) return;
@@ -359,7 +324,7 @@
       } else {
         // No invented URL. A preview run has nothing real to link to.
         setMode('preview complete', 'run');
-        log('[simulate] preview only — use “Deploy for real” for a live URL');
+        log('[simulate] preview only — no real project was provisioned');
       }
     } catch (err) {
       setError(err.message || String(err));
@@ -409,36 +374,54 @@
     }
   }
 
-  async function readNdjson(res, onObject) {
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+  const POLL_INTERVAL_MS = 1500;
+  /** A build survives this many consecutive failed polls before we give up. */
+  const POLL_MAX_MISSES = 8;
+
+  /**
+   * Collect a deploy job's events until it finishes.
+   *
+   * The server used to stream these down the POST response, but the platform
+   * proxy closes a response that goes ~60s without a byte and the build has
+   * silent stretches far longer than that — so the browser saw a network error
+   * mid-deploy. Short polls cannot idle out, and a blip just retries.
+   */
+  async function pollJob(jobId, onEvent) {
+    let from = 0;
+    let misses = 0;
 
     for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-
-      let nl;
-      while ((nl = buffer.indexOf('\n')) >= 0) {
-        const line = buffer.slice(0, nl).trim();
-        buffer = buffer.slice(nl + 1);
-        if (!line) continue;
-        try {
-          onObject(JSON.parse(line));
-        } catch {
-          /* a partial or malformed line is not worth killing the run over */
-        }
-      }
-    }
-    if (buffer.trim()) {
+      let snapshot;
       try {
-        onObject(JSON.parse(buffer.trim()));
-      } catch {}
+        const res = await fetch(
+          '/api/demo/deploy/' + encodeURIComponent(jobId) + '?from=' + from,
+          { headers: { Accept: 'application/json' } }
+        );
+        if (res.status === 404) {
+          throw Object.assign(new Error('the deploy job expired on the server'), {
+            fatal: true,
+          });
+        }
+        if (!res.ok) throw new Error('poll failed — HTTP ' + res.status);
+        snapshot = await res.json();
+        misses = 0;
+      } catch (err) {
+        if (err.fatal) throw err;
+        misses += 1;
+        if (misses >= POLL_MAX_MISSES) throw err;
+        log('[deploy] lost contact with the server, retrying (' + misses + ')');
+        await sleep(POLL_INTERVAL_MS);
+        continue;
+      }
+
+      (snapshot.events || []).forEach(onEvent);
+      from = snapshot.next;
+      if (snapshot.done) return;
+      await sleep(POLL_INTERVAL_MS);
     }
   }
 
-  async function runDeploy() {
+  async function runBuild() {
     if (busy || !requirePrompt()) return;
     setBusy(true);
     setError('');
@@ -454,12 +437,11 @@
         body: JSON.stringify(payload()),
       });
 
-      const contentType = res.headers.get('content-type') || '';
+      const data = await res.json().catch(() => ({}));
 
-      // Guard failures (no PAT, quota full, kill-switch) still answer with
-      // ordinary JSON rather than a stream.
-      if (!res.ok || !contentType.includes('ndjson')) {
-        const data = await res.json().catch(() => ({}));
+      // Guard failures (no PAT, quota full, kill-switch) answer with an error
+      // instead of a job id.
+      if (!res.ok || !data.jobId) {
         log('[deploy] blocked: ' + (data.error || 'HTTP ' + res.status));
         if (data.fallback === 'simulate') {
           log('[deploy] falling back to the preview');
@@ -470,10 +452,12 @@
         throw new Error(data.error || 'Deploy failed');
       }
 
+      log('[deploy] build started — this takes a few minutes');
+
       let done = null;
       let failure = null;
 
-      await readNdjson(res, (msg) => {
+      await pollJob(data.jobId, (msg) => {
         switch (msg.type) {
           case 'log':
             log(msg.text);
@@ -510,7 +494,7 @@
         throw new Error(failure.error);
       }
 
-      if (!done) throw new Error('Deploy stream ended without a result');
+      if (!done) throw new Error('the deploy finished without reporting a result');
 
       const hosts = (done.services || []).map((s) => s.privateHost || s.id);
       if (done.verified) {
@@ -536,16 +520,12 @@
 
   /* ── wiring ─────────────────────────────────────────────────────────────── */
 
-  // Wrapped, not passed by reference: the MouseEvent would land in runSimulate's
-  // keepLog argument and read as truthy.
-  scaffoldBtn?.addEventListener('click', () => runScaffold());
-  simulateBtn?.addEventListener('click', () => runSimulate());
-  deployBtn?.addEventListener('click', () => runDeploy());
+  buildBtn?.addEventListener('click', () => runBuild());
 
   promptEl?.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
-      runScaffold();
+      runBuild();
     }
   });
 
