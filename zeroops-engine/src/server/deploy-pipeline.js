@@ -134,6 +134,30 @@ async function resolveProjectId(name, env, log) {
 }
 
 /**
+ * Determine which org to create the project under.
+ *
+ * Passing --org-id explicitly matters: if the token can see more than one org,
+ * zcli asks which to use, and an interactive prompt on a server would hang the
+ * request until the step timeout. The org id is the 4th column of
+ * `zcli project list`, so we read it from there rather than requiring config.
+ */
+async function resolveOrgId(env) {
+  if (process.env.DEMO_ORG_ID) return process.env.DEMO_ORG_ID;
+  if (process.env.ZEROPS_ORG_ID) return process.env.ZEROPS_ORG_ID;
+
+  const { out } = await run(ZCLI, ['project', 'list'], { env, timeout: TIMEOUTS.list });
+  for (const line of out.split('\n')) {
+    const cells = line
+      .split('│')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    // ID │ NAME │ ORG NAME │ ORG ID │ STATUS │ MODE
+    if (cells.length >= 4 && /^[A-Za-z0-9_-]{16,}$/.test(cells[3])) return cells[3];
+  }
+  return '';
+}
+
+/**
  * Build the public URL from the project's own subdomain template.
  * PROJECT_zeropsSubdomainString looks like:
  *   https://${hostname}-2cbd-${port}.prg1.zerops.app
@@ -196,7 +220,7 @@ async function deployApp(opts) {
     codeFiles,
     serviceHost = 'webapp',
     servicePort = 3000,
-    orgId = process.env.ZEROPS_ORG_ID || '',
+    orgId,
     onEvent = () => {},
   } = opts;
 
@@ -230,8 +254,11 @@ async function deployApp(opts) {
     // ── 1. import ──────────────────────────────────────────────────────────
     emit('import', `creating project '${projectName}' (2 services)`, 'run');
 
+    const org = orgId || (await resolveOrgId(env));
+    if (org) emit('import', `org ${org}`, 'ok');
+
     const importArgs = ['project', 'project-import', '-'];
-    if (orgId) importArgs.push('--org-id', orgId);
+    if (org) importArgs.push('--org-id', org);
 
     const imported = await run(ZCLI, importArgs, {
       env,
@@ -351,6 +378,7 @@ module.exports = {
   ZCLI,
   urlFromEnvDump,
   resolveProjectId,
+  resolveOrgId,
   materialize,
   run,
 };
