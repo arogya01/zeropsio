@@ -5,7 +5,7 @@
  * zerops.yml per service, env injection, pgvector migrations, and Whisper worker queue structures).
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import type { Server } from 'http';
 import { AddressInfo } from 'net';
 import path from 'path';
@@ -15,8 +15,10 @@ const yaml: typeof import('js-yaml') = (yamlModule as any).default || yamlModule
 import { WebSocket } from 'ws';
 
 const { server } = require('../src/server/index');
+const childProcess = require('child_process');
 import { validateZeroStubs } from '../src/code-gen/stub-validator';
 import { ZcpClient } from '../src/zcp/zcp-client';
+import { fakeZcliProc } from './helpers/fake-zcli-proc';
 
 describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydration Engine', () => {
   let httpServer: Server;
@@ -280,8 +282,23 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
   });
 
   describe('7. 1-Click Template Hydration WebSocket Pipeline Execution', () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     for (const tId of TEMPLATES) {
       it(`hydrates '${tId}' via WebSocket deploy trigger and streams 5-container topology state transitions`, async () => {
+        // Mock the provisioning boundary so this test's outcome is a
+        // controlled invariant, not ambient state. Without this, the test
+        // invokes the REAL `zcli` binary — on a machine with a real
+        // authenticated zcli session, that call's success/failure is
+        // uncontrolled and unrelated to what this test is verifying (the
+        // WebSocket log/topology/complete-message pipeline).
+        const mockUrl = `https://${tId.replace(/-/g, '')}-a1b2.zerops.app`;
+        vi.spyOn(childProcess, 'spawn').mockImplementation(() =>
+          fakeZcliProc(0, `[zcli] project imported, live at ${mockUrl}\n`)
+        );
+
         const ws = new WebSocket(wsUrl);
         await new Promise((r) => ws.on('open', r));
 
@@ -289,6 +306,76 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
         const logs: string[] = [];
         const topologyUpdates: Record<string, string> = {};
 
+        try {
+          const completionPromise = new Promise<void>((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error(`Deployment timed out for template ${tId}`));
+            }, 15000);
+
+            ws.on('message', (data: any) => {
+              try {
+                const parsed = JSON.parse(data.toString());
+                receivedMessages.push(parsed);
+                if (parsed.type === 'log') {
+                  logs.push(parsed.text);
+                }
+                if (parsed.type === 'topology-update') {
+                  topologyUpdates[parsed.serviceId] = parsed.status;
+                }
+                if (parsed.type === 'complete') {
+                  clearTimeout(timeout);
+                  resolve();
+                }
+              } catch {
+                // Ignore non-json
+              }
+            });
+          });
+
+          // Trigger 1-click template deploy
+          ws.send(JSON.stringify({
+            action: 'deploy',
+            templateId: tId,
+            zeropsToken: 'demo-token-123'
+          }));
+
+          await completionPromise;
+
+          // Assertions
+          expect(logs.some((l) => l.includes('Beginning ZeroOps Full-Stack Cloud Factory Pipeline'))).toBe(true);
+          expect(logs.some((l) => l.includes(tId))).toBe(true);
+
+          const expectedServices = ['web-frontend', 'api-gateway', 'ai-worker', 'db-postgres', 'cache-valkey'];
+          for (const sId of expectedServices) {
+            expect(topologyUpdates[sId]).toBe('healthy');
+          }
+
+          const completeMsg = receivedMessages.find((m) => m.type === 'complete');
+          expect(completeMsg).toBeDefined();
+          // Controlled SUCCESS case: zcli exited 0 and printed a real-shaped
+          // URL, so the deploy is genuinely live and the health audit
+          // (running in mock mode) can honestly report success.
+          expect(completeMsg.liveUrl).toBe(mockUrl);
+          expect(completeMsg.audit.success).toBe(true);
+        } finally {
+          ws.close();
+        }
+      }, 15000);
+    }
+
+    it('reports honest failure (null liveUrl, failed audit) when zcli exits non-zero', async () => {
+      // Controlled FAILURE case: mirrors the success test above but with a
+      // non-zero exit code and no URL in stdout — restores coverage for the
+      // failure direction without depending on ambient zcli behavior.
+      vi.spyOn(childProcess, 'spawn').mockImplementation(() => fakeZcliProc(1));
+
+      const tId = TEMPLATES[0];
+      const ws = new WebSocket(wsUrl);
+      await new Promise((r) => ws.on('open', r));
+
+      const receivedMessages: any[] = [];
+
+      try {
         const completionPromise = new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error(`Deployment timed out for template ${tId}`));
@@ -298,12 +385,6 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
             try {
               const parsed = JSON.parse(data.toString());
               receivedMessages.push(parsed);
-              if (parsed.type === 'log') {
-                logs.push(parsed.text);
-              }
-              if (parsed.type === 'topology-update') {
-                topologyUpdates[parsed.serviceId] = parsed.status;
-              }
               if (parsed.type === 'complete') {
                 clearTimeout(timeout);
                 resolve();
@@ -314,7 +395,6 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
           });
         });
 
-        // Trigger 1-click template deploy
         ws.send(JSON.stringify({
           action: 'deploy',
           templateId: tId,
@@ -322,27 +402,15 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
         }));
 
         await completionPromise;
-        ws.close();
-
-        // Assertions
-        expect(logs.some((l) => l.includes('Beginning ZeroOps Full-Stack Cloud Factory Pipeline'))).toBe(true);
-        expect(logs.some((l) => l.includes(tId))).toBe(true);
-
-        const expectedServices = ['web-frontend', 'api-gateway', 'ai-worker', 'db-postgres', 'cache-valkey'];
-        for (const sId of expectedServices) {
-          expect(topologyUpdates[sId]).toBe('healthy');
-        }
 
         const completeMsg = receivedMessages.find((m) => m.type === 'complete');
         expect(completeMsg).toBeDefined();
-        // This environment has no real Zerops project/token to provision against,
-        // so zcli genuinely fails (or prints no reachable URL) and the health
-        // audit honestly reports failure. Asserting `true` here would only pass
-        // by re-introducing the fabricated success signal this fix removes.
+        expect(completeMsg.liveUrl).toBeNull();
         expect(completeMsg.audit.success).toBe(false);
-        expect(completeMsg.liveUrl).toBeDefined();
-      }, 15000);
-    }
+      } finally {
+        ws.close();
+      }
+    }, 15000);
   });
 
   describe('8. ZcpClient Template Import Integration Test', () => {

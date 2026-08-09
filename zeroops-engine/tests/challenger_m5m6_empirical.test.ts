@@ -4,7 +4,7 @@
  * Stress-tests input validation, concurrency, template rendering, and error resilience.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from 'vitest';
 import type { Server } from 'http';
 import { AddressInfo } from 'net';
 import WebSocket from 'ws';
@@ -12,6 +12,8 @@ import WebSocket from 'ws';
 const { server, users } = require('../src/server/index');
 const Synthesizer = require('../src/server/synthesizer');
 const HealthChecker = require('../src/server/health-checker');
+const childProcess = require('child_process');
+import { fakeZcliProc } from './helpers/fake-zcli-proc';
 
 describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
   let httpServer: Server;
@@ -149,7 +151,21 @@ describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
   });
 
   describe('4. WebSocket Log Streamer Concurrent Burst & Disconnect Resilience', () => {
-    it('handles WebSocket connection and deploy trigger for template deployment', async () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('handles WebSocket connection and deploy trigger for template deployment (controlled success)', async () => {
+      // Mock the provisioning boundary so this test's outcome is a controlled
+      // invariant rather than ambient state. Without this, the deploy
+      // trigger invokes the REAL `zcli` binary — on a machine with a real
+      // authenticated zcli session, whether that succeeds or fails is
+      // unrelated to what this test verifies (the WS message pipeline).
+      const mockUrl = 'https://aivideoclipper-b7c2.zerops.app';
+      vi.spyOn(childProcess, 'spawn').mockImplementation(() =>
+        fakeZcliProc(0, `[zcli] project imported, live at ${mockUrl}\n`)
+      );
+
       const ws = new WebSocket(wsUrl);
       await new Promise((r) => ws.on('open', r));
 
@@ -186,15 +202,60 @@ describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
         const completeMsg = messages.find((m) => m.type === 'complete');
         expect(completeMsg).toBeDefined();
         expect(completeMsg.projectName).toBe('aivideoclipper');
-        // This environment has no real Zerops project/token to provision against,
-        // so zcli genuinely fails (or prints no reachable URL) and the health
-        // audit honestly reports failure. Asserting `true` here would only pass
-        // by re-introducing the fabricated success signal this fix removes.
-        expect(completeMsg.audit.success).toBe(false);
+        // Controlled SUCCESS case: zcli exited 0 and printed a real-shaped
+        // URL, so the deploy is genuinely live and the health audit (running
+        // in mock mode) can honestly report success. This restores coverage
+        // for the success path, which previously had zero assertions.
+        expect(completeMsg.liveUrl).toBe(mockUrl);
+        expect(completeMsg.audit.success).toBe(true);
       } finally {
         // Close the socket even when an assertion above throws — an abandoned
         // open WebSocket otherwise holds the server connection open and hangs
         // this file's afterAll (httpServer.close()) until it times out.
+        ws.close();
+      }
+    });
+
+    it('reports honest failure (null liveUrl, failed audit) when zcli exits non-zero', async () => {
+      // Controlled FAILURE case: mirrors the success test above but with a
+      // non-zero exit code and no URL in stdout.
+      vi.spyOn(childProcess, 'spawn').mockImplementation(() => fakeZcliProc(1));
+
+      const ws = new WebSocket(wsUrl);
+      await new Promise((r) => ws.on('open', r));
+
+      const messages: any[] = [];
+      ws.on('message', (msg) => {
+        try {
+          messages.push(JSON.parse(msg.toString()));
+        } catch (e) {}
+      });
+
+      try {
+        ws.send(JSON.stringify({
+          action: 'deploy',
+          templateId: 'ai-video-clipper',
+          zeropsToken: 'zerops_mock_pat_token_123'
+        }));
+
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Timeout waiting for completion')), 5000);
+          ws.on('message', (data) => {
+            try {
+              const parsed = JSON.parse(data.toString());
+              if (parsed.type === 'complete') {
+                clearTimeout(timeout);
+                resolve();
+              }
+            } catch (e) {}
+          });
+        });
+
+        const completeMsg = messages.find((m) => m.type === 'complete');
+        expect(completeMsg).toBeDefined();
+        expect(completeMsg.liveUrl).toBeNull();
+        expect(completeMsg.audit.success).toBe(false);
+      } finally {
         ws.close();
       }
     });
