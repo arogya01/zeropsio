@@ -14,6 +14,15 @@ import * as yamlModule from 'js-yaml';
 const yaml: typeof import('js-yaml') = (yamlModule as any).default || yamlModule;
 import { WebSocket } from 'ws';
 
+// The server module builds a module-scope `healthChecker` singleton
+// (`new HealthChecker()`, no options) the instant it is required below.
+// LiveAuditor now defaults to REAL network probing, so without this the
+// WebSocket-pipeline tests in this file would depend on genuine outbound
+// connectivity to fabricated *.zerops.app hosts. Opt this file's server
+// instance into mock mode explicitly, at the require call site, so the
+// mocking is visible here rather than ambient — production `index.js`
+// itself is untouched and still defaults to real probing.
+process.env.MOCK_MODE = 'true';
 const { server } = require('../src/server/index');
 const childProcess = require('child_process');
 import { validateZeroStubs } from '../src/code-gen/stub-validator';
@@ -40,6 +49,9 @@ describe('Milestone M3 Empirical Challenge Suite — Template Library & Hydratio
     if (httpServer) {
       await new Promise<void>((resolve) => httpServer.close(() => resolve()));
     }
+    // Undo the module-load-time MOCK_MODE override above so it can't leak
+    // into any other test file that happens to share this worker process.
+    delete process.env.MOCK_MODE;
   });
 
   const TEMPLATES = ['ai-video-clipper', 'ecommerce-platform', 'rag-search-engine'] as const;

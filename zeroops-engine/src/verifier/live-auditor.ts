@@ -22,7 +22,7 @@ export interface IVerificationSuite {
   auditHttp(url: string): Promise<{ status: number; ok: boolean }>;
   auditDb(connectionString: string): Promise<{ connected: boolean; writeOk: boolean }>;
   auditCache(host: string, port: number): Promise<{ pingOk: boolean }>;
-  auditQueueE2E(apiEndpoint: string): Promise<{ passed: boolean; messageId?: string }>;
+  auditQueueE2E(apiEndpoint: string): Promise<{ passed: boolean; messageId?: string; skipped?: boolean; reason?: string }>;
   runFullAudit(url: string, projectName?: string, onLogStream?: (msg: string) => void): Promise<HealthAuditResult>;
 }
 
@@ -73,7 +73,7 @@ export class LiveAuditor implements IVerificationSuite {
     this.retries = options.retries ?? 3;
     this.timeoutMs = options.timeoutMs ?? 3000;
     this.backoffMs = options.backoffMs ?? 300;
-    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE !== 'false');
+    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE === 'true');
     this.fallbackOnOffline = options.fallbackOnOffline ?? false;
     this.postgresHost = options.postgresHost || '10.160.0.21';
     this.postgresPort = options.postgresPort || 5432;
@@ -250,13 +250,24 @@ export class LiveAuditor implements IVerificationSuite {
   }
 
   /**
-   * Audit Queue End-to-End processing
+   * Queue end-to-end verification.
+   * Not implemented against a live broker — reported as skipped rather than passed,
+   * so the audit score never counts an unrun check as a success.
    */
-  async auditQueueE2E(apiEndpoint: string): Promise<{ passed: boolean; messageId?: string }> {
+  async auditQueueE2E(apiEndpoint: string): Promise<{ passed: boolean; messageId?: string; skipped?: boolean; reason?: string }> {
     if (this.simulateQueueFailure || (apiEndpoint && apiEndpoint.includes('fail'))) {
       return { passed: false };
     }
-    return { passed: true, messageId: `msg_${Date.now()}` };
+
+    if (this.mockMode) {
+      return { passed: true, messageId: `msg_mock` };
+    }
+
+    return {
+      passed: false,
+      skipped: true,
+      reason: 'queue round-trip not implemented — no live broker probe'
+    };
   }
 
   /**
@@ -324,6 +335,15 @@ export class LiveAuditor implements IVerificationSuite {
 
     // 5. Queue E2E
     const queueRes = await this.auditQueueE2E(`${url}/api/queue`);
+    if (onLogStream) {
+      if (queueRes.skipped) {
+        onLogStream(`[TEST-4] RESULT: SKIPPED — ${queueRes.reason}`);
+      } else if (queueRes.passed) {
+        onLogStream(`[TEST-4] RESULT: PASS`);
+      } else {
+        onLogStream(`[TEST-4] RESULT: FAIL`);
+      }
+    }
 
     const errors: string[] = [];
     let passedCount = 0;

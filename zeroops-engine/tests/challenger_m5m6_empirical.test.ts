@@ -9,6 +9,15 @@ import type { Server } from 'http';
 import { AddressInfo } from 'net';
 import WebSocket from 'ws';
 
+// The server module builds a module-scope `healthChecker` singleton
+// (`new HealthChecker()`, no options) the instant it is required below.
+// LiveAuditor now defaults to REAL network probing, so without this the
+// WebSocket-pipeline tests in this file would depend on genuine outbound
+// connectivity to fabricated *.zerops.app hosts. Opt this file's server
+// instance into mock mode explicitly, at the require call site, so the
+// mocking is visible here rather than ambient — production `index.js`
+// itself is untouched and still defaults to real probing.
+process.env.MOCK_MODE = 'true';
 const { server, users } = require('../src/server/index');
 const Synthesizer = require('../src/server/synthesizer');
 const HealthChecker = require('../src/server/health-checker');
@@ -40,6 +49,9 @@ describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
     if (httpServer) {
       await new Promise<void>((resolve) => httpServer.close(() => resolve()));
     }
+    // Undo the module-load-time MOCK_MODE override above so it can't leak
+    // into any other test file that happens to share this worker process.
+    delete process.env.MOCK_MODE;
   });
 
   describe('1. API Input Fuzzing & Type Boundary Verification', () => {
@@ -134,7 +146,9 @@ describe('Empirical Verification & Stress Suite (Challenger M5/M6)', () => {
 
   describe('3. Automated Health Auditor Suite', () => {
     it('executes health check audit and returns 100% score for valid URLs', async () => {
-      const checker = new HealthChecker();
+      // Explicit opt-in: this test asserts the mocked "everything is up"
+      // shape of the audit result, not a real probe of a fabricated host.
+      const checker = new HealthChecker({ mockMode: true });
       const logs: string[] = [];
       const result = await checker.runAudit('test-app', 'https://test-app.zerops.app', (msg) => logs.push(msg));
 

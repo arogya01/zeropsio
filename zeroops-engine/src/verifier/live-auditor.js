@@ -12,7 +12,7 @@ class LiveAuditor {
     this.retries = options.retries ?? 3;
     this.timeoutMs = options.timeoutMs ?? 3000;
     this.backoffMs = options.backoffMs ?? 300;
-    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE !== 'false');
+    this.mockMode = options.mockMode ?? (process.env.MOCK_MODE === 'true');
     this.fallbackOnOffline = options.fallbackOnOffline ?? false;
     this.postgresHost = options.postgresHost || '10.160.0.21';
     this.postgresPort = options.postgresPort || 5432;
@@ -190,13 +190,24 @@ class LiveAuditor {
   }
 
   /**
-   * Audit Queue End-to-End processing
+   * Queue end-to-end verification.
+   * Not implemented against a live broker — reported as skipped rather than passed,
+   * so the audit score never counts an unrun check as a success.
    */
   async auditQueueE2E(apiEndpoint) {
     if (this.simulateQueueFailure || (apiEndpoint && apiEndpoint.includes('fail'))) {
       return { passed: false };
     }
-    return { passed: true, messageId: `msg_${Date.now()}` };
+
+    if (this.mockMode) {
+      return { passed: true, messageId: `msg_mock` };
+    }
+
+    return {
+      passed: false,
+      skipped: true,
+      reason: 'queue round-trip not implemented — no live broker probe'
+    };
   }
 
   /**
@@ -260,6 +271,15 @@ class LiveAuditor {
 
     // 5. Queue E2E
     const queueRes = await this.auditQueueE2E(`${url}/api/queue`);
+    if (onLogStream) {
+      if (queueRes.skipped) {
+        onLogStream(`[TEST-4] RESULT: SKIPPED — ${queueRes.reason}`);
+      } else if (queueRes.passed) {
+        onLogStream(`[TEST-4] RESULT: PASS`);
+      } else {
+        onLogStream(`[TEST-4] RESULT: FAIL`);
+      }
+    }
 
     const errors = [];
     let passedCount = 0;
