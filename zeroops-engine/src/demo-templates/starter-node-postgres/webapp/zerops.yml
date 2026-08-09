@@ -1,0 +1,30 @@
+# Build/run recipe for the `webapp` service.
+#
+# `setup` MUST equal the hostname in zerops-import.yml, or `zcli push` has
+# nothing to bind the recipe to.
+zerops:
+  - setup: webapp
+    build:
+      base: nodejs@22
+      # `npm install`, not `npm ci` — this tree is generated per deploy and
+      # ships without a lockfile.
+      buildCommands:
+        - npm install --omit=dev
+      deployFiles:
+        - package.json
+        - server.js
+        - app.config.json
+        - node_modules
+    run:
+      base: nodejs@22
+      ports:
+        - port: 3000
+          # `httpSupport: true` is the correct key. `http: true` is silently
+          # wrong and leaves the port with no public HTTP handler.
+          httpSupport: true
+      envVariables:
+        PORT: "3000"
+        # Cross-service reference: `<hostname>_<var>`. The managed Postgres
+        # service publishes `connectionString`, so `db` + `_connectionString`.
+        DATABASE_URL: ${db_connectionString}
+      start: node server.js

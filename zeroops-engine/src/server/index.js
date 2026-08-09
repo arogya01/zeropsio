@@ -17,6 +17,7 @@ const HealthChecker = require('./health-checker');
 const { scaffoldApp } = require('./llm/scaffold');
 const { listTemplates: listMappedTemplates } = require('./llm/template-mapper');
 const demoQuota = require('./llm/demo-quota');
+const { deployApp, zcliInfo } = require('./deploy-pipeline');
 
 const app = express();
 const server = http.createServer(app);
@@ -249,7 +250,12 @@ app.post('/api/synthesize', async (req, res) => {
 
 // ─── DEMO APIs (public, judge-day; server keys only) ───
 app.get('/api/demo/status', (req, res) => {
-  res.json({ ok: true, ...demoQuota.status(), templates: listMappedTemplates() });
+  res.json({
+    ok: true,
+    ...demoQuota.status(),
+    zcli: zcliInfo(),
+    templates: listMappedTemplates(),
+  });
 });
 
 app.post('/api/demo/scaffold', async (req, res) => {
@@ -303,7 +309,11 @@ app.post('/api/demo/simulate', async (req, res) => {
       importYaml: result.importYaml,
       topology: result.topology,
       steps,
-      liveUrl: process.env.DEMO_SHARED_URL || 'https://zeroops-demo.zerops.app',
+      // No invented URL. `https://zeroops-demo.zerops.app` used to be hardcoded
+      // here and does not resolve — it handed judges a dead link at the exact
+      // moment the demo claimed success. If no shared stack is configured, the
+      // client shows this run as the simulation it is.
+      liveUrl: process.env.DEMO_SHARED_URL || null,
       llmUsed: result.llmUsed,
       quota: demoQuota.status(),
     });
@@ -340,7 +350,28 @@ app.post('/api/demo/deploy', async (req, res) => {
     });
   }
 
+  // A real build takes minutes, so this response streams NDJSON instead of
+  // making the browser wait on a silent request. Every line is one JSON object
+  // with a `type`. Guard failures above still return ordinary JSON, so the
+  // client branches on Content-Type.
+  res.writeHead(200, {
+    'Content-Type': 'application/x-ndjson; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+  const send = (obj) => {
+    if (!res.writableEnded) res.write(`${JSON.stringify(obj)}\n`);
+  };
+
+  let aborted = false;
+  req.on('aborted', () => {
+    aborted = true;
+  });
+
   try {
+    send({ type: 'stage', stage: 'scaffold', text: 'mapping prompt and generating files', level: 'run' });
+
     const scaffolded = await scaffoldApp({
       prompt: prompt || '',
       templateId,
@@ -348,44 +379,64 @@ app.post('/api/demo/deploy', async (req, res) => {
       useLlm: true,
     });
 
-    const zcp = new ZCPClient(pat);
-    const logs = [];
-    const sendLog = (text) => logs.push(String(text));
-
-    const deployResult = await zcp.provisionProject(
-      scaffolded.projectName || 'zeroops-demo',
-      scaffolded.importYaml || '',
-      sendLog
-    );
-
-    const id = `demo-${Date.now()}`;
-    demoQuota.registerProject(id, {
-      projectName: deployResult.projectName || scaffolded.projectName,
-      liveUrl: deployResult.liveUrl || null,
-    });
-
-    res.json({
-      success: true,
-      mode: 'real',
-      id,
-      projectName: deployResult.projectName || scaffolded.projectName,
-      liveUrl: deployResult.liveUrl,
-      services: deployResult.services,
-      logs,
-      topology: scaffolded.topology.map((s) => ({ ...s, status: 'healthy' })),
+    // Push the artifacts down immediately so the workbench fills in while the
+    // build runs, rather than everything appearing at the end.
+    send({
+      type: 'scaffold',
+      projectName: scaffolded.projectName,
+      templateId: scaffolded.templateId,
+      templateName: scaffolded.templateName,
+      confidence: scaffolded.confidence,
+      matchedKeywords: scaffolded.matchedKeywords,
       plan: scaffolded.plan,
       codeFiles: scaffolded.codeFiles,
       importYaml: scaffolded.importYaml,
+      topology: scaffolded.topology,
       llmUsed: scaffolded.llmUsed,
+      llmError: scaffolded.llmError,
+    });
+
+    const result = await deployApp({
+      pat,
+      projectName: scaffolded.projectName,
+      importYaml: scaffolded.importYaml,
+      codeFiles: scaffolded.codeFiles,
+      onEvent: (e) => {
+        if (aborted) return;
+        if (e.stage === 'log') send({ type: 'log', text: e.text });
+        else send({ type: 'stage', stage: e.stage, text: e.text, level: e.level });
+      },
+    });
+
+    const id = `demo-${Date.now()}`;
+    demoQuota.registerProject(id, {
+      projectName: result.projectName,
+      liveUrl: result.liveUrl || null,
+    });
+
+    send({
+      type: 'done',
+      mode: 'real',
+      id,
+      projectId: result.projectId,
+      projectName: result.projectName,
+      liveUrl: result.liveUrl,
+      verified: result.verified,
+      httpStatus: result.httpStatus,
+      services: result.services,
+      topology: scaffolded.topology.map((s) => ({ ...s, status: 'healthy' })),
       quota: demoQuota.status(),
     });
+    res.end();
   } catch (err) {
     console.error('[demo/deploy]', err);
-    res.status(500).json({
+    send({
+      type: 'error',
       error: err.message || 'Deploy failed',
       fallback: 'simulate',
       quota: demoQuota.status(),
     });
+    res.end();
   }
 });
 

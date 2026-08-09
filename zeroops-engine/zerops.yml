@@ -7,10 +7,18 @@ zerops:
         - npm ci
         - npm run build:web
         - npm ci --omit=dev
+        # The demo's "Deploy for real" shells out to zcli, and the nodejs@22
+        # runtime image does not ship it. Vendor the binary into the deploy
+        # artefact so the running server can provision customer projects.
+        - mkdir -p bin
+        - curl -fsSL https://github.com/zeropsio/zcli/releases/latest/download/zcli-linux-amd64 -o bin/zcli
+        - chmod +x bin/zcli
+        - ./bin/zcli version
       deployFiles:
         - src
         - public
         - web/dist
+        - bin
         - package.json
         - package-lock.json
         - node_modules

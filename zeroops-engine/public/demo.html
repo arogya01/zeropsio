@@ -18,7 +18,7 @@
       <span class="zo-mark">Z</span>
       <span>ZeroOps</span>
     </a>
-    <span class="v-pill v-pill--mono demo-bar__badge">DEMO · limited templates · 1 day</span>
+    <span class="v-pill v-pill--mono demo-bar__badge">DEMO · node + postgres · 10 slots</span>
     <div class="demo-bar__actions">
       <a href="/login" class="zo-btn zo-btn--ghost">Log in</a>
       <a href="/studio" class="zo-btn zo-btn--primary">Full studio</a>
@@ -28,11 +28,12 @@
   <main>
     <!-- ── stage 1: the prompt is the hero object ─────────────────────────── -->
     <section class="hero">
-      <p class="v-eyebrow">Prompt → multi-service Zerops</p>
-      <h1 class="hero__title">Build a 5-service stack in one shot</h1>
+      <p class="v-eyebrow">Prompt → running app on Zerops</p>
+      <h1 class="hero__title">Describe an app. Get it running.</h1>
       <p class="hero__sub">
-        One prompt becomes real containers on Zerops — frontend, API gateway, AI worker,
-        managed Postgres and Valkey, wired on a private network, with a live URL at the end.
+        One prompt becomes two real Zerops services — a Node.js web app and a managed
+        PostgreSQL database on a private network — imported, built, deployed and
+        health-checked, ending in a URL you can open.
       </p>
 
       <div class="promptbox" id="promptbox">
@@ -44,18 +45,20 @@
           placeholder="e.g. AI video clipper with Whisper transcription and a job queue"></textarea>
 
         <div class="promptbox__foot">
+          <!-- Example prompts, not templates. There is one stack; the prompt
+               shapes the app's content, so these just fill the box. -->
           <div class="template-row" id="template-grid">
-            <button type="button" class="template-card v-pill" data-id="ai-video-clipper">
-              <span class="template-card__id mono">01</span>
-              <span class="template-card__label">AI Video Clipper</span>
+            <button type="button" class="template-card v-pill"
+                    data-prompt="Task board for a bakery's daily prep">
+              <span class="template-card__label">Bakery task board</span>
             </button>
-            <button type="button" class="template-card v-pill" data-id="ecommerce-platform">
-              <span class="template-card__id mono">02</span>
-              <span class="template-card__label">E-Commerce</span>
+            <button type="button" class="template-card v-pill"
+                    data-prompt="Reading list where I save books and notes">
+              <span class="template-card__label">Reading list</span>
             </button>
-            <button type="button" class="template-card v-pill" data-id="rag-search-engine">
-              <span class="template-card__id mono">03</span>
-              <span class="template-card__label">RAG Search</span>
+            <button type="button" class="template-card v-pill"
+                    data-prompt="Bug tracker for a small engineering team">
+              <span class="template-card__label">Bug tracker</span>
             </button>
           </div>
           <button type="button" class="zo-btn zo-btn--primary" id="btn-scaffold">
@@ -68,8 +71,8 @@
       <div class="hero__meta">
         <p class="demo-quota mono" id="quota-line">Checking demo quota…</p>
         <div class="hero__alt">
-          <button type="button" class="zo-btn zo-btn--ghost" id="btn-simulate">Run canvas theater</button>
-          <button type="button" class="zo-btn zo-btn--ghost" id="btn-deploy" title="Uses operator PAT; max 10 slots">Deploy for real</button>
+          <button type="button" class="zo-btn zo-btn--ghost" id="btn-simulate" title="Animates the sequence without provisioning anything">Preview the sequence</button>
+          <button type="button" class="zo-btn zo-btn--ghost" id="btn-deploy" title="Provisions a real Zerops project under the operator PAT; max 10 slots">Deploy for real</button>
         </div>
       </div>
 
@@ -78,23 +81,23 @@
       <ol class="hero__steps">
         <li>
           <span class="hero__steps-n mono">01</span>
-          <span class="hero__steps-t">Map the prompt</span>
-          <span class="hero__steps-d">Free text resolves to a template with a confidence score. OpenAI flavors the plan.</span>
+          <span class="hero__steps-t">Read the prompt</span>
+          <span class="hero__steps-d">OpenAI writes the app's name, copy and starter rows. The topology stays fixed.</span>
         </li>
         <li>
           <span class="hero__steps-n mono">02</span>
-          <span class="hero__steps-t">Generate the manifest</span>
-          <span class="hero__steps-d">A real <code class="v-chip-code">zerops-import.yml</code> plus per-service code files.</span>
+          <span class="hero__steps-t">Generate the files</span>
+          <span class="hero__steps-d">A real <code class="v-chip-code">zerops-import.yml</code>, plus the <code class="v-chip-code">server.js</code> that will actually run.</span>
         </li>
         <li>
           <span class="hero__steps-n mono">03</span>
-          <span class="hero__steps-t">Provision on Zerops</span>
-          <span class="hero__steps-d"><code class="v-chip-code">zcli project-import</code> builds five containers on a private VXLAN network.</span>
+          <span class="hero__steps-t">Import, then push</span>
+          <span class="hero__steps-d"><code class="v-chip-code">project-import</code> creates both services; <code class="v-chip-code">zcli push</code> builds the code onto the container.</span>
         </li>
         <li>
           <span class="hero__steps-n mono">04</span>
-          <span class="hero__steps-t">Verify it's live</span>
-          <span class="hero__steps-d">Health checks run against every private host before the public URL is handed back.</span>
+          <span class="hero__steps-t">Verify it answers</span>
+          <span class="hero__steps-d">The subdomain is read back from Zerops and polled until it returns HTTP 200 — never invented.</span>
         </li>
       </ol>
     </section>
@@ -109,49 +112,22 @@
           <span class="v-pill v-pill--mono" id="canvas-mode">idle</span>
         </div>
 
-        <div class="topo" id="topo">
+        <div class="topo topo--pair" id="topo">
           <div class="topo-node">
-            <div class="topo-chip idle" id="node-web-frontend" data-id="web-frontend">
+            <div class="topo-chip idle" id="node-webapp" data-id="webapp">
               <span class="topo-chip__dot" aria-hidden="true"></span>
               <span class="topo-chip__name">webapp</span>
-              <span class="topo-chip__role">frontend</span>
+              <span class="topo-chip__role">nodejs@22 · public</span>
               <span class="topo-chip__ip mono">webapp:3000</span>
             </div>
           </div>
           <div class="topo-arrow"></div>
           <div class="topo-node">
-            <div class="topo-chip idle" id="node-api-gateway" data-id="api-gateway">
+            <div class="topo-chip idle topo-chip--db" id="node-db" data-id="db">
               <span class="topo-chip__dot" aria-hidden="true"></span>
-              <span class="topo-chip__name">apigateway</span>
-              <span class="topo-chip__role">api</span>
-              <span class="topo-chip__ip mono">apigateway:8080</span>
-            </div>
-          </div>
-          <div class="topo-arrow"></div>
-          <div class="topo-node">
-            <div class="topo-chip idle" id="node-ai-worker" data-id="ai-worker">
-              <span class="topo-chip__dot" aria-hidden="true"></span>
-              <span class="topo-chip__name">aiworker</span>
-              <span class="topo-chip__role">worker</span>
-              <span class="topo-chip__ip mono">aiworker:5000</span>
-            </div>
-          </div>
-          <div class="topo-arrow"></div>
-          <div class="topo-node">
-            <div class="topo-chip idle topo-chip--db" id="node-db-postgres" data-id="db-postgres">
-              <span class="topo-chip__dot" aria-hidden="true"></span>
-              <span class="topo-chip__name">dbpostgres</span>
-              <span class="topo-chip__role">managed</span>
-              <span class="topo-chip__ip mono">dbpostgres:5432</span>
-            </div>
-          </div>
-          <div class="topo-arrow"></div>
-          <div class="topo-node">
-            <div class="topo-chip idle topo-chip--db" id="node-cache-valkey" data-id="cache-valkey">
-              <span class="topo-chip__dot" aria-hidden="true"></span>
-              <span class="topo-chip__name">cachevalkey</span>
-              <span class="topo-chip__role">managed</span>
-              <span class="topo-chip__ip mono">cachevalkey:6379</span>
+              <span class="topo-chip__name">db</span>
+              <span class="topo-chip__role">postgresql@16 · private</span>
+              <span class="topo-chip__ip mono">db:5432</span>
             </div>
           </div>
         </div>
@@ -161,7 +137,9 @@
       <div class="wb-left">
         <div class="wb-meta" id="wb-meta">
           <span class="v-pill v-pill--mono" id="template-pill" hidden></span>
-          <span class="v-pill v-pill--mono" id="confidence-pill" hidden></span>
+          <!-- What the prompt was understood to be about. Replaces the old
+               "confidence" score, which was meaningless with one template. -->
+          <span class="v-pill v-pill--mono" id="understood-pill" hidden></span>
           <span class="v-pill v-pill--mono" id="llm-pill" hidden></span>
         </div>
 
@@ -198,7 +176,7 @@
         </div>
 
         <div class="demo-success v-card v-card--emph" id="success-box" hidden>
-          <p class="v-eyebrow v-eyebrow--accent">Verified live</p>
+          <p class="v-eyebrow v-eyebrow--accent" id="success-title">Verified live</p>
           <a id="live-link" class="demo-success__url mono" href="#" target="_blank" rel="noopener">—</a>
           <ul class="demo-success__hosts mono" id="live-hosts"></ul>
         </div>

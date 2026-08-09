@@ -323,6 +323,13 @@ body {
   gap: 0;
 }
 
+/* Two services would stretch to absurd widths across a 1280px canvas, so the
+ * pair is capped and centred instead of filling the row. */
+.topo--pair {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
 .topo-node {
   flex: 1 1 0;
   min-width: 0;

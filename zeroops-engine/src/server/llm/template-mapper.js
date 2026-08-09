@@ -1,94 +1,70 @@
 /**
- * Template intent mapper — adapted from open-lovable's edit-intent-analyzer
- * (pattern-based classification) for ZeroOps multi-service templates.
+ * Demo template catalog.
  *
- * Demo path: free-text → one of N templates (never invents topology).
+ * ONE template on purpose. The demo's job is to prove that a prompt becomes a
+ * genuinely running app on Zerops — not to show off a picker. A single small,
+ * reliably-buildable stack (Node + managed Postgres) deploys live in a couple
+ * of minutes; the previous 5-service catalog (Node + Go + Python + Postgres +
+ * Valkey) never actually shipped code to its containers and could not produce
+ * a working URL.
+ *
+ * This is the DEMO catalog only. The Studio template library at
+ * `/api/templates` still reads every directory under `src/templates/`.
  */
 
 const TEMPLATE_CATALOG = [
   {
-    id: 'ai-video-clipper',
-    name: 'AI Video Clipper',
-    keywords: [
-      'video', 'clip', 'whisper', 'transcri', 'audio', 'media', 'ffmpeg',
-      'subtitle', 'podcast', 'youtube', 'recording',
-    ],
-    services: ['webapp', 'apigateway', 'aiworker', 'dbpostgres', 'cachevalkey'],
-  },
-  {
-    id: 'ecommerce-platform',
-    name: 'E-Commerce Platform',
-    keywords: [
-      'ecom', 'shop', 'store', 'cart', 'checkout', 'product', 'order',
-      'payment', 'inventory', 'retail', 'marketplace', 'buy',
-    ],
-    services: ['webapp', 'apigateway', 'aiworker', 'dbpostgres', 'cachevalkey'],
-  },
-  {
-    id: 'rag-search-engine',
-    name: 'RAG Search Engine',
-    keywords: [
-      'rag', 'search', 'embed', 'vector', 'knowledge', 'document', 'pdf',
-      'retrieval', 'semantic', 'chatbot', 'qa', 'llm search', 'pgvector',
-    ],
-    services: ['webapp', 'apigateway', 'aiworker', 'dbpostgres', 'cachevalkey'],
+    id: 'starter-node-postgres',
+    name: 'Node + Postgres App',
+    keywords: [],
+    services: ['webapp', 'db'],
   },
 ];
 
+const PRIMARY = TEMPLATE_CATALOG[0];
+
+/** Words we never echo back as "understood" — they carry no app meaning. */
+const STOPWORDS = new Set([
+  'a', 'an', 'and', 'app', 'application', 'build', 'create', 'for', 'make',
+  'me', 'my', 'of', 'on', 'simple', 'that', 'the', 'to', 'with', 'using',
+  'want', 'need', 'please', 'it', 'is', 'in', 'so', 'can', 'you',
+]);
+
 /**
- * Map a user prompt to a catalog template (deterministic, open-lovable style patterns).
+ * Pull the content words out of a prompt, for display as "what we understood".
+ * Purely cosmetic — it never changes which template is used.
+ */
+function extractKeywords(prompt) {
+  return [
+    ...new Set(
+      String(prompt || '')
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((w) => w.length > 2 && !STOPWORDS.has(w))
+    ),
+  ].slice(0, 6);
+}
+
+/**
+ * Map a prompt to a template.
+ *
+ * With a single-template catalog this always resolves to that template; the
+ * prompt shapes the app's *content* (title, tagline, seed rows) through the
+ * LLM flavor step in scaffold.js, not its topology.
+ *
  * @param {string} prompt
- * @param {string} [forcedTemplateId]
- * @returns {{ templateId: string, name: string, confidence: number, services: string[], matchedKeywords: string[] }}
+ * @param {string} [forcedTemplateId] Ignored unless it names a known template.
  */
 function mapPromptToTemplate(prompt, forcedTemplateId) {
-  if (forcedTemplateId) {
-    const hit = TEMPLATE_CATALOG.find((t) => t.id === forcedTemplateId);
-    if (hit) {
-      return {
-        templateId: hit.id,
-        name: hit.name,
-        confidence: 1,
-        services: hit.services,
-        matchedKeywords: ['template-id'],
-      };
-    }
-  }
-
-  const lower = (prompt || '').toLowerCase();
-  let best = null;
-  let bestScore = 0;
-  let bestMatches = [];
-
-  for (const t of TEMPLATE_CATALOG) {
-    const matches = t.keywords.filter((k) => lower.includes(k));
-    const score = matches.length;
-    if (score > bestScore) {
-      bestScore = score;
-      best = t;
-      bestMatches = matches;
-    }
-  }
-
-  // Default: AI Video Clipper (flagship demo) when no signal — same idea as
-  // open-lovable defaulting to UPDATE_COMPONENT with low confidence.
-  if (!best || bestScore === 0) {
-    const fallback = TEMPLATE_CATALOG[0];
-    return {
-      templateId: fallback.id,
-      name: fallback.name,
-      confidence: 0.3,
-      services: fallback.services,
-      matchedKeywords: [],
-    };
-  }
+  const hit =
+    (forcedTemplateId && TEMPLATE_CATALOG.find((t) => t.id === forcedTemplateId)) || PRIMARY;
 
   return {
-    templateId: best.id,
-    name: best.name,
-    confidence: Math.min(0.95, 0.4 + bestScore * 0.15),
-    services: best.services,
-    matchedKeywords: bestMatches,
+    templateId: hit.id,
+    name: hit.name,
+    confidence: 1,
+    services: hit.services,
+    matchedKeywords: extractKeywords(prompt),
   };
 }
 
@@ -100,4 +76,5 @@ module.exports = {
   TEMPLATE_CATALOG,
   mapPromptToTemplate,
   listTemplates,
+  extractKeywords,
 };

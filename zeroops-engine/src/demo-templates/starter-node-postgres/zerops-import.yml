@@ -1,0 +1,21 @@
+# Zerops project import spec — `services:` is top level and keyed by
+# `hostname:`, which becomes each service's private DNS name.
+project:
+  name: __PROJECT_NAME__
+  tags:
+    - zeroops-demo
+
+services:
+  # Managed Postgres first — higher priority boots it before the app that
+  # depends on it, so webapp's first connection attempt has something to hit.
+  - hostname: db
+    type: postgresql@16
+    mode: NON_HA
+    priority: 10
+
+  - hostname: webapp
+    type: nodejs@22
+    minContainers: 1
+    maxContainers: 1
+    enableSubdomainAccess: true
+    priority: 1

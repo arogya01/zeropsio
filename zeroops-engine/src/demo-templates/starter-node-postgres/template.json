@@ -1,0 +1,19 @@
+{
+  "name": "Node + Postgres App",
+  "description": "A Node.js web app backed by a managed PostgreSQL database. Two real Zerops services on a private network, with a public subdomain on the webapp. Deliberately small so it builds and boots reliably during a live demo.",
+  "icon": "◆",
+  "services": [
+    {
+      "name": "webapp",
+      "type": "nodejs@22",
+      "category": "webapp",
+      "description": "Node.js HTTP server rendering the app and writing to Postgres over the project's private network"
+    },
+    {
+      "name": "db",
+      "type": "postgresql@16",
+      "category": "database",
+      "description": "Zerops-managed PostgreSQL 16, reachable only inside the project as db:5432"
+    }
+  ]
+}

@@ -15,12 +15,29 @@ function isRealDeployEnabled() {
   return true;
 }
 
+/**
+ * Zerops reserves the `ZEROPS_` prefix and rejects user env vars that use it,
+ * so a service-level secret cannot be called ZEROPS_DEMO_PAT. `DEMO_PAT` is the
+ * name to use on the platform; the prefixed names are kept for local shells and
+ * CI, where they are still legal.
+ */
 function getDemoPat() {
-  return process.env.ZEROPS_DEMO_PAT || process.env.ZEROPS_TOKEN || process.env.ZEROPS_PAT || null;
+  return (
+    process.env.DEMO_PAT ||
+    process.env.ZEROPS_DEMO_PAT ||
+    process.env.ZEROPS_TOKEN ||
+    process.env.ZEROPS_PAT ||
+    null
+  );
 }
 
 function getDemoOpenAIKey() {
-  return process.env.OPENAI_API_KEY || process.env.DEMO_OPENAI_API_KEY || null;
+  return (
+    process.env.OPENAI_API_KEY ||
+    process.env.DEMO_OPENAI_API_KEY ||
+    process.env.OPENAI_KEY ||
+    null
+  );
 }
 
 function canProvision() {

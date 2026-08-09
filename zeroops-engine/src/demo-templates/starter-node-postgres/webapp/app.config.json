@@ -1,0 +1,9 @@
+{
+  "title": "ZeroOps Starter",
+  "tagline": "A Node.js app with managed PostgreSQL, provisioned on Zerops from a single prompt.",
+  "itemLabel": "Entry",
+  "seeds": [
+    "Provisioned by ZeroOps",
+    "Running on Zerops managed infrastructure"
+  ]
+}

@@ -1,11 +1,13 @@
 /**
  * ZeroOps public /demo client
- * Canvas theater + optional real deploy (operator PAT, capped).
  *
  * Two-stage page: the hero holds the prompt, and the workbench below it is
  * revealed on the first run. Everything the scaffold API returns —
- * zerops-import.yml, generated code files, template confidence — gets rendered,
- * because the artifacts are the proof that something real was built.
+ * zerops-import.yml, the generated code files, what the prompt was understood
+ * to mean — gets rendered, because the artifacts are the proof.
+ *
+ * `Deploy for real` streams NDJSON: a real import + build takes minutes, so the
+ * page reports each stage as it happens rather than sitting on a spinner.
  */
 (function () {
   const promptEl = document.getElementById('demo-prompt');
@@ -16,11 +18,12 @@
   const quotaLine = document.getElementById('quota-line');
   const canvasMode = document.getElementById('canvas-mode');
   const successBox = document.getElementById('success-box');
+  const successTitle = document.getElementById('success-title');
   const liveLink = document.getElementById('live-link');
   const liveHosts = document.getElementById('live-hosts');
   const workbench = document.getElementById('workbench');
   const templatePill = document.getElementById('template-pill');
-  const confidencePill = document.getElementById('confidence-pill');
+  const understoodPill = document.getElementById('understood-pill');
   const llmPill = document.getElementById('llm-pill');
   const filesBox = document.getElementById('files-box');
   const filesList = document.getElementById('files-list');
@@ -29,18 +32,16 @@
   const yamlCode = document.getElementById('yaml-code');
   const copyBtn = document.getElementById('btn-copy-yaml');
 
-  let selectedTemplateId = 'ai-video-clipper';
+  const deployBtn = document.getElementById('btn-deploy');
+  const scaffoldBtn = document.getElementById('btn-scaffold');
+  const simulateBtn = document.getElementById('btn-simulate');
+
   let lastScaffold = null;
   let revealed = false;
+  let busy = false;
 
-  const nodeIds = [
-    'web-frontend',
-    'api-gateway',
-    'ai-worker',
-    'db-postgres',
-    'cache-valkey',
-  ];
-
+  // Must match the topology ids from scaffold.js — chips are `node-<id>`.
+  const nodeIds = ['webapp', 'db'];
   const CHIP_STATES = ['idle', 'building', 'deploying', 'healthy', 'failed'];
 
   /* ── stage ──────────────────────────────────────────────────────────────── */
@@ -59,6 +60,14 @@
     if (!canvasMode) return;
     canvasMode.textContent = text;
     canvasMode.className = 'v-pill v-pill--mono' + (variant ? ' v-pill--' + variant : '');
+  }
+
+  /** A real deploy holds a Zerops slot; don't let it be started twice. */
+  function setBusy(state) {
+    busy = state;
+    [scaffoldBtn, simulateBtn, deployBtn].forEach((b) => {
+      if (b) b.disabled = state;
+    });
   }
 
   /* ── log ────────────────────────────────────────────────────────────────── */
@@ -81,8 +90,8 @@
   }
 
   function tagVariant(tag) {
-    if (tag === '[deploy]') return ' log-tag--ok';
-    if (tag === '[llm]') return ' log-tag--run';
+    if (tag === '[deploy]' || tag === '[live]') return ' log-tag--ok';
+    if (tag === '[llm]' || tag === '[zcli]' || tag === '[simulate]') return ' log-tag--run';
     if (tag === '[error]') return ' log-tag--fail';
     return '';
   }
@@ -115,8 +124,12 @@
     }
   }
 
+  function allChips(status) {
+    nodeIds.forEach((id) => setChip(id, status));
+  }
+
   function resetCanvas(keepLog) {
-    nodeIds.forEach((id) => setChip(id, 'idle'));
+    allChips('idle');
     if (!keepLog) clearLog();
     if (successBox) successBox.hidden = true;
     setMode('idle');
@@ -128,11 +141,11 @@
 
   async function animateSteps(steps) {
     setMode('building', 'run');
-    for (const id of nodeIds) setChip(id, 'building');
+    allChips('building');
     for (const step of steps || []) {
       await sleep(step.delayMs || 400);
       setChip(step.serviceId, step.status || 'healthy', step.privateHost);
-      log('[topology] ' + step.serviceId + ' → ' + (step.status || 'healthy'));
+      log('[simulate] ' + step.serviceId + ' → ' + (step.status || 'healthy'));
     }
     setMode('healthy', 'ok');
   }
@@ -162,10 +175,10 @@
     if (!data) return;
 
     setPill(templatePill, data.templateName || data.templateId);
-    setPill(
-      confidencePill,
-      data.confidence != null ? 'confidence ' + data.confidence : ''
-    );
+
+    const words = (data.matchedKeywords || []).filter(Boolean);
+    setPill(understoodPill, words.length ? 'understood: ' + words.join(', ') : '');
+
     setPill(
       llmPill,
       data.llmUsed ? 'llm openai' : 'llm fallback',
@@ -205,43 +218,46 @@
     return n < 1024 ? n + ' B' : (n / 1024).toFixed(1) + ' KB';
   }
 
-  function showLive(url) {
+  /**
+   * @param {string} url
+   * @param {object} [opts] {title, hosts, emphasis}
+   */
+  function showLive(url, opts) {
     if (!url || !successBox || !liveLink) return;
+    const o = opts || {};
+
     successBox.hidden = false;
     liveLink.href = url;
     liveLink.textContent = url;
     document.body.dataset.stage = 'done';
 
+    if (successTitle) successTitle.textContent = o.title || 'Verified live';
+
     if (liveHosts) {
       liveHosts.textContent = '';
-      const topology = (lastScaffold && lastScaffold.topology) || [];
-      topology.forEach((s) => {
+      const hosts =
+        o.hosts ||
+        ((lastScaffold && lastScaffold.topology) || []).map((s) => s.privateHost || s.id);
+      hosts.forEach((h) => {
         const li = document.createElement('li');
-        li.textContent = s.privateHost || s.id;
+        li.textContent = h;
         liveHosts.appendChild(li);
       });
     }
   }
 
-  /* ── template pills ─────────────────────────────────────────────────────── */
+  /* ── example prompts ────────────────────────────────────────────────────── */
 
   document.querySelectorAll('.template-card').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.template-card').forEach((b) => b.classList.remove('is-selected'));
       btn.classList.add('is-selected');
-      selectedTemplateId = btn.dataset.id;
-      if (promptEl && !promptEl.value.trim()) {
-        const labels = {
-          'ai-video-clipper': 'AI video clipper with Whisper transcription and a job queue',
-          'ecommerce-platform': 'E-commerce store with cart, orders, and product catalog',
-          'rag-search-engine': 'RAG search over company docs with embeddings and chat',
-        };
-        promptEl.value = labels[selectedTemplateId] || '';
+      if (promptEl) {
+        promptEl.value = btn.dataset.prompt || '';
+        promptEl.focus();
       }
     });
   });
-  const first = document.querySelector('.template-card[data-id="ai-video-clipper"]');
-  if (first) first.classList.add('is-selected');
 
   /* ── api ────────────────────────────────────────────────────────────────── */
 
@@ -256,6 +272,9 @@
           data.hasDemoOpenAI ? 'openai ready' : 'openai fallback',
           data.hasDemoPat ? 'pat set' : 'no pat',
         ];
+        // Without zcli the deploy path cannot run at all — say so up front
+        // rather than letting it fail mid-demo.
+        if (data.zcli && !data.zcli.present) parts.push('zcli MISSING');
         quotaLine.textContent = parts.join(' · ');
       }
       return data;
@@ -266,18 +285,27 @@
   }
 
   function payload() {
-    return {
-      prompt: (promptEl && promptEl.value.trim()) || '',
-      templateId: selectedTemplateId,
-    };
+    return { prompt: (promptEl && promptEl.value.trim()) || '' };
+  }
+
+  function requirePrompt() {
+    const p = payload().prompt;
+    if (!p) {
+      setError('Describe an app first — or pick one of the examples.');
+      promptEl?.focus();
+      return null;
+    }
+    return p;
   }
 
   async function runScaffold() {
+    if (busy || !requirePrompt()) return;
+    setBusy(true);
     setError('');
     revealWorkbench();
     resetCanvas();
     setMode('scaffolding', 'run');
-    log('[scaffold] mapping prompt → template (open-lovable intent patterns)…');
+    log('[scaffold] reading the prompt…');
     try {
       const res = await fetch('/api/demo/scaffold', {
         method: 'POST',
@@ -287,28 +315,30 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Scaffold failed');
       lastScaffold = data;
-      log('[scaffold] template=' + data.templateId + ' project=' + data.projectName);
-      if (data.llmUsed) log('[llm] OpenAI flavor applied (Dyad-style <zeroops-write>)');
-      else log('[llm] fallback flavor (no key or error)' + (data.llmError ? ': ' + data.llmError : ''));
+      log('[scaffold] project=' + data.projectName + ' · ' + data.services.join(' + '));
+      if (data.llmUsed) log('[llm] OpenAI wrote app.config.json');
+      else log('[llm] deterministic fallback' + (data.llmError ? ': ' + data.llmError : ''));
       showPlan(data.plan);
       renderArtifacts(data);
-      (data.topology || []).forEach((s) => {
-        setChip(s.id, 'idle', s.privateHost);
-      });
+      (data.topology || []).forEach((s) => setChip(s.id, 'idle', s.privateHost));
       setMode('scaffolded');
+      log('[scaffold] files ready — press “Deploy for real” to provision them');
     } catch (err) {
       setError(err.message || String(err));
       setMode('error', 'fail');
     }
+    setBusy(false);
   }
 
   /** keepLog is set when this runs as the deploy fallback, so the judge can
    *  still read why the real deploy was refused. */
   async function runSimulate(keepLog) {
+    if (busy) return;
+    setBusy(true);
     setError('');
     revealWorkbench();
     resetCanvas(keepLog);
-    log('[simulate] shared-stack theater…');
+    log('[simulate] previewing the sequence — nothing is provisioned');
     try {
       const res = await fetch('/api/demo/simulate', {
         method: 'POST',
@@ -322,50 +352,185 @@
       renderArtifacts(data);
       log('[simulate] project=' + data.projectName);
       await animateSteps(data.steps);
-      showLive(data.liveUrl);
-      log('[simulate] live URL (shared / example): ' + data.liveUrl);
+
+      if (data.liveUrl) {
+        showLive(data.liveUrl, { title: 'Shared example stack' });
+        log('[simulate] shared stack: ' + data.liveUrl);
+      } else {
+        // No invented URL. A preview run has nothing real to link to.
+        setMode('preview complete', 'run');
+        log('[simulate] preview only — use “Deploy for real” for a live URL');
+      }
     } catch (err) {
       setError(err.message || String(err));
     }
+    setBusy(false);
     refreshQuota();
   }
 
+  /* ── real deploy (NDJSON stream) ────────────────────────────────────────── */
+
+  /** Move the canvas in step with the server's reported stage. */
+  function applyStage(stage, level) {
+    if (level === 'fail') {
+      allChips('failed');
+      setMode('failed', 'fail');
+      return;
+    }
+    switch (stage) {
+      case 'scaffold':
+        setMode('scaffolding', 'run');
+        break;
+      case 'auth':
+        setMode('authenticating', 'run');
+        break;
+      case 'import':
+        setMode('importing', 'run');
+        allChips('building');
+        if (level === 'ok') setChip('db', 'healthy');
+        break;
+      case 'materialize':
+        setMode('staging files', 'run');
+        break;
+      case 'push':
+        setMode(level === 'ok' ? 'deployed' : 'building', 'run');
+        setChip('webapp', 'deploying');
+        break;
+      case 'verify':
+        if (level === 'ok') {
+          allChips('healthy');
+          setMode('healthy', 'ok');
+        } else {
+          setMode('verifying', 'run');
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
+  async function readNdjson(res, onObject) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      let nl;
+      while ((nl = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, nl).trim();
+        buffer = buffer.slice(nl + 1);
+        if (!line) continue;
+        try {
+          onObject(JSON.parse(line));
+        } catch {
+          /* a partial or malformed line is not worth killing the run over */
+        }
+      }
+    }
+    if (buffer.trim()) {
+      try {
+        onObject(JSON.parse(buffer.trim()));
+      } catch {}
+    }
+  }
+
   async function runDeploy() {
+    if (busy || !requirePrompt()) return;
+    setBusy(true);
     setError('');
     revealWorkbench();
     resetCanvas();
     setMode('deploying', 'run');
-    log('[deploy] requesting real provision under operator PAT…');
-    nodeIds.forEach((id) => setChip(id, 'building'));
+    log('[deploy] provisioning a real Zerops project under the operator PAT…');
+
     try {
       const res = await fetch('/api/demo/deploy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload()),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        log('[deploy] blocked: ' + (data.error || res.status));
+
+      const contentType = res.headers.get('content-type') || '';
+
+      // Guard failures (no PAT, quota full, kill-switch) still answer with
+      // ordinary JSON rather than a stream.
+      if (!res.ok || !contentType.includes('ndjson')) {
+        const data = await res.json().catch(() => ({}));
+        log('[deploy] blocked: ' + (data.error || 'HTTP ' + res.status));
         if (data.fallback === 'simulate') {
-          log('[deploy] falling back to canvas theater');
+          log('[deploy] falling back to the preview');
+          setBusy(false);
           await runSimulate(true);
           return;
         }
         throw new Error(data.error || 'Deploy failed');
       }
-      lastScaffold = data;
-      showPlan(data.plan);
-      renderArtifacts(data);
-      (data.logs || []).forEach((l) => log(l));
-      (data.topology || []).forEach((s) => setChip(s.id, s.status || 'healthy', s.privateHost));
-      setMode('healthy', 'ok');
-      if (data.liveUrl) showLive(data.liveUrl);
-      log('[deploy] done · ' + (data.liveUrl || 'no url'));
+
+      let done = null;
+      let failure = null;
+
+      await readNdjson(res, (msg) => {
+        switch (msg.type) {
+          case 'log':
+            log(msg.text);
+            break;
+          case 'stage':
+            log('[deploy] ' + msg.stage + ': ' + msg.text);
+            applyStage(msg.stage, msg.level);
+            break;
+          case 'scaffold':
+            lastScaffold = msg;
+            showPlan(msg.plan);
+            renderArtifacts(msg);
+            (msg.topology || []).forEach((s) => setChip(s.id, 'building', s.privateHost));
+            break;
+          case 'done':
+            done = msg;
+            break;
+          case 'error':
+            failure = msg;
+            break;
+          default:
+            break;
+        }
+      });
+
+      if (failure) {
+        log('[error] ' + failure.error);
+        if (failure.fallback === 'simulate') {
+          log('[deploy] falling back to the preview');
+          setBusy(false);
+          await runSimulate(true);
+          return;
+        }
+        throw new Error(failure.error);
+      }
+
+      if (!done) throw new Error('Deploy stream ended without a result');
+
+      const hosts = (done.services || []).map((s) => s.privateHost || s.id);
+      if (done.verified) {
+        allChips('healthy');
+        setMode('healthy', 'ok');
+        showLive(done.liveUrl, { title: 'Verified live', hosts });
+        log('[live] ' + done.liveUrl + ' → HTTP ' + done.httpStatus);
+      } else {
+        setChip('db', 'healthy');
+        setChip('webapp', 'building');
+        setMode('starting', 'run');
+        showLive(done.liveUrl, { title: 'Deployed — still starting', hosts });
+        log('[deploy] deployed, but the URL has not answered yet — it may need another minute');
+      }
     } catch (err) {
       setError(err.message || String(err));
-      nodeIds.forEach((id) => setChip(id, 'failed'));
+      allChips('failed');
       setMode('failed', 'fail');
     }
+    setBusy(false);
     refreshQuota();
   }
 
@@ -373,9 +538,9 @@
 
   // Wrapped, not passed by reference: the MouseEvent would land in runSimulate's
   // keepLog argument and read as truthy.
-  document.getElementById('btn-scaffold')?.addEventListener('click', () => runScaffold());
-  document.getElementById('btn-simulate')?.addEventListener('click', () => runSimulate());
-  document.getElementById('btn-deploy')?.addEventListener('click', () => runDeploy());
+  scaffoldBtn?.addEventListener('click', () => runScaffold());
+  simulateBtn?.addEventListener('click', () => runSimulate());
+  deployBtn?.addEventListener('click', () => runDeploy());
 
   promptEl?.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -396,7 +561,9 @@
       }, 1400);
     } catch {
       copyBtn.textContent = 'copy failed';
-      setTimeout(() => { copyBtn.textContent = 'copy'; }, 1400);
+      setTimeout(() => {
+        copyBtn.textContent = 'copy';
+      }, 1400);
     }
   });
 

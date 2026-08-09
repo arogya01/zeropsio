@@ -5,6 +5,12 @@
  *  - open-lovable generate-ai-code-stream (surgical edits, conversation bounds)
  *
  * OpenAI-only. Uses fetch (no SDK) so we stay dep-light.
+ *
+ * What this returns is DEPLOYABLE, not decorative: `codeFiles` is the complete
+ * file tree that gets written to disk and handed to `zcli push`. The LLM's job
+ * is narrow by design — it rewrites `webapp/app.config.json` (the app's title,
+ * tagline and seed rows) so the running app reflects the user's prompt. It does
+ * not author server code, because a live demo cannot afford a syntax error.
  */
 
 const fs = require('fs');
@@ -12,47 +18,111 @@ const path = require('path');
 const { mapPromptToTemplate } = require('./template-mapper');
 const { parseWriteBlocks, applyWritesToMap } = require('./write-protocol');
 
-const TEMPLATES_DIR = path.join(__dirname, '../../templates');
+/**
+ * The demo ships its own template directory, separate from `src/templates/`.
+ * That one is the Studio library exposed at `/api/templates`, where every entry
+ * is a 5-container stack; the demo's starter is deliberately two services, and
+ * mixing them would put a 2-service entry into a catalog whose contract says
+ * otherwise.
+ */
+const TEMPLATES_DIR = path.join(__dirname, '../../demo-templates');
 
-const DEMO_SYSTEM_PROMPT = `You are ZeroOps, an AI that scaffolds multi-service apps for Zerops.
+/** The one file the LLM is allowed to write. Anything else is discarded. */
+const FLAVOR_FILE = 'webapp/app.config.json';
 
-Rules (Dyad-style structured output):
-- The stack topology is FIXED. You may NOT invent new services or remove services.
-- Services in this stack: webapp, apigateway, aiworker, dbpostgres, cachevalkey.
-- First reply with a short plan (3-5 bullets): project name, what each service does for THIS user's idea.
-- Then emit at most 3 flavor files using EXACTLY this tag format (one block per file):
+const DEMO_SYSTEM_PROMPT = `You are ZeroOps, which turns a user's app idea into a real deployment on Zerops.
 
-<zeroops-write path="webapp/FLAVOR.md" description="Project flavor for the user idea">
-# Title
-Short description of the app tailored to the user prompt.
+The stack is FIXED and you may not change it:
+- webapp — Node.js 22, public HTTP on port 3000
+- db — Zerops-managed PostgreSQL 16, private at db:5432
+
+The application code is already written. Your ONLY job is to tailor its content
+to the user's idea by writing exactly one file.
+
+First give a short plan: 2-4 sentences, plain prose, no bullets, no markdown
+headings. Say what the app will be and what the two services do for THIS idea.
+
+Then emit exactly one block, in this format, containing STRICT JSON:
+
+<zeroops-write path="${FLAVOR_FILE}" description="App content tailored to the user idea">
+{
+  "title": "Short app name, max 6 words",
+  "tagline": "One sentence describing the app, max 20 words",
+  "itemLabel": "Singular noun for one row the app stores, e.g. Task, Order, Note",
+  "seeds": ["3 to 5 realistic starter rows", "written as plain strings", "specific to the user's idea"]
+}
 </zeroops-write>
 
-- Prefer path webapp/FLAVOR.md and optionally apigateway/README_FLAVOR.md.
-- Do NOT rewrite entire services. Do NOT output markdown code fences for code — only <zeroops-write> tags.
-- Keep total generated content under 800 words.
-- Always end with one line: READY_FOR_ZEROPS`;
+Rules:
+- The JSON must parse. No trailing commas, no comments, no code fences.
+- Do NOT write any other file. Do NOT output server code.
+- End with exactly one line: READY_FOR_ZEROPS`;
 
 /**
- * Load template metadata + import yaml from disk.
+ * Read every file under a directory into a { relativePath: content } map.
+ */
+function readTree(dir, prefix = '', out = {}) {
+  if (!fs.existsSync(dir)) return out;
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const abs = path.join(dir, entry.name);
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) readTree(abs, rel, out);
+    else out[rel] = fs.readFileSync(abs, 'utf8');
+  }
+  return out;
+}
+
+/**
+ * Load template metadata, import spec, and the deployable file tree.
  */
 function loadTemplate(templateId) {
   const dir = path.join(TEMPLATES_DIR, templateId);
   if (!fs.existsSync(dir)) return null;
+
   const metaPath = path.join(dir, 'template.json');
   const importPath = path.join(dir, 'zerops-import.yml');
+
   const meta = fs.existsSync(metaPath)
     ? JSON.parse(fs.readFileSync(metaPath, 'utf8'))
     : { name: templateId };
-  const importYaml = fs.existsSync(importPath)
-    ? fs.readFileSync(importPath, 'utf8')
-    : '';
-  return { id: templateId, meta, importYaml, dir };
+  const importYaml = fs.existsSync(importPath) ? fs.readFileSync(importPath, 'utf8') : '';
+
+  // Everything under webapp/ is what `zcli push` uploads for that service.
+  const codeFiles = readTree(path.join(dir, 'webapp'), 'webapp');
+
+  return { id: templateId, meta, importYaml, codeFiles, dir };
+}
+
+/**
+ * Zerops project names: lowercase alphanumerics and hyphens, must start with a
+ * letter. A short suffix keeps repeated demo deploys distinguishable in the
+ * dashboard (and makes quota cleanup obvious).
+ */
+function safeProjectName(prompt, fallback) {
+  const slug = String(prompt || fallback || 'zeroops-app')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/^[^a-z]+/, '');
+
+  // Truncate on a hyphen boundary so we get "task-tracker" rather than
+  // "task-tracker-for-a-baker" — the name is visible in the Zerops dashboard.
+  let base = slug;
+  if (base.length > 24) {
+    base = base.slice(0, 24);
+    const cut = base.lastIndexOf('-');
+    if (cut > 8) base = base.slice(0, cut);
+  }
+  base = base.replace(/-+$/, '') || 'zeroops-app';
+
+  const suffix = Date.now().toString(36).slice(-4);
+  return `${base}-${suffix}`;
 }
 
 /**
  * Call OpenAI Chat Completions (OpenAI-only, model overridable).
  */
-async function callOpenAI({ apiKey, model, system, user, maxTokens = 1200 }) {
+async function callOpenAI({ apiKey, model, system, user, maxTokens = 900 }) {
   const res = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -80,26 +150,81 @@ async function callOpenAI({ apiKey, model, system, user, maxTokens = 1200 }) {
 }
 
 /**
- * Deterministic fallback flavor when no API key / OpenAI fails.
+ * Title-case a prompt into something usable as an app name.
+ */
+function titleFromPrompt(prompt) {
+  const clean = String(prompt || '').trim().replace(/\s+/g, ' ');
+  if (!clean) return 'ZeroOps Starter';
+
+  const words = clean.split(' ').slice(0, 5);
+  // Drop trailing filler so "task board for a bakery's daily" ends at
+  // "Task Board" rather than dangling on a preposition or article.
+  const FILLER = new Set(['for', 'a', 'an', 'the', 'of', 'with', 'to', 'and', 'my', 'our']);
+  while (words.length > 1 && FILLER.has(words[words.length - 1].toLowerCase())) words.pop();
+
+  return words
+    .map((w) => (w.length > 2 ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(' ')
+    .slice(0, 60);
+}
+
+/**
+ * Deterministic flavor when there's no API key or OpenAI fails.
+ * Produces the same shape as the LLM path so downstream code can't tell them
+ * apart — the app still reflects the prompt, just less imaginatively.
  */
 function fallbackFlavor(prompt, mapping) {
-  const title = mapping.name;
-  const content = `# ${title}
-
-Built for: ${prompt || 'demo app'}
-
-## Services
-${mapping.services.map((s) => `- ${s}`).join('\n')}
-
-Mapped from template \`${mapping.templateId}\` (confidence ${mapping.confidence}).
-`;
-  return {
-    prose: `Scaffolded **${title}** from your prompt. Topology locked to the ZeroOps 5-service stack.`,
-    files: {
-      'webapp/FLAVOR.md': content,
-    },
-    raw: content,
+  const title = titleFromPrompt(prompt) || mapping.name;
+  const config = {
+    title,
+    tagline: prompt
+      ? `${title} — running on Node.js with managed PostgreSQL, provisioned on Zerops from your prompt.`
+      : 'A Node.js app with managed PostgreSQL, provisioned on Zerops.',
+    itemLabel: 'Entry',
+    seeds: [
+      `${title} is live on Zerops`,
+      'This row was written to managed PostgreSQL',
+      'Add another below — it persists in the database',
+    ],
   };
+
+  return {
+    prose: `Scaffolded **${title}** as a Node.js webapp backed by managed PostgreSQL. Two services, private network, public URL on the webapp.`,
+    files: { [FLAVOR_FILE]: `${JSON.stringify(config, null, 2)}\n` },
+    raw: '',
+  };
+}
+
+/**
+ * Accept the LLM's flavor file only if it is valid JSON with the fields the
+ * running app reads. Anything malformed is dropped rather than deployed —
+ * a broken app.config.json would ship a nameless app to a judge.
+ */
+function sanitizeFlavor(files, prompt, mapping) {
+  const raw = files[FLAVOR_FILE];
+  if (typeof raw !== 'string') return null;
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== 'object') return null;
+
+  const fallback = JSON.parse(fallbackFlavor(prompt, mapping).files[FLAVOR_FILE]);
+  const config = {
+    title: String(parsed.title || fallback.title).trim().slice(0, 80),
+    tagline: String(parsed.tagline || fallback.tagline).trim().slice(0, 240),
+    itemLabel: String(parsed.itemLabel || fallback.itemLabel).trim().slice(0, 40),
+    seeds: (Array.isArray(parsed.seeds) ? parsed.seeds : fallback.seeds)
+      .filter((s) => typeof s === 'string' && s.trim())
+      .slice(0, 5)
+      .map((s) => s.trim().slice(0, 200)),
+  };
+  if (!config.title || !config.seeds.length) return null;
+
+  return { [FLAVOR_FILE]: `${JSON.stringify(config, null, 2)}\n` };
 }
 
 /**
@@ -120,11 +245,7 @@ async function scaffoldApp(opts = {}) {
     throw new Error(`Template not found: ${mapping.templateId}`);
   }
 
-  const projectName = (prompt || mapping.name)
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 32) || mapping.templateId;
+  const projectName = safeProjectName(prompt, mapping.name);
 
   let flavor = null;
   let llmUsed = false;
@@ -134,10 +255,9 @@ async function scaffoldApp(opts = {}) {
     try {
       const userMsg = [
         `User idea: ${prompt || mapping.name}`,
-        `Forced template: ${mapping.templateId} (${mapping.name})`,
-        `Services: ${mapping.services.join(', ')}`,
-        `Matched keywords: ${mapping.matchedKeywords.join(', ') || 'none'}`,
-        'Produce plan bullets + zeroops-write flavor file(s).',
+        `Project name: ${projectName}`,
+        `Services: webapp (nodejs@22, public), db (postgresql@16, private)`,
+        'Write the plan, then the app.config.json block.',
       ].join('\n');
 
       const raw = await callOpenAI({
@@ -145,13 +265,13 @@ async function scaffoldApp(opts = {}) {
         system: DEMO_SYSTEM_PROMPT,
         user: userMsg,
       });
+
       const parsed = parseWriteBlocks(raw);
-      flavor = {
-        prose: parsed.prose,
-        files: applyWritesToMap(parsed.files),
-        raw,
-        dependencies: parsed.dependencies,
-      };
+      const clean = sanitizeFlavor(applyWritesToMap(parsed.files), prompt, mapping);
+
+      if (!clean) throw new Error('LLM returned no usable app.config.json');
+
+      flavor = { prose: parsed.prose, files: clean, raw };
       llmUsed = true;
     } catch (err) {
       llmError = err.message || String(err);
@@ -161,13 +281,15 @@ async function scaffoldApp(opts = {}) {
     flavor = fallbackFlavor(prompt, mapping);
   }
 
-  // Topology for canvas (canonical studio ids)
+  // Template tree first, LLM flavor layered on top. The result is the exact
+  // set of files that will be written to disk and pushed.
+  const codeFiles = { ...template.codeFiles, ...flavor.files };
+
+  const importYaml = template.importYaml.replace(/__PROJECT_NAME__/g, projectName);
+
   const topology = [
-    { id: 'web-frontend', name: 'webapp', privateHost: 'webapp:3000', status: 'idle' },
-    { id: 'api-gateway', name: 'apigateway', privateHost: 'apigateway:8080', status: 'idle' },
-    { id: 'ai-worker', name: 'aiworker', privateHost: 'aiworker:5000', status: 'idle' },
-    { id: 'db-postgres', name: 'dbpostgres', privateHost: 'dbpostgres:5432', status: 'idle' },
-    { id: 'cache-valkey', name: 'cachevalkey', privateHost: 'cachevalkey:6379', status: 'idle' },
+    { id: 'webapp', name: 'webapp', role: 'nodejs@22', privateHost: 'webapp:3000', status: 'idle' },
+    { id: 'db', name: 'db', role: 'postgresql@16', privateHost: 'db:5432', status: 'idle' },
   ];
 
   return {
@@ -179,10 +301,10 @@ async function scaffoldApp(opts = {}) {
     matchedKeywords: mapping.matchedKeywords,
     services: mapping.services,
     topology,
-    importYaml: template.importYaml,
+    importYaml,
     meta: template.meta,
     plan: flavor.prose,
-    codeFiles: flavor.files,
+    codeFiles,
     llmUsed,
     llmError,
   };
@@ -192,5 +314,9 @@ module.exports = {
   scaffoldApp,
   loadTemplate,
   callOpenAI,
+  safeProjectName,
+  sanitizeFlavor,
+  fallbackFlavor,
   DEMO_SYSTEM_PROMPT,
+  FLAVOR_FILE,
 };
