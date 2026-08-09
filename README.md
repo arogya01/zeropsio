@@ -1,6 +1,6 @@
 # zerops-hack
 
-Hackathon workspace for **ZeroOps**.
+Hackathon workspace for **Zeroperable**.
 
 Product intent and homepage framing live in the engine:
 

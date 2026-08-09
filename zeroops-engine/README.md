@@ -1,8 +1,8 @@
-# ZeroOps
+# Zeroperable
 
 **Prompt → multi-service stack on Zerops.**
 
-ZeroOps is a hackathon project for the [Zerops Challenge](https://www.wemakedevs.org/hackathons/zerops). The idea is simple: most AI “app builders” stop at a single React page. Real products need more than that — services, databases, private networking, builds, health checks, and a public URL. Zerops already knows how to run that kind of stack. ZeroOps is the layer that turns a prompt (or a template) into a real deploy on **your** Zerops account.
+Zeroperable is a hackathon project for the [Zerops Challenge](https://www.wemakedevs.org/hackathons/zerops). The idea is simple: most AI “app builders” stop at a single React page. Real products need more than that — services, databases, private networking, builds, health checks, and a public URL. Zerops already knows how to run that kind of stack. Zeroperable is the layer that turns a prompt (or a template) into a real deploy on **your** Zerops account.
 
 This README describes **project intent** as framed by the **current homepage** (`/`). It is not a full product or API reference.
 
@@ -10,18 +10,18 @@ This README describes **project intent** as framed by the **current homepage** (
 
 ## Intent
 
-ZeroOps exists to close the gap between *generated code* and *running infrastructure*.
+Zeroperable exists to close the gap between *generated code* and *running infrastructure*.
 
-| Without ZeroOps | With ZeroOps |
+| Without Zeroperable | With Zeroperable |
 |-----------------|--------------|
 | AI writes a frontend (or stubs) | AI (or a template) produces a multi-service layout |
-| You hand-write Docker / YAML / env wiring | ZeroOps emits `zerops.yml` + project import shape |
+| You hand-write Docker / YAML / env wiring | Zeroperable emits `zerops.yml` + project import shape |
 | You click around a cloud console | `zcli` runs against **your** Zerops Personal Access Token |
 | “It works on my machine” | Live build logs, health audit, real `*.zerops.app` URL |
 
 The homepage sells that loop in one line:
 
-> ZeroOps synthesizes polyglot services and `zerops.yml`, then provisions with `zcli` using **your** Zerops PAT. Build logs stream live. Health is audited. You get a real URL.
+> Zeroperable synthesizes polyglot services and `zerops.yml`, then provisions with `zcli` using **your** Zerops PAT. Build logs stream live. Health is audited. You get a real URL.
 
 ---
 
@@ -30,7 +30,7 @@ The homepage sells that loop in one line:
 The current landing page is marketing + contract, not the workbench. It answers three questions:
 
 1. **What do I get?** A multi-service stack on Zerops, not a zip of sample code.
-2. **Who owns the cloud?** You do — bring your own Zerops PAT; ZeroOps does not pretend to be the host.
+2. **Who owns the cloud?** You do — bring your own Zerops PAT; Zeroperable does not pretend to be the host.
 3. **How do I trust it?** Provisioning uses real `zcli` operations; the page surfaces live project metadata and a public URL when the platform has one.
 
 ### Hero
@@ -52,7 +52,7 @@ The page documents the **Studio itself** as a living Zerops service (dogfooding)
 
 ### Template topology
 
-What a full stack looks like when ZeroOps provisions customer apps:
+What a full stack looks like when Zeroperable provisions customer apps:
 
 ```text
 webapp        nodejs
@@ -83,16 +83,16 @@ The homepage shows the **Zerops project-import** contract: a generated project n
 
 ## How we use Zerops
 
-Zerops is not a bolt-on demo host. It is the **runtime and control plane** for both hosting ZeroOps and deploying what users build.
+Zerops is not a bolt-on demo host. It is the **runtime and control plane** for both hosting Zeroperable and deploying what users build.
 
 ### Two layers
 
 ```text
-LAYER A — Host ZeroOps itself
-  Developer ──zcli──► Zerops project (e.g. zeroops-studio)
+LAYER A — Host Zeroperable itself
+  Developer ──zcli──► Zerops project (e.g. zeroperable-studio)
   Result: public Studio URL on *.zerops.app
 
-LAYER B — ZeroOps deploys *user* stacks (the product)
+LAYER B — Zeroperable deploys *user* stacks (the product)
   User/judge in the UI
        → Studio server
        → zcli (user’s PAT)
@@ -104,7 +104,7 @@ Judges land on **Layer A** (the homepage and Studio). The homepage’s topology 
 
 ### Zerops primitives we lean on
 
-| Primitive | Role in ZeroOps |
+| Primitive | Role in Zeroperable |
 |-----------|-----------------|
 | **Project + services** | Isolated multi-container apps (web, API, worker, managed Postgres, Valkey) |
 | **`zerops-project-import.yml`** | Declares project name and service slots |
@@ -121,7 +121,7 @@ Judges land on **Layer A** (the homepage and Studio). The homepage’s topology 
 - Auto-shipping without an explicit user action where the product requires “Ship” / deploy  
 - Replacing Zerops’ control plane with a fake simulator for the happy path  
 
-Infrastructure truth comes from Zerops + `zcli`. ZeroOps is the synthesizer and UX around that truth.
+Infrastructure truth comes from Zerops + `zcli`. Zeroperable is the synthesizer and UX around that truth.
 
 ---
 
@@ -132,7 +132,7 @@ Infrastructure truth comes from Zerops + `zcli`. ZeroOps is the synthesizer and 
          │
          ▼
   ┌──────────────────┐
-  │  ZeroOps Studio  │  synthesize code + Zerops YAML
+  │  Zeroperable Studio  │  synthesize code + Zerops YAML
   └────────┬─────────┘
            │  zcli + user PAT
            ▼
@@ -146,6 +146,36 @@ Infrastructure truth comes from Zerops + `zcli`. ZeroOps is the synthesizer and 
 
 ---
 
+## Links
+
+| | |
+|--|--|
+| **Live** | https://studio-2cbd-3000.prg1.zerops.app |
+| **Demo** | https://studio-2cbd-3000.prg1.zerops.app/demo |
+| **Repo** | https://github.com/arogya01/zeropsio |
+| **Challenge** | [Zerops Challenge (WeMakeDevs)](https://www.wemakedevs.org/hackathons/zerops) |
+
+---
+
+## AI usage (disclosure)
+
+Two different places AI shows up — keep them separate:
+
+### 1. Inside the product
+
+- **What:** Optional LLM calls (OpenAI Chat Completions; model configurable via env, e.g. `OPENAI_MODEL`) to turn a natural-language prompt into app code / config (templates still work without a model).
+- **What is not AI:** Project import, build, deploy, log streaming, and health checks. Those go through **`zcli` → Zerops**. Live URLs come from the platform, not the model.
+- **Keys:** Demo/operator mode can use a server-side key; Studio can also use user-supplied credentials depending on path. Without a key, synthesis fails clearly or falls back to template/deterministic paths where implemented — it does not invent a public URL.
+
+### 2. Building this repo
+
+- Large parts of **Zeroperable itself** (UI, server glue, deploy pipeline, docs) were written or iterated with **AI coding assistants** (agentic tools in the IDE/CLI). Humans directed architecture, reviewed diffs, ran deploys, and fixed real Zerops/`zcli` failures.
+- This is a hackathon build: expect sharp edges. Prefer the live host + logs over marketing claims.
+
+We disclose this so judges and readers can tell **product AI** (prompt → code) from **infra truth** (Zerops) and from **how the codebase was authored**.
+
+---
+
 ## In one sentence
 
-**ZeroOps is a prompt-to-cloud factory whose homepage promise is: generate a real multi-service stack, provision it on Zerops with your token via `zcli`, audit it, and hand you the live URL.**
+**Zeroperable turns a prompt or template into a multi-service layout, provisions it on Zerops with your token via `zcli`, audits health, and returns the live URL when the platform has one.**
