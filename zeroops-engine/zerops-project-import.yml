@@ -9,7 +9,3 @@ services:
     enableSubdomainAccess: true
     minContainers: 1
     maxContainers: 1
-
-  - hostname: cache
-    type: valkey@7.2
-    mode: NON_HA
